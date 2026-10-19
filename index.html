@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Thám Tử Mạng - Hồ Sơ Lừa Đảo</title>
+  <meta name="description" content="Game giáo dục giúp học sinh nhận biết và phòng tránh lừa đảo trên mạng.">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Màn hình khóa / đăng nhập -->
+  <div id="lock" class="hidden"></div>
+
+  <!-- Màn hình desktop -->
+  <div id="desktop">
+    <div id="icons"></div>
+    <div id="windows"></div>
+  </div>
+
+  <!-- Menu Start -->
+  <div id="start-menu" class="hidden"></div>
+
+  <!-- Thanh taskbar -->
+  <div id="taskbar">
+    <div id="tb-center">
+      <button id="start-btn" title="Bắt đầu"></button>
+      <button id="tb-search"><span class="tbs-ico"></span><span class="tbs-text">Tìm kiếm</span></button>
+      <div id="task-apps"></div>
+    </div>
+    <div id="tray">
+      <div class="tray-item" id="tray-hp" title="Máu">
+        <span id="hp-ico"></span>
+        <div class="hpbar"><div id="hp-fill"></div></div>
+        <span id="hp-text"></span>
+      </div>
+      <div class="tray-item" title="Tiền thưởng"><span id="money-ico"></span><span id="money-text"></span></div>
+      <div class="tray-item hide-sm" title="Tổng số sao"><span id="star-ico"></span><span id="star-text"></span></div>
+      <div class="tray-sys hide-sm" id="tray-sys"></div>
+      <div class="tray-clock hide-sm"><span id="clock"></span><span id="date"></span></div>
+    </div>
+  </div>
+
+  <!-- Bác Tư hướng dẫn -->
+  <div id="tutor" class="hidden"></div>
+
+  <!-- Hộp thoại thông báo -->
+  <div id="modal-bg" class="hidden"><div id="modal"></div></div>
+  <div id="toasts"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
