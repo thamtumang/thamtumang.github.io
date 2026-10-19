@@ -1082,6 +1082,11 @@
         clearHL();
         const els = $$(st.target).filter(e => e.offsetParent !== null);
         els.slice(0, st.target === '.vb .clue' ? 99 : 1).forEach(e => e.classList.add('tut-pulse'));
+        // Cuộn tới chỗ cần bấm nếu nó đang nằm ngoài màn hình (hay gặp trên điện thoại)
+        if (els[0]) {
+          const r = els[0].getBoundingClientRect();
+          if (r.top < 60 || r.bottom > window.innerHeight - 70) els[0].scrollIntoView({ block: 'center' });
+        }
         place(els[0]);
       });
     }
