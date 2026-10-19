@@ -22,7 +22,7 @@ cách xử lý, cách chặn số lạ và các nguồn trợ giúp đáng tin c
 3. **Thiết bị dò tìm**: Kính lúp soi link 🔍, Máy tra ảnh 🖼️, Sổ tra số tài khoản 🏦, Máy soi hồ sơ 🪪.
 4. **Kết luận**: chọn **Tin tưởng / Nghi ngờ & xác minh / Chặn & báo cáo**, rồi chọn đúng **kiểu lừa đảo**.
 5. Đúng thì nhận ⭐ và 💰. Sai thì mất ❤️ và thấy ngay hậu quả. Hết máu chỉ phải chơi lại vụ đó.
-6. **Sổ Huy hiệu** 📒: mỗi kiểu lừa đảo có 5 sao. Đủ 5 sao nhận huy hiệu và mở **Bí kíp phòng tránh**.
+6. **Sổ Huy hiệu** 📒: mỗi kiểu lừa đảo có 6 sao. Đủ 6 sao nhận huy hiệu và mở **Bí kíp phòng tránh**.
 7. **Cửa hàng** 🏪: dùng tiền mua và nâng cấp thiết bị (3 cấp). Có mục **Ôn tập hồi máu** miễn phí.
 8. Khi mọi kiểu lừa đảo có ít nhất 3 sao, mở **Hồ sơ cuối: lật mặt đường dây "Bóng Đêm"**.
 9. **Bảng xếp hạng** 🏆: điểm = số sao × 100 + số huy hiệu × 200 + 1000 nếu hạ được "Bóng Đêm".
@@ -37,16 +37,16 @@ Chơi lại hướng dẫn, xóa tiến trình hoặc đăng xuất: mở menu *
 
 | Chương | Kiểu lừa đảo | Số tình huống |
 |---|---|---|
-| 1 | Giả mạo trúng thưởng (`prize`) | 5 |
-| 2 | Giả danh người quen, cơ quan (`impersonate`) | 5 |
-| 3 | Đầu tư, việc làm online (`job`) | 5 |
-| 4 | Link giả mạo, phishing (`phishing`) | 5 |
-| 5 | Lừa lấy mã OTP (`otp`) | 5 |
-| 6 | Giả danh giảng viên, nhà trường (`school`) | 5 |
-| 7 | Học bổng, vay tiền sinh viên (`loan`) | 5 |
+| 1 | Giả mạo trúng thưởng (`prize`) | 6 |
+| 2 | Giả danh người quen, cơ quan (`impersonate`) | 6 |
+| 3 | Đầu tư, việc làm online (`job`) | 6 |
+| 4 | Link giả mạo, phishing (`phishing`) | 6 |
+| 5 | Lừa lấy mã OTP (`otp`) | 6 |
+| 6 | Giả danh giảng viên, nhà trường (`school`) | 6 |
+| 7 | Học bổng, vay tiền sinh viên (`loan`) | 6 |
 | Cuối | Đường dây "Bóng Đêm" | 8 vòng |
 
-Mỗi chương có 1 tình huống **an toàn** (ví dụ email thật từ đuôi `.edu.vn`, tin biến động số dư thật) và 1 tình huống
+Mỗi chương có 3 tình huống lừa đảo, 2 tình huống **an toàn** (ví dụ email thật từ đuôi `.edu.vn`, tin biến động số dư thật) và 1 tình huống
 **cần xác minh** (ví dụ mẹ nhắn từ số mới), để người chơi không bấm "báo cáo" theo thói quen mà phải thật sự đọc dấu hiệu.
 
 Nhân vật là sinh viên của **Trường Đại học Sao Mai** (trường hư cấu, web `saomai.edu.vn`). Ngân hàng Sao Việt, Ví MoMi,
@@ -132,6 +132,8 @@ git push -u origin main
 5. Gửi link này cho học sinh. Chơi được trên cả máy tính và điện thoại.
 
 Mỗi lần bạn push code mới lên nhánh `main`, trang web tự cập nhật sau khoảng 1 phút.
+
+> Mẹo: trong `index.html`, các file đều có đuôi dạng `?v=1019c`. Mỗi lần sửa game, hãy đổi số này (ví dụ `?v=1020a`) để điện thoại và trình duyệt trong Messenger, Zalo tải bản mới thay vì dùng bản cũ đã lưu.
 
 ---
 
@@ -242,8 +244,8 @@ Mọi nội dung nằm trong `js/data.js`. Không cần sửa `game.js`.
 
 ### Lưu ý khi thêm nội dung
 
-- Mỗi kiểu lừa đảo cần **đúng 5 tình huống** để Sổ Huy hiệu tính đủ 5 sao. Nếu thêm nhiều hơn 5, học sinh sẽ nhận huy hiệu khi có 5 sao bất kỳ.
-- Muốn thêm **kiểu lừa đảo mới**: thêm một mục vào `SCAM_TYPES` (có `id`, `name`, `color`, `badge`, `sign`, `tips`) rồi viết 5 tình huống với `type` là `id` đó. Icon của kiểu mới khai báo trong `TYPE_ICONS` ở `js/icons.js`.
+- Mỗi kiểu lừa đảo hiện có **6 tình huống** (6 sao). Nếu đổi số tình huống mỗi chương, sửa `STARS_PER_TYPE` ở đầu `js/game.js` cho bằng số đó.
+- Muốn thêm **kiểu lừa đảo mới**: thêm một mục vào `SCAM_TYPES` (có `id`, `name`, `color`, `badge`, `sign`, `tips`) rồi viết 6 tình huống với `type` là `id` đó. Icon của kiểu mới khai báo trong `TYPE_ICONS` ở `js/icons.js`.
 - Có thể sửa thư của Bác Tư trong `LETTERS`, các vòng trùm cuối trong `BOSS_ROUNDS`, câu hỏi hồi máu trong `QUIZ`, cẩm nang xử lý trong `HELP`.
 - Sửa xong, lưu file và tải lại trang. Nếu game trắng trang, bấm `F12` → tab **Console** để xem lỗi (thường do thiếu dấu phẩy hoặc dấu nháy).
 

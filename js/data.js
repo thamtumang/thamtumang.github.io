@@ -184,7 +184,47 @@ const SCENARIOS = [
   },
 
   {
-    id: 'prize-2', type: 'prize', title: 'Quà minigame',
+    id: 'prize-2', type: 'prize', title: 'Quà minigame về thật',
+    reporter: 'Hà Vy · K49 Sinh học',
+    report: {
+      from: 'Trịnh Hà Vy', sub: 'SV năm 2 · Khoa Sinh học',
+      msgs: [
+        { time: '17:46' },
+        'ad ơi',
+        'e vừa nhận tin này, ghi là quà tặng minigame',
+        { shot: ['GNV: Don GNV2610194417', '(Qua tang minigame - Shop Len May)', 'Thu ho COD: 0d', 'Tra cuu tai gnv.vn'], app: 'Tin nhắn' },
+        'tuần trước e có cmt minigame của shop Len Mây trên sàn MuaVui thật, mà đọc mấy vụ quà tặng lừa nhiều quá 🥲',
+        'có link trong tin nữa nên e chưa dám bấm'
+      ]
+    },
+    view: {
+      kind: 'chat', app: 'sms',
+      contact: { name: 'GNV', avatar: '🚚', color: '#ea580c', sub: '[[c-brand|Tin nhắn SMS · cùng luồng với các tin giao hàng trước]]' },
+      messages: [
+        { who: 'sys', text: '28 thg 9' },
+        { who: 'them', text: 'GNV: Don GNV2609283310 da giao thanh cong luc 15:02 28/09. Cam on Quy khach da su dung dich vu GNV.' },
+        { who: 'sys', text: 'Hôm nay 17:38' },
+        { who: 'them', text: 'GNV: Don [[c-code|GNV2610194417]] ([[c-shop|Qua tang minigame - Shop Len May]]) dang duoc van chuyen, du kien giao 20/10 den KTX DH Sao Mai. [[c-cod|Thu ho (COD): 0d]]. Tra cuu tai [[c-site|gnv.vn]] hoac app GNV. GNV khong yeu cau chuyen khoan truoc.' }
+      ]
+    },
+    clues: {
+      'c-brand': 'Tên người gửi đúng brandname GNV và nằm chung luồng với tin giao hàng thật Vy nhận hồi tháng 9. Dấu hiệu tốt.',
+      'c-code': 'Có mã vận đơn cụ thể. Vy tự mở app GNV gõ mã này vào là thấy đơn từ shop Len Mây, không cần bấm gì trong tin.',
+      'c-shop': 'Vy có tham gia minigame thật, và shop Len Mây đã đăng tên người trúng trong mục thông báo của shop trên sàn MuaVui. Có tham gia thì mới có trúng.',
+      'c-cod': 'Thu hộ 0đ: không phải trả đồng nào, kể cả khi nhận. Ngược hẳn với kiểu "quà miễn phí nhưng nộp phí ship trước".',
+      'c-site': 'Chỉ ghi tên miền chính thức gnv.vn để tự tra, không phải đường link lạ có gạch nối hay đuôi .top, .xyz.'
+    },
+    evidence: {
+      link: { url: 'gnv.vn/tra-cuu', bad: false, highlight: '', detail: 'Trang tra cứu vận đơn chính thức của Giao Nhanh Việt. Mã GNV2610194417 hiện: người gửi Shop Len Mây (sàn MuaVui), hàng "Quà tặng", COD 0đ.', clue: 'c-site' },
+      profile: { bad: false, created: 'Brandname GNV đăng ký từ 2017', friends: 'Đầu số tin nhắn thương hiệu chính thức', detail: 'Tin đến từ brandname chính thức của GNV, cùng luồng với tin giao hàng cũ, không đòi tiền, không đòi thông tin.', clue: 'c-brand' }
+    },
+    answer: 'trust',
+    consequence: 'Nếu Vy chặn số và báo cáo, Vy không nhận tin giao hàng nữa, shipper gọi không ai nghe, đơn quà bị hoàn về shop Len Mây và Vy mất món quà minigame mình trúng thật.',
+    explain: 'Vy có tham gia minigame, tin đến từ đúng brandname GNV, mã vận đơn tra được trên gnv.vn, COD 0đ và không đòi chuyển khoản.',
+    rule: 'Quà thật: có tham gia, tự tra được mã trên kênh chính thức, và không phải trả đồng nào trước.'
+  },
+  {
+    id: 'prize-3', type: 'prize', title: 'Quà minigame',
     reporter: 'Bảo Ngọc · K48 Tâm lý học',
     report: {
       from: 'Phạm Bảo Ngọc', sub: 'SV năm 2 · Khoa Tâm lý học',
@@ -226,7 +266,7 @@ const SCENARIOS = [
     rule: 'Có tham gia mà nghi ngờ: hỏi thẳng bên tổ chức qua kênh chính thức, chỉ trả COD khi cầm hàng trên tay.'
   },
   {
-    id: 'prize-3', type: 'prize', title: 'Tri ân thuê bao',
+    id: 'prize-4', type: 'prize', title: 'Tri ân thuê bao',
     reporter: 'Hoàng Long · K47 Toán',
     report: {
       from: 'Trần Hoàng Long', sub: 'SV năm 2 · Khoa Toán',
@@ -267,7 +307,7 @@ const SCENARIOS = [
     rule: 'Trúng thưởng mà phải nộp phí, nộp thuế trước: chặn và chuyển tin tới 156.'
   },
   {
-    id: 'prize-4', type: 'prize', title: 'Bốc thăm Ngày hội',
+    id: 'prize-5', type: 'prize', title: 'Bốc thăm Ngày hội',
     reporter: 'Quốc Huy · K49 Tin học',
     report: {
       from: 'Đỗ Quốc Huy', sub: 'SV năm 1 · Khoa Tin học',
@@ -308,7 +348,7 @@ const SCENARIOS = [
     rule: 'Không phải giải thưởng nào cũng là lừa: có tham gia, kênh chính thức, không đòi phí thì yên tâm.'
   },
   {
-    id: 'prize-5', type: 'prize', title: 'Học bổng laptop',
+    id: 'prize-6', type: 'prize', title: 'Học bổng laptop',
     reporter: 'Thu Trang · K49 Sinh học',
     report: {
       from: 'Lê Thu Trang', sub: 'SV năm 1 · Khoa Sinh học',
@@ -395,7 +435,53 @@ const SCENARIOS = [
     rule: 'Người quen nhắn mượn tiền: gọi điện cho chính họ qua số cũ trước khi chuyển một đồng.'
   },
   {
-    id: 'impersonate-2', type: 'impersonate', title: '"Công an quận" gọi',
+    id: 'impersonate-2', type: 'impersonate', title: 'Bạn cùng phòng mượn 200k',
+    reporter: 'Ngọc Trâm · K49 Hóa học',
+    report: {
+      from: 'Lâm Ngọc Trâm', sub: 'SV năm 2 · Khoa Hóa học',
+      msgs: [
+        { time: '12:21' },
+        'dạ em chào anh chị ạ',
+        'bạn cùng phòng em nhắn mess mượn 200k',
+        { shot: ['Thu Thảo', 't quên ví ở phòng rồi', 'cho t mượn 200k đóng tiền photo tài liệu nhé', 'tối t trả'], app: 'Messenger' },
+        'em đọc mấy vụ hack nick mượn tiền nên hơi run 😅 em có gọi video rồi',
+        'nhưng nghe bảo giờ có cả video giả nữa, em ck được ko ạ'
+      ]
+    },
+    view: {
+      kind: 'chat', app: 'messenger',
+      contact: { name: 'Thu Thảo', avatar: '👧', color: '#db2777', sub: '[[c-friend|Bạn bè trên ViệtBook từ 2025 · 64 bạn chung]]' },
+      messages: [
+        { who: 'sys', text: '15 thg 10' },
+        { who: 'them', text: '[[c-history|t ck trả m 150k tiền điện hôm trước rồi nhé, check đi]]' },
+        { who: 'me', text: 'ok nhận r 👍' },
+        { who: 'sys', text: 'Hôm nay 12:05' },
+        { who: 'them', text: 'Trâm ơi t quên ví ở phòng rồi 😭 cho t mượn 200k đóng tiền photo tài liệu Hóa phân tích nhé, tối về t trả' },
+        { who: 'me', text: 'gọi video t xem cái 😅' },
+        { who: 'sys', text: '[[c-video|Cuộc gọi video · 1 phút 42 giây]]' },
+        { who: 'them', text: 'thấy mặt t chưa 😂 [[c-secret|mà t vẫn nhớ m chưa trả t hộp mì hôm thứ 2 nhé]]' },
+        { who: 'them', text: 'STK t đây [[c-acc|0071 4589 2210 SaoVietBank TRAN THU THAO]], [[c-calm|ko gấp đâu, lúc nào m rảnh thì ck]]' }
+      ]
+    },
+    clues: {
+      'c-friend': 'Tài khoản quen lâu năm, nhiều bạn chung, chính là tài khoản Trâm vẫn nhắn với Thảo hằng ngày.',
+      'c-history': 'Lần trước Thảo mượn tiền đã trả đúng hẹn. Tài khoản bị chiếm thường đi kèm tin lạ, không có lịch sử như vậy.',
+      'c-video': 'Trâm đã gọi video gần 2 phút, nói chuyện qua lại. Video giả thường chỉ vài giây, chập chờn, rồi kêu "mạng yếu" tắt ngay.',
+      'c-secret': 'Thảo nhắc chuyện riêng của phòng mà người ngoài không biết. Đây là cách hỏi lại rất tốt.',
+      'c-acc': 'Tài khoản đứng tên chính Thảo, không phải tên người lạ hay "nhờ chuyển hộ".',
+      'c-calm': 'Không hối thúc, không dọa, số tiền nhỏ, lý do cụ thể. Kẻ gian thì luôn giục "gấp lắm".'
+    },
+    evidence: {
+      account: { number: '0071 4589 2210', bank: 'Ngân hàng Sao Việt', owner: 'TRAN THU THAO', reports: 0, bad: false, detail: 'Tài khoản đứng tên Trần Thu Thảo, trùng tên bạn cùng phòng. Chính tài khoản này đã chuyển trả Trâm 150.000đ hôm 15/10.', clue: 'c-acc' },
+      profile: { bad: false, created: 'Năm 2025', friends: '412 bạn bè, 64 bạn chung', detail: 'Tài khoản dùng lâu năm, ảnh và bài đăng đều đặn, không đổi tên, không có dấu hiệu bị chiếm.', clue: 'c-friend' }
+    },
+    answer: 'trust',
+    consequence: 'Nếu Trâm chặn và báo cáo, tài khoản ViệtBook của Thảo bị khóa tạm vì bị tố cáo lừa đảo, Thảo không nộp được tiền photo kịp buổi học và hai bạn cùng phòng giận nhau cả tuần.',
+    explain: 'Đúng tài khoản quen, đã gọi video nói chuyện qua lại, nhắc được chuyện riêng, STK chính chủ và không hối thúc.',
+    rule: 'Người quen hỏi mượn tiền: gọi video, hỏi chuyện chỉ hai người biết, khớp hết thì mới chuyển.'
+  },
+  {
+    id: 'impersonate-3', type: 'impersonate', title: '"Công an quận" gọi',
     reporter: 'Thu Trang · K50 Tâm lý học',
     report: {
       from: 'Đỗ Thu Trang', sub: 'SV năm 1 · Khoa Tâm lý học',
@@ -439,44 +525,6 @@ const SCENARIOS = [
     consequence: 'Trang chuyển 18.500.000đ, tiền học kỳ bố mẹ vừa gửi. Hôm sau "thượng úy" đòi thêm 30 triệu "phí bảo lãnh" rồi chặn Zalo. Không có vụ án nào cả.',
     explain: 'Công an không làm việc qua Zalo, không bắt giữ bí mật và không bao giờ đòi chuyển tiền vào "tài khoản tạm giữ".',
     rule: 'Ai xưng công an đòi chuyển tiền: tắt máy, kể ngay với người nhà, gọi 113.'
-  },
-  {
-    id: 'impersonate-3', type: 'impersonate', title: 'Tin biến động số dư',
-    reporter: 'Khánh Linh · K50 Ngữ văn',
-    report: {
-      from: 'Lê Khánh Linh', sub: 'SV năm 1 · Khoa Ngữ văn',
-      msgs: [
-        { time: '19:03' },
-        'hi ad',
-        'mấy hôm nay đọc tin giả ngân hàng nhiều quá giờ thấy tin nào từ SaoVietBank e cũng sợ',
-        { shot: ['SaoVietBank', 'TK 0071xxx896 +2,000,000VND', 'luc 18:57 19/10/2026', 'ND: ME CK TIEN AN THANG 10'], app: 'Tin nhắn' },
-        'tin này là mẹ e ck tiền ăn thật ko ạ hay lại lừa'
-      ]
-    },
-    view: {
-      kind: 'chat', app: 'sms',
-      contact: { name: 'SaoVietBank', avatar: '🏦', color: '#b91c1c', sub: '[[c-brand|Tin nhắn SMS · Cùng luồng tin cũ]]' },
-      messages: [
-        { who: 'sys', text: '12/10 08:15' },
-        { who: 'them', text: 'SaoVietBank: TK 0071xxx896 -150,000VND luc 08:14 12/10/2026. SD: 1,235,000VND. ND: NAP TIEN DIEN THOAI' },
-        { who: 'sys', text: 'Hôm nay 18:57' },
-        { who: 'them', text: 'SaoVietBank: TK [[c-mask|0071xxx896]] +2,000,000VND luc 18:57 19/10/2026. SD: 3,085,000VND. [[c-memo|ND: ME CK TIEN AN THANG 10]]' },
-        { who: 'them', text: 'SaoVietBank: [[c-warn|Ngan hang KHONG yeu cau Quy khach cung cap OTP, mat khau qua dien thoai, tin nhan. Hotline 1900 6060]]' }
-      ]
-    },
-    clues: {
-      'c-brand': 'Tên người gửi đúng "SaoVietBank", và tin nằm chung luồng với các tin biến động số dư cũ bạn từng nhận. Dấu hiệu tốt.',
-      'c-mask': 'Số tài khoản được che bớt và khớp với tài khoản của chính bạn. Tin chỉ báo thông tin, không có link nào.',
-      'c-memo': 'Nội dung chuyển khoản khớp với việc mẹ hay gửi tiền ăn. Không đòi bạn làm gì, không đòi trả lại tiền.',
-      'c-warn': 'Tin còn nhắc chính bạn đừng đưa OTP và ghi đúng tổng đài 1900 6060. Ngân hàng thật hay nhắc như vậy.'
-    },
-    evidence: {
-      account: { number: '0071xxx896', bank: 'Ngân hàng Sao Việt', owner: 'LE KHANH LINH', reports: 0, bad: false, detail: 'Đây là tài khoản của chính Linh. Mở app SaoViet Mobile thấy đúng giao dịch +2.000.000đ từ tài khoản của mẹ lúc 18:57.', clue: 'c-mask' }
-    },
-    answer: 'trust',
-    consequence: 'Nếu Linh báo cáo và xóa tin, cũng không sao, nhưng Linh sẽ lo lắng vô cớ và có thể bỏ qua cả những thông báo thật quan trọng từ ngân hàng.',
-    explain: 'Brandname đúng, nằm chung luồng tin cũ, không có link, không đòi OTP hay tiền, và số dư khớp trong app.',
-    rule: 'Tin ngân hàng chỉ báo thông tin, không link, không đòi gì: vẫn tự kiểm tra trong app là yên tâm.'
   },
   {
     id: 'impersonate-4', type: 'impersonate', title: 'Mẹ nhắn từ số mới',
@@ -556,6 +604,44 @@ const SCENARIOS = [
     explain: 'Ngân hàng không gửi link bắt đăng nhập hay nhập OTP. Muốn cập nhật sinh trắc học thì tự mở app SaoViet Mobile hoặc ra quầy.',
     rule: 'Tin "ngân hàng" có link: không bấm, tự mở app chính thức hoặc gọi 1900 6060.'
   },
+  {
+    id: 'impersonate-6', type: 'impersonate', title: 'Tin biến động số dư',
+    reporter: 'Khánh Linh · K50 Ngữ văn',
+    report: {
+      from: 'Lê Khánh Linh', sub: 'SV năm 1 · Khoa Ngữ văn',
+      msgs: [
+        { time: '19:03' },
+        'hi ad',
+        'mấy hôm nay đọc tin giả ngân hàng nhiều quá giờ thấy tin nào từ SaoVietBank e cũng sợ',
+        { shot: ['SaoVietBank', 'TK 0071xxx896 +2,000,000VND', 'luc 18:57 19/10/2026', 'ND: ME CK TIEN AN THANG 10'], app: 'Tin nhắn' },
+        'tin này là mẹ e ck tiền ăn thật ko ạ hay lại lừa'
+      ]
+    },
+    view: {
+      kind: 'chat', app: 'sms',
+      contact: { name: 'SaoVietBank', avatar: '🏦', color: '#b91c1c', sub: '[[c-brand|Tin nhắn SMS · Cùng luồng tin cũ]]' },
+      messages: [
+        { who: 'sys', text: '12/10 08:15' },
+        { who: 'them', text: 'SaoVietBank: TK 0071xxx896 -150,000VND luc 08:14 12/10/2026. SD: 1,235,000VND. ND: NAP TIEN DIEN THOAI' },
+        { who: 'sys', text: 'Hôm nay 18:57' },
+        { who: 'them', text: 'SaoVietBank: TK [[c-mask|0071xxx896]] +2,000,000VND luc 18:57 19/10/2026. SD: 3,085,000VND. [[c-memo|ND: ME CK TIEN AN THANG 10]]' },
+        { who: 'them', text: 'SaoVietBank: [[c-warn|Ngan hang KHONG yeu cau Quy khach cung cap OTP, mat khau qua dien thoai, tin nhan. Hotline 1900 6060]]' }
+      ]
+    },
+    clues: {
+      'c-brand': 'Tên người gửi đúng "SaoVietBank", và tin nằm chung luồng với các tin biến động số dư cũ bạn từng nhận. Dấu hiệu tốt.',
+      'c-mask': 'Số tài khoản được che bớt và khớp với tài khoản của chính bạn. Tin chỉ báo thông tin, không có link nào.',
+      'c-memo': 'Nội dung chuyển khoản khớp với việc mẹ hay gửi tiền ăn. Không đòi bạn làm gì, không đòi trả lại tiền.',
+      'c-warn': 'Tin còn nhắc chính bạn đừng đưa OTP và ghi đúng tổng đài 1900 6060. Ngân hàng thật hay nhắc như vậy.'
+    },
+    evidence: {
+      account: { number: '0071xxx896', bank: 'Ngân hàng Sao Việt', owner: 'LE KHANH LINH', reports: 0, bad: false, detail: 'Đây là tài khoản của chính Linh. Mở app SaoViet Mobile thấy đúng giao dịch +2.000.000đ từ tài khoản của mẹ lúc 18:57.', clue: 'c-mask' }
+    },
+    answer: 'trust',
+    consequence: 'Nếu Linh báo cáo và xóa tin, cũng không sao, nhưng Linh sẽ lo lắng vô cớ và có thể bỏ qua cả những thông báo thật quan trọng từ ngân hàng.',
+    explain: 'Brandname đúng, nằm chung luồng tin cũ, không có link, không đòi OTP hay tiền, và số dư khớp trong app.',
+    rule: 'Tin ngân hàng chỉ báo thông tin, không link, không đòi gì: vẫn tự kiểm tra trong app là yên tâm.'
+  },
 
   /* ===================== ĐẦU TƯ, VIỆC LÀM ONLINE ===================== */
   {
@@ -604,7 +690,48 @@ const SCENARIOS = [
     rule: 'Việc thật trả tiền cho bạn. Việc bắt bạn nạp tiền là lừa đảo.'
   },
   {
-    id: 'job-2', type: 'job', title: 'Chuyên gia sàn vàng',
+    id: 'job-2', type: 'job', title: 'Phục vụ quán cà phê',
+    reporter: 'Hoàng Nam · K50 Tin học',
+    report: {
+      from: 'Đỗ Hoàng Nam', sub: 'SV năm 1 · Khoa Tin học',
+      msgs: [
+        { time: '19:48' },
+        'chào ad, e hỏi chút ạ',
+        'e có bình luận "e quan tâm" dưới bài tuyển part time, xong có chị nhắn messenger bảo là quản lý quán Gác Nhỏ Coffee',
+        'hẹn e sáng t7 qua phỏng vấn, 22k/h',
+        { shot: ['Em gửi chị ảnh CCCD 2 mặt để chị làm hồ sơ trước nhé', 'Quán ở số 18 ngõ 7 đường Hoa Sữa', 'Sáng thứ 7 9h em qua phỏng vấn'], app: 'Messenger' },
+        'chưa thấy đòi tiền j. mà e ko biết quán này có thật ko 😅 có nên gửi cccd ko ạ'
+      ]
+    },
+    view: {
+      kind: 'chat', app: 'messenger',
+      contact: { name: 'Quỳnh Trang', avatar: '👩', color: '#0891b2', sub: '[[c-notfriend|Không phải bạn bè trên ViệtBook]]' },
+      messages: [
+        { who: 'sys', text: 'Hôm nay 18:30' },
+        { who: 'them', text: 'Chào em, chị là Trang quản lý bên [[c-shop|Gác Nhỏ Coffee]], thấy em bình luận dưới bài tuyển nhân viên' },
+        { who: 'them', text: 'Quán cần bạn phục vụ ca tối 18h-22h, [[c-pay|22k/h]], tuần làm ít nhất 4 ca nha em' },
+        { who: 'me', text: 'dạ vâng chị, em làm được ca tối ạ' },
+        { who: 'them', text: 'Ok em, sáng thứ 7 9h em qua phỏng vấn ở [[c-addr|số 18 ngõ 7 đường Hoa Sữa]] nhé' },
+        { who: 'them', text: 'À em [[c-cccd|gửi chị ảnh CCCD 2 mặt]] để chị làm hồ sơ trước cho nhanh' }
+      ]
+    },
+    clues: {
+      'c-notfriend': 'Một tài khoản cá nhân nhắn tới, chưa có gì cho thấy chị ấy làm ở quán thật.',
+      'c-shop': 'Có tên quán cụ thể. Hãy tự tìm trang chính thức hoặc số điện thoại của quán để hỏi lại.',
+      'c-pay': 'Mức lương bình thường với việc phục vụ, không phải kiểu "việc nhẹ lương cao". Đây là điểm tốt.',
+      'c-addr': 'Hẹn phỏng vấn trực tiếp ở một địa chỉ cụ thể là dấu hiệu tốt, nhưng cần kiểm tra địa chỉ đó có quán thật không.',
+      'c-cccd': 'Chưa phỏng vấn đã xin ảnh CCCD qua tin nhắn. Đừng gửi, hãy mang CCCD đến khi phỏng vấn trực tiếp.'
+    },
+    evidence: {
+      profile: { bad: false, created: '4 năm trước', friends: '612 bạn bè', detail: 'Tài khoản có thật, có vài ảnh chụp ở một quán cà phê. Nhưng chưa xác nhận được chị ấy là quản lý, cần gọi số của quán để hỏi.', clue: 'c-notfriend' }
+    },
+    answer: 'suspect',
+    consequence: 'Nếu tin ngay và gửi ảnh CCCD, Nam có thể bị dùng giấy tờ để mở tài khoản ngân hàng hay vay tiền online. Nếu chặn luôn, Nam có thể bỏ lỡ một việc làm thêm thật.',
+    explain: 'Chưa đòi tiền và có hẹn phỏng vấn trực tiếp là dấu hiệu tốt, nhưng phải tự kiểm tra quán qua kênh chính thức và không gửi CCCD trước.',
+    rule: 'Tự tìm số của quán để hỏi, đến tận nơi phỏng vấn, giấy tờ giữ trong túi.'
+  },
+  {
+    id: 'job-3', type: 'job', title: 'Chuyên gia sàn vàng',
     reporter: 'Quốc Bảo · K47 Toán',
     report: {
       from: 'Phạm Quốc Bảo', sub: 'SV năm 3 · Khoa Toán',
@@ -650,48 +777,48 @@ const SCENARIOS = [
     rule: 'Hứa lãi cao, cam kết không lỗ: chắc chắn là lừa.'
   },
   {
-    id: 'job-3', type: 'job', title: 'Phục vụ quán cà phê',
-    reporter: 'Hoàng Nam · K50 Tin học',
+    id: 'job-4', type: 'job', title: 'Quán sách tuyển part-time',
+    reporter: 'Thành Đạt · K50 Lịch sử',
     report: {
-      from: 'Đỗ Hoàng Nam', sub: 'SV năm 1 · Khoa Tin học',
+      from: 'Hoàng Thành Đạt', sub: 'SV năm 1 · Khoa Lịch sử',
       msgs: [
-        { time: '19:48' },
-        'chào ad, e hỏi chút ạ',
-        'e có bình luận "e quan tâm" dưới bài tuyển part time, xong có chị nhắn messenger bảo là quản lý quán Gác Nhỏ Coffee',
-        'hẹn e sáng t7 qua phỏng vấn, 22k/h',
-        { shot: ['Em gửi chị ảnh CCCD 2 mặt để chị làm hồ sơ trước nhé', 'Quán ở số 18 ngõ 7 đường Hoa Sữa', 'Sáng thứ 7 9h em qua phỏng vấn'], app: 'Messenger' },
-        'chưa thấy đòi tiền j. mà e ko biết quán này có thật ko 😅 có nên gửi cccd ko ạ'
+        { time: '20:34' },
+        'chào ad',
+        'e thấy bài tuyển part time ở quán sách, lương 25k/h, ko cần kinh nghiệm',
+        { shot: ['Tiệm sách Gác Nhỏ tuyển nhân viên part-time', '25.000đ/giờ, ca linh hoạt', 'Không cần kinh nghiệm', 'Inbox hoặc nộp CV tại quán'], app: 'ViệtBook' },
+        'nghe ngon quá nên e nghi 😅 hôm trước bạn e dính vụ quán cà phê bắt đóng tiền đồng phục rồi'
       ]
     },
     view: {
-      kind: 'chat', app: 'messenger',
-      contact: { name: 'Quỳnh Trang', avatar: '👩', color: '#0891b2', sub: '[[c-notfriend|Không phải bạn bè trên ViệtBook]]' },
-      messages: [
-        { who: 'sys', text: 'Hôm nay 18:30' },
-        { who: 'them', text: 'Chào em, chị là Trang quản lý bên [[c-shop|Gác Nhỏ Coffee]], thấy em bình luận dưới bài tuyển nhân viên' },
-        { who: 'them', text: 'Quán cần bạn phục vụ ca tối 18h-22h, [[c-pay|22k/h]], tuần làm ít nhất 4 ca nha em' },
-        { who: 'me', text: 'dạ vâng chị, em làm được ca tối ạ' },
-        { who: 'them', text: 'Ok em, sáng thứ 7 9h em qua phỏng vấn ở [[c-addr|số 18 ngõ 7 đường Hoa Sữa]] nhé' },
-        { who: 'them', text: 'À em [[c-cccd|gửi chị ảnh CCCD 2 mặt]] để chị làm hồ sơ trước cho nhanh' }
+      kind: 'post',
+      author: { name: 'Trung tâm Hỗ trợ sinh viên - ĐH Sao Mai', avatar: '🏛️', color: '#0f766e', verified: true, meta: '[[c-page|Trang chính thức · hoạt động từ 2015]] · 🌐' },
+      text: '📌 VIỆC LÀM THÊM ĐÃ ĐƯỢC TRUNG TÂM KIỂM TRA\n\nTiệm sách cà phê Gác Nhỏ tuyển 03 nhân viên part-time (sắp xếp sách, thu ngân, pha chế đơn giản).\n💰 25.000đ/giờ, ca 4 tiếng, xếp lịch theo thời khóa biểu. Không cần kinh nghiệm, được hướng dẫn.\n📍 [[c-addr|Địa chỉ: 18 ngõ 47 đường Sao Mai, cách cổng phụ trường 300m]]\n🗣️ [[c-meet|Phỏng vấn trực tiếp tại quán]] từ 21/10, mang CV và thẻ sinh viên.\n📝 [[c-contract|Ký hợp đồng lao động thời vụ, lương trả cuối tháng]] vào tài khoản đứng tên sinh viên.\n✅ [[c-nofee|Không thu phí đồng phục, phí giữ chỗ hay đặt cọc. Không giữ CCCD bản gốc.]]\n\nĐăng ký phỏng vấn tại Trung tâm, tầng 1 nhà A2, hoặc xem chi tiết bên dưới.',
+      link: { url: 'saomai.edu.vn/hotrosv/viec-lam-them', title: 'Danh sách việc làm thêm đã kiểm tra - Trung tâm Hỗ trợ SV', clue: 'c-link' },
+      stats: '👍 642 · 💬 87 · ↗ 120',
+      comments: [
+        { name: 'Phương Linh', text: 'Mình làm ở đây từ năm ngoái, chủ quán dễ thương lắm, lương trả đúng ngày nha các bạn.' },
+        { name: 'Trung tâm Hỗ trợ sinh viên - ĐH Sao Mai', text: 'Lưu ý: nơi nào bắt nộp tiền trước khi đi làm, các bạn báo ngay cho Trung tâm nhé.' }
       ]
     },
     clues: {
-      'c-notfriend': 'Một tài khoản cá nhân nhắn tới, chưa có gì cho thấy chị ấy làm ở quán thật.',
-      'c-shop': 'Có tên quán cụ thể. Hãy tự tìm trang chính thức hoặc số điện thoại của quán để hỏi lại.',
-      'c-pay': 'Mức lương bình thường với việc phục vụ, không phải kiểu "việc nhẹ lương cao". Đây là điểm tốt.',
-      'c-addr': 'Hẹn phỏng vấn trực tiếp ở một địa chỉ cụ thể là dấu hiệu tốt, nhưng cần kiểm tra địa chỉ đó có quán thật không.',
-      'c-cccd': 'Chưa phỏng vấn đã xin ảnh CCCD qua tin nhắn. Đừng gửi, hãy mang CCCD đến khi phỏng vấn trực tiếp.'
+      'c-page': 'Bài đăng trên trang có tích xanh của Trung tâm Hỗ trợ sinh viên, không phải nhóm "việc làm thêm" vô danh.',
+      'c-addr': 'Có địa chỉ quán cụ thể gần trường, Đạt tự đi tới xem được. Lương 25.000đ/giờ cũng là mức bình thường, không "việc nhẹ lương cao".',
+      'c-meet': 'Phỏng vấn tận mặt tại quán. Việc làm lừa đảo thì chỉ nhắn qua Zalo, Telegram, không bao giờ cho gặp.',
+      'c-contract': 'Có hợp đồng, lương trả vào tài khoản của chính sinh viên: quyền lợi được ghi rõ ràng.',
+      'c-nofee': 'Ghi thẳng không thu phí đồng phục, đặt cọc, không giữ giấy tờ. Đúng là chỗ vụ quán cà phê lừa bạn Đạt hay giở trò.',
+      'c-link': 'Đường dẫn thuộc tên miền saomai.edu.vn của trường, đúng từng chữ.'
     },
     evidence: {
-      profile: { bad: false, created: '4 năm trước', friends: '612 bạn bè', detail: 'Tài khoản có thật, có vài ảnh chụp ở một quán cà phê. Nhưng chưa xác nhận được chị ấy là quản lý, cần gọi số của quán để hỏi.', clue: 'c-notfriend' }
+      link: { url: 'saomai.edu.vn/hotrosv/viec-lam-them', bad: false, highlight: '', detail: 'Trang của Trung tâm Hỗ trợ sinh viên trên tên miền chính thức của trường. Tiệm sách Gác Nhỏ có trong danh sách đối tác đã kiểm tra từ 2024.', clue: 'c-link' },
+      profile: { bad: false, created: 'Năm 2015', friends: '15.000 người theo dõi', detail: 'Trang chính thức có dấu tích xanh, được liên kết từ website saomai.edu.vn, đăng tin việc làm đều đặn.', clue: 'c-page' }
     },
-    answer: 'suspect',
-    consequence: 'Nếu tin ngay và gửi ảnh CCCD, Nam có thể bị dùng giấy tờ để mở tài khoản ngân hàng hay vay tiền online. Nếu chặn luôn, Nam có thể bỏ lỡ một việc làm thêm thật.',
-    explain: 'Chưa đòi tiền và có hẹn phỏng vấn trực tiếp là dấu hiệu tốt, nhưng phải tự kiểm tra quán qua kênh chính thức và không gửi CCCD trước.',
-    rule: 'Tự tìm số của quán để hỏi, đến tận nơi phỏng vấn, giấy tờ giữ trong túi.'
+    answer: 'trust',
+    consequence: 'Nếu Đạt báo cáo bài này là lừa đảo và bỏ qua, ba suất part-time gần trường được bạn khác nhận hết, Đạt lại phải đi tìm việc trên các nhóm vô danh dễ dính bẫy hơn.',
+    explain: 'Tin do Trung tâm Hỗ trợ sinh viên kiểm tra và đăng, có địa chỉ, phỏng vấn trực tiếp, ký hợp đồng và không thu bất kỳ khoản phí nào.',
+    rule: 'Việc thật: có địa chỉ, gặp mặt phỏng vấn, có hợp đồng, và không bắt bạn nộp tiền.'
   },
   {
-    id: 'job-4', type: 'job', title: 'Phí giữ lớp gia sư',
+    id: 'job-5', type: 'job', title: 'Phí giữ lớp gia sư',
     reporter: 'Ngọc Trâm · K49 GD Tiểu học',
     report: {
       from: 'Trần Ngọc Trâm', sub: 'SV năm 2 · Khoa Giáo dục Tiểu học',
@@ -733,7 +860,7 @@ const SCENARIOS = [
     rule: 'Chưa đi làm đã phải nộp tiền: đừng nộp.'
   },
   {
-    id: 'job-5', type: 'job', title: 'Ngày hội việc làm',
+    id: 'job-6', type: 'job', title: 'Ngày hội việc làm',
     reporter: 'Khánh Linh · K47 Tâm lý học',
     report: {
       from: 'Vũ Khánh Linh', sub: 'SV năm 4 · Khoa Tâm lý học',
@@ -818,45 +945,7 @@ const SCENARIOS = [
     rule: 'Bình chọn mà bắt đăng nhập: đóng tab, gọi bạn hỏi.'
   },
   {
-    id: 'phishing-2', type: 'phishing', title: 'Đăng nhập ở thư viện',
-    reporter: 'Hải Yến · K49 Tâm lý học',
-    report: {
-      from: 'Trịnh Hải Yến', sub: 'SV năm 1 · Khoa Tâm lý học',
-      msgs: [
-        { time: '15:26' },
-        'dạ em chào anh chị ạ',
-        'em vừa nhận mail ViệtBook báo có đăng nhập mới, em sợ bị hack giống bạn cùng phòng',
-        { shot: ['ViệtBook', 'Có lần đăng nhập mới vào tài khoản của bạn', 'Windows · Chrome · Thư viện ĐH Sao Mai', '15:09, 19/10'], app: 'Gmail' },
-        'nhưng mà lúc 3h em có mượn laptop ở thư viện để đăng nhập thật ạ',
-        'em có cần đổi mật khẩu luôn ko ạ'
-      ]
-    },
-    view: {
-      kind: 'email',
-      from: { name: 'ViệtBook', addr: '[[c-mail|security@vietbook.vn]]' },
-      to: 'haiyen.tlh49@gmail.com',
-      subject: 'Có lần đăng nhập mới vào tài khoản ViệtBook của bạn',
-      date: 'CN, 19 thg 10, 15:10',
-      body: 'Chào Hải Yến,\n\nTài khoản của bạn vừa được đăng nhập trên một thiết bị mới:\n\n[[c-detail|Windows · Chrome · Thư viện ĐH Sao Mai, Hà Nội · 15:09, 19/10/2026]]\n\n[[c-noact|Nếu đây là bạn, bạn không cần làm gì thêm.]]\n\nNếu không phải bạn, [[c-app|hãy tự mở ứng dụng ViệtBook, vào Cài đặt > Bảo mật > Nơi bạn đã đăng nhập]] để đăng xuất thiết bị này và đổi mật khẩu.\n\n[[c-nopass|ViệtBook sẽ không bao giờ hỏi mật khẩu hay mã đăng nhập của bạn qua email.]]',
-      sig: 'Đội ngũ ViệtBook\nvietbook.vn'
-    },
-    clues: {
-      'c-mail': 'Địa chỉ gửi đúng đuôi @vietbook.vn, không thêm chữ, không dấu gạch. Đây là tín hiệu tốt.',
-      'c-detail': 'Thiết bị, nơi chốn và giờ giấc khớp đúng lúc cháu dùng laptop ở thư viện.',
-      'c-noact': 'Thư không hối thúc, không dọa khóa, còn bảo "không cần làm gì" nếu là cháu.',
-      'c-app': 'Thư hướng dẫn tự mở app để kiểm tra, không đưa link bắt đăng nhập. Đúng cách làm của dịch vụ thật.',
-      'c-nopass': 'Thư nói rõ không bao giờ hỏi mật khẩu. Kẻ lừa đảo thì ngược lại.'
-    },
-    evidence: {
-      link: { url: 'vietbook.vn', bad: false, detail: 'Tên miền chính thức của ViệtBook, đăng ký nhiều năm. Thư không chứa link đăng nhập nào, chỉ ghi tên miền ở chữ ký.', clue: 'c-mail' }
-    },
-    answer: 'trust',
-    consequence: 'Nếu coi thư thật là lừa đảo, Yến bỏ qua thói quen tốt: xem lại thiết bị đã đăng nhập. Lần sau có lần đăng nhập lạ thật, Yến có thể bỏ lỡ cảnh báo.',
-    explain: 'Thư gửi từ đúng tên miền vietbook.vn, khớp với lần đăng nhập của chính Yến, không có link và không đòi mật khẩu.',
-    rule: 'Cảnh báo đúng tên miền, không link, không đòi mật khẩu: là thư thật. Nhớ đăng xuất máy dùng chung.'
-  },
-  {
-    id: 'phishing-3', type: 'phishing', title: 'Khóa nick sau 24h',
+    id: 'phishing-2', type: 'phishing', title: 'Khóa nick sau 24h',
     reporter: 'Quốc Bảo · K47 Tin học',
     report: {
       from: 'Đỗ Quốc Bảo', sub: 'SV năm 3 · Khoa Tin học',
@@ -896,46 +985,7 @@ const SCENARIOS = [
     rule: 'Bị dọa khóa tài khoản: tự mở app kiểm tra, không bấm nút trong thư.'
   },
   {
-    id: 'phishing-4', type: 'phishing', title: 'SMS xác thực SaoViet',
-    reporter: 'Minh Tuấn · K48 Lịch sử',
-    report: {
-      from: 'Vũ Minh Tuấn', sub: 'SV năm 2 · Khoa Lịch sử',
-      msgs: [
-        { time: '19:05' },
-        'dạ em chào anh chị ạ, em nhắn hộ mẹ em',
-        'mẹ em nhận tin nhắn của SaoVietBank bảo tài khoản bị tạm khóa, phải bấm link cập nhật',
-        { shot: ['SaoVietBank', 'Tai khoan cua Quy khach se bi tam khoa', 'cap nhat tai: saovietbank-xacthuc.cc'], app: 'Tin nhắn' },
-        'mẹ em bấm vào rồi, đang đến bước nhập tên đăng nhập thì em giật lại máy 😅',
-        'mẹ em chưa nhập j đâu ạ. mà nó hiện đúng tên SaoVietBank nên mẹ tin lắm'
-      ]
-    },
-    view: {
-      kind: 'chat', app: 'sms',
-      contact: { name: 'SaoVietBank', avatar: '🏦', color: '#0f766e', sub: 'Tin nhắn SMS' },
-      messages: [
-        { who: 'sys', text: 'Th 6, 11 thg 10' },
-        { who: 'them', text: 'SaoVietBank: GD -250,000VND tai SONGVIET TOPUP luc 08:12. SD: 4,382,500VND.' },
-        { who: 'sys', text: 'Hôm nay 18:47' },
-        { who: 'them', text: 'SaoVietBank: [[c-lock|Tai khoan cua Quy khach se bi tam khoa]] do [[c-reason|chua cap nhat sinh trac hoc theo quy dinh moi]]. Quy khach vui long cap nhat [[c-time|truoc 23h59 hom nay]] tai: [[c-link|https://saovietbank-xacthuc.cc]] [[c-typo|de tranh gian doan giao dich.Tran trong]]' }
-      ]
-    },
-    clues: {
-      'c-lock': 'Dọa khóa tài khoản để người nhận sợ mà bấm ngay. Ngân hàng thật báo qua app và quầy giao dịch.',
-      'c-reason': 'Cập nhật sinh trắc học thật chỉ làm trong app SaoViet Mobile hoặc tại quầy, không qua link.',
-      'c-time': 'Hạn chót "23h59 hôm nay" là chiêu hối thúc quen thuộc.',
-      'c-link': 'Ngân hàng không gửi link trong SMS. Tên miền thật là saovietbank.vn, đây là saovietbank-xacthuc.cc.',
-      'c-typo': 'Thiếu dấu cách sau dấu chấm, câu chữ cẩu thả. Tin của ngân hàng thật được soạn chuẩn.'
-    },
-    evidence: {
-      link: { url: 'saovietbank-xacthuc.cc', bad: true, highlight: '-xacthuc.cc', detail: 'Tên miền đuôi .cc đăng ký ở nước ngoài 3 ngày trước. Kẻ gian dùng trạm phát sóng giả để tin nhắn lọt vào đúng luồng "SaoVietBank" trên điện thoại.', clue: 'c-link' }
-    },
-    answer: 'report',
-    consequence: 'Nếu mẹ Tuấn nhập tên đăng nhập, mật khẩu và mã OTP, toàn bộ 4.382.500đ trong tài khoản sẽ bị chuyển đi chỉ trong vài phút.',
-    explain: 'Tin nhắn nằm chung luồng brandname vẫn có thể giả, và ngân hàng không bao giờ gửi link bắt đăng nhập.',
-    rule: 'SMS ngân hàng có link: không bấm, gọi tổng đài in sau thẻ.'
-  },
-  {
-    id: 'phishing-5', type: 'phishing', title: 'Tài liệu ôn thi',
+    id: 'phishing-3', type: 'phishing', title: 'Tài liệu ôn thi',
     reporter: 'Khánh Linh · K48 Toán',
     report: {
       from: 'Lê Khánh Linh', sub: 'SV năm 2 · Khoa Toán',
@@ -975,6 +1025,123 @@ const SCENARIOS = [
     consequence: 'Nếu tin luôn, Linh nhập mật khẩu vào trang giả và mất tài khoản. Nếu chặn báo cáo luôn Hoàng, lớp có thể mất một người bạn thật đang bị hack mà cần giúp đỡ.',
     explain: 'Người đăng là bạn thật, nhưng link sai tên miền và đòi đăng nhập lại, nên phải gọi hỏi Hoàng và không nhập mật khẩu.',
     rule: 'Link của bạn quen cũng phải đọc kỹ tên miền, nghi thì hỏi trực tiếp.'
+  },
+  {
+    id: 'phishing-4', type: 'phishing', title: 'Đăng nhập ở thư viện',
+    reporter: 'Hải Yến · K49 Tâm lý học',
+    report: {
+      from: 'Trịnh Hải Yến', sub: 'SV năm 1 · Khoa Tâm lý học',
+      msgs: [
+        { time: '15:26' },
+        'dạ em chào anh chị ạ',
+        'em vừa nhận mail ViệtBook báo có đăng nhập mới, em sợ bị hack giống bạn cùng phòng',
+        { shot: ['ViệtBook', 'Có lần đăng nhập mới vào tài khoản của bạn', 'Windows · Chrome · Thư viện ĐH Sao Mai', '15:09, 19/10'], app: 'Gmail' },
+        'nhưng mà lúc 3h em có mượn laptop ở thư viện để đăng nhập thật ạ',
+        'em có cần đổi mật khẩu luôn ko ạ'
+      ]
+    },
+    view: {
+      kind: 'email',
+      from: { name: 'ViệtBook', addr: '[[c-mail|security@vietbook.vn]]' },
+      to: 'haiyen.tlh49@gmail.com',
+      subject: 'Có lần đăng nhập mới vào tài khoản ViệtBook của bạn',
+      date: 'CN, 19 thg 10, 15:10',
+      body: 'Chào Hải Yến,\n\nTài khoản của bạn vừa được đăng nhập trên một thiết bị mới:\n\n[[c-detail|Windows · Chrome · Thư viện ĐH Sao Mai, Hà Nội · 15:09, 19/10/2026]]\n\n[[c-noact|Nếu đây là bạn, bạn không cần làm gì thêm.]]\n\nNếu không phải bạn, [[c-app|hãy tự mở ứng dụng ViệtBook, vào Cài đặt > Bảo mật > Nơi bạn đã đăng nhập]] để đăng xuất thiết bị này và đổi mật khẩu.\n\n[[c-nopass|ViệtBook sẽ không bao giờ hỏi mật khẩu hay mã đăng nhập của bạn qua email.]]',
+      sig: 'Đội ngũ ViệtBook\nvietbook.vn'
+    },
+    clues: {
+      'c-mail': 'Địa chỉ gửi đúng đuôi @vietbook.vn, không thêm chữ, không dấu gạch. Đây là tín hiệu tốt.',
+      'c-detail': 'Thiết bị, nơi chốn và giờ giấc khớp đúng lúc cháu dùng laptop ở thư viện.',
+      'c-noact': 'Thư không hối thúc, không dọa khóa, còn bảo "không cần làm gì" nếu là cháu.',
+      'c-app': 'Thư hướng dẫn tự mở app để kiểm tra, không đưa link bắt đăng nhập. Đúng cách làm của dịch vụ thật.',
+      'c-nopass': 'Thư nói rõ không bao giờ hỏi mật khẩu. Kẻ lừa đảo thì ngược lại.'
+    },
+    evidence: {
+      link: { url: 'vietbook.vn', bad: false, detail: 'Tên miền chính thức của ViệtBook, đăng ký nhiều năm. Thư không chứa link đăng nhập nào, chỉ ghi tên miền ở chữ ký.', clue: 'c-mail' }
+    },
+    answer: 'trust',
+    consequence: 'Nếu coi thư thật là lừa đảo, Yến bỏ qua thói quen tốt: xem lại thiết bị đã đăng nhập. Lần sau có lần đăng nhập lạ thật, Yến có thể bỏ lỡ cảnh báo.',
+    explain: 'Thư gửi từ đúng tên miền vietbook.vn, khớp với lần đăng nhập của chính Yến, không có link và không đòi mật khẩu.',
+    rule: 'Cảnh báo đúng tên miền, không link, không đòi mật khẩu: là thư thật. Nhớ đăng xuất máy dùng chung.'
+  },
+  {
+    id: 'phishing-5', type: 'phishing', title: 'SMS xác thực SaoViet',
+    reporter: 'Minh Tuấn · K48 Lịch sử',
+    report: {
+      from: 'Vũ Minh Tuấn', sub: 'SV năm 2 · Khoa Lịch sử',
+      msgs: [
+        { time: '19:05' },
+        'dạ em chào anh chị ạ, em nhắn hộ mẹ em',
+        'mẹ em nhận tin nhắn của SaoVietBank bảo tài khoản bị tạm khóa, phải bấm link cập nhật',
+        { shot: ['SaoVietBank', 'Tai khoan cua Quy khach se bi tam khoa', 'cap nhat tai: saovietbank-xacthuc.cc'], app: 'Tin nhắn' },
+        'mẹ em bấm vào rồi, đang đến bước nhập tên đăng nhập thì em giật lại máy 😅',
+        'mẹ em chưa nhập j đâu ạ. mà nó hiện đúng tên SaoVietBank nên mẹ tin lắm'
+      ]
+    },
+    view: {
+      kind: 'chat', app: 'sms',
+      contact: { name: 'SaoVietBank', avatar: '🏦', color: '#0f766e', sub: 'Tin nhắn SMS' },
+      messages: [
+        { who: 'sys', text: 'Th 6, 11 thg 10' },
+        { who: 'them', text: 'SaoVietBank: GD -250,000VND tai SONGVIET TOPUP luc 08:12. SD: 4,382,500VND.' },
+        { who: 'sys', text: 'Hôm nay 18:47' },
+        { who: 'them', text: 'SaoVietBank: [[c-lock|Tai khoan cua Quy khach se bi tam khoa]] do [[c-reason|chua cap nhat sinh trac hoc theo quy dinh moi]]. Quy khach vui long cap nhat [[c-time|truoc 23h59 hom nay]] tai: [[c-link|https://saovietbank-xacthuc.cc]] [[c-typo|de tranh gian doan giao dich.Tran trong]]' }
+      ]
+    },
+    clues: {
+      'c-lock': 'Dọa khóa tài khoản để người nhận sợ mà bấm ngay. Ngân hàng thật báo qua app và quầy giao dịch.',
+      'c-reason': 'Cập nhật sinh trắc học thật chỉ làm trong app SaoViet Mobile hoặc tại quầy, không qua link.',
+      'c-time': 'Hạn chót "23h59 hôm nay" là chiêu hối thúc quen thuộc.',
+      'c-link': 'Ngân hàng không gửi link trong SMS. Tên miền thật là saovietbank.vn, đây là saovietbank-xacthuc.cc.',
+      'c-typo': 'Thiếu dấu cách sau dấu chấm, câu chữ cẩu thả. Tin của ngân hàng thật được soạn chuẩn.'
+    },
+    evidence: {
+      link: { url: 'saovietbank-xacthuc.cc', bad: true, highlight: '-xacthuc.cc', detail: 'Tên miền đuôi .cc đăng ký ở nước ngoài 3 ngày trước. Kẻ gian dùng trạm phát sóng giả để tin nhắn lọt vào đúng luồng "SaoVietBank" trên điện thoại.', clue: 'c-link' }
+    },
+    answer: 'report',
+    consequence: 'Nếu mẹ Tuấn nhập tên đăng nhập, mật khẩu và mã OTP, toàn bộ 4.382.500đ trong tài khoản sẽ bị chuyển đi chỉ trong vài phút.',
+    explain: 'Tin nhắn nằm chung luồng brandname vẫn có thể giả, và ngân hàng không bao giờ gửi link bắt đăng nhập.',
+    rule: 'SMS ngân hàng có link: không bấm, gọi tổng đài in sau thẻ.'
+  },
+  {
+    id: 'phishing-6', type: 'phishing', title: 'Link Drive trong nhóm lớp',
+    reporter: 'Bảo Châu · K49 Sinh học',
+    report: {
+      from: 'Phan Bảo Châu', sub: 'SV năm 2 · Khoa Sinh học',
+      msgs: [
+        { time: '22:08' },
+        'ad ơi',
+        'nhóm lớp e vừa có link drive tài liệu ôn thi',
+        { shot: ['K49 Sinh học A', 'Lớp trưởng Đức Anh', 'đề cương Di truyền học thầy Hùng gửi', 'drive.google.com/drive/folders/1Qm7...'], app: 'Zalo' },
+        'hôm trước đọc vụ drive giả bên văn phòng xong giờ e ko dám bấm link drive nào nữa 😭',
+        'mai thi giữa kỳ rồi'
+      ]
+    },
+    view: {
+      kind: 'chat', app: 'zalo',
+      contact: { name: 'K49 Sinh học A', avatar: '👥', color: '#16a34a', sub: '[[c-group|Nhóm lớp · 52 thành viên · tạo từ 09/2025]]' },
+      messages: [
+        { who: 'sys', text: 'Hôm nay 21:55' },
+        { who: 'them', text: 'Đức Anh (Lớp trưởng): Thầy Hùng vừa gửi đề cương Di truyền học vào [[c-mail|mail lớp k49sinhhoca@saomai.edu.vn]], mình up lên đây cho mn tải nhé' },
+        { who: 'them', text: 'Đức Anh (Lớp trưởng): [[c-link|drive.google.com/drive/folders/1Qm7Xa2kTr9]]' },
+        { who: 'them', text: 'Minh Thư: [[c-nologin|mở được rồi, file pdf xem luôn, ko bắt đăng nhập gì cả]] 👍' },
+        { who: 'them', text: 'Đức Anh (Lớp trưởng): [[c-alt|Ai ngại bấm link thì vào trang môn học trên online.saomai.edu.vn, thầy cũng đăng ở đó]]' }
+      ]
+    },
+    clues: {
+      'c-group': 'Nhóm lớp lập từ đầu khóa, toàn bạn cùng lớp. Tin do lớp trưởng gửi, đúng tài khoản cả lớp vẫn nhắn hằng ngày.',
+      'c-mail': 'Nguồn tài liệu rõ ràng: thầy gửi vào email lớp đuôi @saomai.edu.vn, ai trong lớp cũng tự mở hộp thư kiểm tra được.',
+      'c-link': 'Đọc từng chữ: drive.google.com, đúng tên miền thật của Google Drive. Không có "goog1e", không gạch nối, không đuôi lạ.',
+      'c-nologin': 'Bấm vào là xem được file, không hiện trang bắt nhập lại mật khẩu. Trang lừa đảo thì luôn đòi đăng nhập trước.',
+      'c-alt': 'Lớp trưởng còn chỉ đường tự vào cổng chính thức của trường để lấy cùng tài liệu. Dấu hiệu rất tốt.'
+    },
+    evidence: {
+      link: { url: 'drive.google.com/drive/folders/1Qm7Xa2kTr9', bad: false, highlight: '', detail: 'Tên miền chính thức của Google Drive. Thư mục được chia sẻ từ tài khoản ducanh.k49@saomai.edu.vn, chứa 1 file PDF đề cương, không yêu cầu đăng nhập.', clue: 'c-link' }
+    },
+    answer: 'trust',
+    consequence: 'Nếu Châu báo cáo tin nhắn và rời nhóm, Châu không có đề cương ôn thi giữa kỳ Di truyền học đêm trước ngày thi, còn lớp trưởng bị Zalo hạn chế tài khoản vì bị báo cáo nhầm.',
+    explain: 'Link đúng tên miền drive.google.com, gửi trong nhóm lớp bởi lớp trưởng, có nguồn rõ ràng, không đòi đăng nhập, và có kênh chính thức để đối chiếu.',
+    rule: 'Soi tên miền từng chữ: đúng tên miền thật và không đòi nhập mật khẩu thì yên tâm mở.'
   },
 
   /* ===================== LỪA LẤY MÃ OTP ===================== */
@@ -1026,7 +1193,45 @@ const SCENARIOS = [
     rule: 'Mã về máy mình là chìa khóa của mình: bạn thân xin cũng không đưa.'
   },
   {
-    id: 'otp-2', type: 'otp', title: 'Hoàn tiền giao dịch lỗi',
+    id: 'otp-2', type: 'otp', title: 'Mã Zalo trên máy mới',
+    reporter: 'Hữu Phước · K48 Toán',
+    report: {
+      from: 'Nguyễn Hữu Phước', sub: 'SV năm 3 · Khoa Toán',
+      msgs: [
+        { time: '21:12' },
+        'ad',
+        'e vừa mua đt mới, cài zalo đăng nhập thì có tin otp về',
+        { shot: ['Zalo: Ma xac thuc cua ban la 4827', 'de dang nhap Zalo tren thiet bi moi', 'KHONG chia se ma nay cho bat ky ai'], app: 'Tin nhắn' },
+        'thấy văn phòng bảo otp lạ là có người đang hack',
+        'e nhập vào máy e có sao ko'
+      ]
+    },
+    view: {
+      kind: 'chat', app: 'sms',
+      contact: { name: 'Zalo', avatar: '💬', color: '#0068ff', sub: '[[c-brand|Tin nhắn SMS · brandname Zalo]]' },
+      messages: [
+        { who: 'sys', text: '[[c-time|Hôm nay 21:09]]' },
+        { who: 'them', text: 'Zalo: Ma xac thuc cua ban la 4827 [[c-what|de dang nhap Zalo tren thiet bi moi (Galaxy A36)]]. Ma co hieu luc 5 phut. [[c-warn|KHONG chia se ma nay cho bat ky ai, ke ca nhan vien Zalo.]]' },
+        { who: 'sys', text: '[[c-self|Bạn đang nhập mã trong ứng dụng Zalo trên máy này]]' }
+      ]
+    },
+    clues: {
+      'c-brand': 'Tin từ đúng brandname Zalo, không có link, không có số điện thoại nào bảo gọi lại.',
+      'c-time': 'Tin đến đúng lúc Phước vừa bấm đăng nhập trên máy mới. Mã này do chính Phước yêu cầu, không phải "OTP lạ".',
+      'c-what': 'Nội dung ghi rõ mã để đăng nhập trên thiết bị mới, đúng tên mẫu máy Phước vừa mua. Khớp hoàn toàn.',
+      'c-warn': 'Tin nhắc không đưa mã cho ai. Phước không đưa ai cả, chỉ tự gõ vào app của mình.',
+      'c-self': 'Mã được nhập vào chính ứng dụng Zalo trên máy Phước cầm trên tay, không gửi cho người nào qua tin nhắn hay cuộc gọi.'
+    },
+    evidence: {
+      profile: { bad: false, created: 'Brandname Zalo đăng ký từ 2013', friends: 'Đầu số tin nhắn thương hiệu chính thức', detail: 'Tin gửi từ brandname chính thức, không chứa link, đúng thời điểm Phước bấm đăng nhập và ghi đúng tên máy mới.', clue: 'c-brand' }
+    },
+    answer: 'trust',
+    consequence: 'Nếu Phước sợ quá không nhập mã, rồi bấm gửi lại nhiều lần, Zalo tạm khóa đăng nhập 24 giờ. Phước không vào được nhóm lớp đúng hôm cố vấn học tập thông báo đổi phòng thi.',
+    explain: 'Chính Phước tạo yêu cầu đăng nhập, tin từ đúng brandname, ghi rõ mục đích khớp việc đang làm, và mã chỉ nhập vào app của mình.',
+    rule: 'OTP mình vừa tự yêu cầu thì tự nhập vào app; ai xin mã đó thì mới là lừa.'
+  },
+  {
+    id: 'otp-3', type: 'otp', title: 'Hoàn tiền giao dịch lỗi',
     reporter: 'Thu Trang · K47 Sinh học',
     report: {
       from: 'Lê Thu Trang', sub: 'SV năm 3 · Khoa Sinh học',
@@ -1069,7 +1274,46 @@ const SCENARIOS = [
     rule: 'Hoàn tiền không cần OTP. Ai đòi mã để "hoàn tiền" là đang rút tiền của bạn.'
   },
   {
-    id: 'otp-3', type: 'otp', title: 'Shipper xin mã',
+    id: 'otp-4', type: 'otp', title: 'Mã đổi thiết bị lúc 2h sáng',
+    reporter: 'Mai · K46 Giáo dục Tiểu học',
+    report: {
+      from: 'Nguyễn Thị Mai', sub: 'SV năm 4 · Khoa Giáo dục Tiểu học',
+      msgs: [
+        { time: '06:42' },
+        'dạ em chào anh chị ạ',
+        'sáng nay em dậy thấy có tin nhắn OTP với email của SaoVietBank bảo đổi thiết bị lúc 2h sáng',
+        { shot: ['SaoVietBank: Ma OTP doi thiet bi', 'SaoViet Mobile la 360518.', 'KHONG cung cap ma cho bat ky ai.'], app: 'Tin nhắn' },
+        'nhưng em có làm gì đâu ạ, lúc đấy em đang ngủ 😭',
+        'email thì đúng đuôi saovietbank.vn, ko có link gì. em có cần làm gì ko ạ'
+      ]
+    },
+    view: {
+      kind: 'email',
+      from: { name: 'Ngân hàng Sao Việt', addr: '[[c4-mail|no-reply@saovietbank.vn]]' },
+      to: 'mai.nguyenthi.k46@gmail.com',
+      subject: 'Cảnh báo: Yêu cầu đổi thiết bị đăng nhập SaoViet Mobile',
+      date: 'Th 2, 19 thg 10, 02:16',
+      body: 'Kính gửi Quý khách NGUYEN THI MAI,\n\nSaoVietBank ghi nhận [[c4-req|yêu cầu đổi thiết bị đăng nhập SaoViet Mobile lúc 02:14 ngày 19/10/2026]]:\n• Thiết bị: [[c4-dev|Samsung SM-A155F, vị trí ước tính: Bình Dương]]\n• Mã OTP đã được gửi tới số điện thoại đăng ký của Quý khách.\n\n[[c4-safe|SaoVietBank không bao giờ yêu cầu Quý khách cung cấp mã OTP qua điện thoại, tin nhắn hay email.]]\n\nNếu không phải Quý khách thực hiện, vui lòng KHÔNG cung cấp mã OTP cho bất kỳ ai và [[c4-hotline|tự gọi tổng đài 1900 6060]] (24/7) để được hỗ trợ khóa tạm thời.\n\nTrân trọng,',
+      sig: 'Ngân hàng TMCP Sao Việt\nTổng đài: 1900 6060 · saovietbank.vn\nĐây là email tự động, vui lòng không trả lời.'
+    },
+    clues: {
+      'c4-mail': 'Địa chỉ gửi đúng tên miền saovietbank.vn. Email này nhiều khả năng là thật, nhưng điều nó báo mới đáng lo.',
+      'c4-req': 'Mai không đổi máy mà vẫn có yêu cầu lúc 2h sáng: có người đã biết mật khẩu và đang thử vào tài khoản.',
+      'c4-dev': 'Máy lạ ở Bình Dương, không phải điện thoại của Mai. Kẻ gian chỉ còn thiếu mã OTP nữa thôi.',
+      'c4-safe': 'Ngân hàng thật nhắc không đưa mã cho ai. Sáng nay nếu có "nhân viên" gọi xin mã thì đó chính là kẻ gian.',
+      'c4-hotline': 'Tự bấm số 1900 6060 từ điện thoại của mình để xác minh và khóa tạm, không gọi số nào người lạ đưa.'
+    },
+    evidence: {
+      link: { url: 'saovietbank.vn', bad: false, detail: 'Đúng tên miền chính thức của Ngân hàng Sao Việt. Email không có link hay nút bấm nào, chỉ khuyên gọi tổng đài.', clue: 'c4-mail' },
+      profile: { bad: true, created: 'Thiết bị lạ, chưa từng đăng nhập', friends: 'Không liên quan tới Mai', detail: 'Máy Samsung ở Bình Dương này đã gửi yêu cầu đổi thiết bị cho 3 tài khoản khác nhau trong đêm qua.', clue: 'c4-dev' }
+    },
+    answer: 'suspect',
+    consequence: 'Nếu Mai bỏ qua, 8 giờ sáng có "nhân viên SaoVietBank" gọi tới xin mã để "hủy yêu cầu lạ". Mai đọc mã và mất 5.600.000đ tiền thực tập. Còn nếu chỉ chặn và xóa tin thì mật khẩu cũ vẫn nằm trong tay kẻ gian.',
+    explain: 'Tin nhắn và email có thể là thật, nhưng chúng báo có người đang thử vào tài khoản của Mai, nên phải giữ kín mã, đổi mật khẩu và tự gọi 1900 6060 để xác minh.',
+    rule: 'Nhận OTP mà mình không làm gì: không đưa mã, đổi mật khẩu, tự gọi tổng đài chính thức.'
+  },
+  {
+    id: 'otp-5', type: 'otp', title: 'Shipper xin mã',
     reporter: 'Đức Huy · K49 Tin học',
     report: {
       from: 'Võ Đức Huy', sub: 'SV năm 1 · Khoa Tin học',
@@ -1111,46 +1355,7 @@ const SCENARIOS = [
     rule: 'Shipper không bao giờ cần mã OTP. Ai xin mã thì tắt máy.'
   },
   {
-    id: 'otp-4', type: 'otp', title: 'Mã đổi thiết bị lúc 2h sáng',
-    reporter: 'Mai · K46 Giáo dục Tiểu học',
-    report: {
-      from: 'Nguyễn Thị Mai', sub: 'SV năm 4 · Khoa Giáo dục Tiểu học',
-      msgs: [
-        { time: '06:42' },
-        'dạ em chào anh chị ạ',
-        'sáng nay em dậy thấy có tin nhắn OTP với email của SaoVietBank bảo đổi thiết bị lúc 2h sáng',
-        { shot: ['SaoVietBank: Ma OTP doi thiet bi', 'SaoViet Mobile la 360518.', 'KHONG cung cap ma cho bat ky ai.'], app: 'Tin nhắn' },
-        'nhưng em có làm gì đâu ạ, lúc đấy em đang ngủ 😭',
-        'email thì đúng đuôi saovietbank.vn, ko có link gì. em có cần làm gì ko ạ'
-      ]
-    },
-    view: {
-      kind: 'email',
-      from: { name: 'Ngân hàng Sao Việt', addr: '[[c4-mail|no-reply@saovietbank.vn]]' },
-      to: 'mai.nguyenthi.k46@gmail.com',
-      subject: 'Cảnh báo: Yêu cầu đổi thiết bị đăng nhập SaoViet Mobile',
-      date: 'Th 2, 19 thg 10, 02:16',
-      body: 'Kính gửi Quý khách NGUYEN THI MAI,\n\nSaoVietBank ghi nhận [[c4-req|yêu cầu đổi thiết bị đăng nhập SaoViet Mobile lúc 02:14 ngày 19/10/2026]]:\n• Thiết bị: [[c4-dev|Samsung SM-A155F, vị trí ước tính: Bình Dương]]\n• Mã OTP đã được gửi tới số điện thoại đăng ký của Quý khách.\n\n[[c4-safe|SaoVietBank không bao giờ yêu cầu Quý khách cung cấp mã OTP qua điện thoại, tin nhắn hay email.]]\n\nNếu không phải Quý khách thực hiện, vui lòng KHÔNG cung cấp mã OTP cho bất kỳ ai và [[c4-hotline|tự gọi tổng đài 1900 6060]] (24/7) để được hỗ trợ khóa tạm thời.\n\nTrân trọng,',
-      sig: 'Ngân hàng TMCP Sao Việt\nTổng đài: 1900 6060 · saovietbank.vn\nĐây là email tự động, vui lòng không trả lời.'
-    },
-    clues: {
-      'c4-mail': 'Địa chỉ gửi đúng tên miền saovietbank.vn. Email này nhiều khả năng là thật, nhưng điều nó báo mới đáng lo.',
-      'c4-req': 'Mai không đổi máy mà vẫn có yêu cầu lúc 2h sáng: có người đã biết mật khẩu và đang thử vào tài khoản.',
-      'c4-dev': 'Máy lạ ở Bình Dương, không phải điện thoại của Mai. Kẻ gian chỉ còn thiếu mã OTP nữa thôi.',
-      'c4-safe': 'Ngân hàng thật nhắc không đưa mã cho ai. Sáng nay nếu có "nhân viên" gọi xin mã thì đó chính là kẻ gian.',
-      'c4-hotline': 'Tự bấm số 1900 6060 từ điện thoại của mình để xác minh và khóa tạm, không gọi số nào người lạ đưa.'
-    },
-    evidence: {
-      link: { url: 'saovietbank.vn', bad: false, detail: 'Đúng tên miền chính thức của Ngân hàng Sao Việt. Email không có link hay nút bấm nào, chỉ khuyên gọi tổng đài.', clue: 'c4-mail' },
-      profile: { bad: true, created: 'Thiết bị lạ, chưa từng đăng nhập', friends: 'Không liên quan tới Mai', detail: 'Máy Samsung ở Bình Dương này đã gửi yêu cầu đổi thiết bị cho 3 tài khoản khác nhau trong đêm qua.', clue: 'c4-dev' }
-    },
-    answer: 'suspect',
-    consequence: 'Nếu Mai bỏ qua, 8 giờ sáng có "nhân viên SaoVietBank" gọi tới xin mã để "hủy yêu cầu lạ". Mai đọc mã và mất 5.600.000đ tiền thực tập. Còn nếu chỉ chặn và xóa tin thì mật khẩu cũ vẫn nằm trong tay kẻ gian.',
-    explain: 'Tin nhắn và email có thể là thật, nhưng chúng báo có người đang thử vào tài khoản của Mai, nên phải giữ kín mã, đổi mật khẩu và tự gọi 1900 6060 để xác minh.',
-    rule: 'Nhận OTP mà mình không làm gì: không đưa mã, đổi mật khẩu, tự gọi tổng đài chính thức.'
-  },
-  {
-    id: 'otp-5', type: 'otp', title: 'OTP đóng học phí',
+    id: 'otp-6', type: 'otp', title: 'OTP đóng học phí',
     reporter: 'Quang Minh · K48 Lịch sử',
     report: {
       from: 'Đỗ Quang Minh', sub: 'SV năm 2 · Khoa Lịch sử',
@@ -1233,49 +1438,7 @@ const SCENARIOS = [
     rule: 'Thầy cô nhờ mua thẻ cào, mượn tiền qua tin nhắn: gọi thẳng cho thầy cô trước, chưa gọi được thì không làm.'
   },
   {
-    id: 'school-2', type: 'school', title: 'Trợ lý khoa gửi link điểm',
-    reporter: 'Khánh Linh · K49 Tâm lý',
-    report: {
-      from: 'Đỗ Khánh Linh', sub: 'SV năm 2 · Khoa Tâm lý học',
-      msgs: [
-        { time: '19:40' },
-        'dạ anh chị ơi em hỏi chút ạ',
-        'trong nhóm zalo lớp có 1 bạn xưng trợ lý khoa gửi link xem điểm giữa kỳ',
-        { shot: ['Trợ lý khoa TLH', 'Điểm giữa kỳ môn Tâm lý học phát triển', 'Các em đăng nhập tài khoản cổng SV để xem', 'tinyurl.com/diemgk-tlh'], app: 'Zalo' },
-        'mấy bạn bấm rồi mà em thấy lạ, trước giờ điểm toàn xem trên cổng trường',
-        'nhưng cũng sợ là thật thì lỡ mất ạ 😭'
-      ]
-    },
-    view: {
-      kind: 'chat', app: 'zalo',
-      contact: { name: 'K49 Tâm lý học A', avatar: '🏫', color: '#7c3aed', sub: '62 thành viên' },
-      messages: [
-        { who: 'sys', text: 'Hôm nay 19:12 · Bảo Ngọc đã thêm [[c-stranger|Trợ lý khoa TLH]] vào nhóm' },
-        { who: 'them', text: 'Trợ lý khoa TLH: Chào các em, khoa đã có điểm giữa kỳ môn Tâm lý học phát triển.' },
-        { who: 'them', text: 'Trợ lý khoa TLH: Các em xem tại [[c-short|tinyurl.com/diemgk-tlh]] nhé, [[c-login|đăng nhập bằng tài khoản cổng sinh viên]] để xem điểm cá nhân.' },
-        { who: 'them', text: 'Trợ lý khoa TLH: Ai có sai sót phúc khảo trước thứ Sáu.' },
-        { who: 'them', text: 'Bảo Ngọc: [[c-who|Ủa mình bấm thêm nhầm, mà anh này là ai vậy ạ]] 😅' },
-        { who: 'them', text: 'Lớp trưởng Tuấn: [[c-wait|Mọi người khoan bấm, để mình hỏi cô cố vấn đã]]' }
-      ]
-    },
-    clues: {
-      'c-stranger': 'Tài khoản không tên thật, được thêm vào nhóm tối nay, không phải thầy cô quen của lớp. Chưa biết là ai.',
-      'c-short': 'Link rút gọn che mất địa chỉ thật. Không biết nó dẫn về cổng trường hay về một trang giả.',
-      'c-login': 'Đòi đăng nhập qua link lạ là bước nguy hiểm nhất. Điểm thật cháu tự vào online.saomai.edu.vn xem được.',
-      'c-who': 'Chính người thêm vào cũng không biết đây là ai. Chưa ai xác nhận danh tính.',
-      'c-wait': 'Lớp trưởng làm đúng: dừng lại và hỏi cố vấn học tập qua kênh chính thức trước.'
-    },
-    evidence: {
-      link: { url: 'tinyurl.com/diemgk-tlh', bad: true, highlight: 'tinyurl.com', detail: 'Link rút gọn, đang chuyển hướng tới một trang chưa xác minh được, không phải online.saomai.edu.vn. Chưa đủ để kết luận, cần hỏi khoa.', clue: 'c-short' },
-      profile: { bad: true, created: '3 tuần trước', friends: '41 bạn bè, chủ yếu sinh viên Tâm lý học', detail: 'Không có thông tin công việc, không có ảnh thật. Danh sách cán bộ khoa trên saomai.edu.vn chưa thấy ai tên như vậy.', clue: 'c-stranger' }
-    },
-    answer: 'suspect',
-    consequence: 'Nếu tin ngay và đăng nhập, Linh có thể mất tài khoản cổng sinh viên và email trường. Nếu chỉ chặn mà không báo, cả lớp vẫn không biết ai đang giả danh khoa.',
-    explain: 'Có thể là trợ lý mới thật, nhưng tài khoản lạ, link rút gọn và đòi đăng nhập thì phải hỏi cố vấn học tập hoặc Phòng CTSV trước.',
-    rule: 'Ai xưng là người của khoa mà chưa quen: hỏi cố vấn học tập hoặc Phòng CTSV qua số, email chính thức rồi mới làm theo.'
-  },
-  {
-    id: 'school-3', type: 'school', title: 'Thầy chủ nhiệm mượn tiền',
+    id: 'school-2', type: 'school', title: 'Thầy chủ nhiệm mượn tiền',
     reporter: 'Đức Mạnh · K48 Lịch sử',
     report: {
       from: 'Vũ Đức Mạnh', sub: 'SV năm 3 · Khoa Lịch sử',
@@ -1318,7 +1481,88 @@ const SCENARIOS = [
     rule: 'Thầy cô mượn tiền qua tin nhắn: không chuyển, hỏi lại qua nhóm lớp hoặc gặp trực tiếp.'
   },
   {
-    id: 'school-4', type: 'school', title: 'Email đóng học phí',
+    id: 'school-3', type: 'school', title: 'Zalo OA báo lịch thi',
+    reporter: 'Thanh Hương · K50 GD Mầm non',
+    report: {
+      from: 'Mai Thanh Hương', sub: 'SV năm 1 · Khoa Giáo dục Mầm non',
+      msgs: [
+        { time: '07:52' },
+        'dạ em chào văn phòng ạ',
+        'em tự nhiên nhận tin zalo tên trường báo lịch thi',
+        { shot: ['Trường Đại học Sao Mai', 'Thông báo lịch thi giữa kỳ HK1', 'Xem chi tiết: online.saomai.edu.vn'], app: 'Zalo' },
+        'em có kết bạn với ai đâu mà nó nhắn em 😭 có phải giả trường ko ạ'
+      ]
+    },
+    view: {
+      kind: 'chat', app: 'zalo',
+      contact: { name: 'Trường Đại học Sao Mai', avatar: '🏫', color: '#1d4ed8', sub: '[[c-oa|Official Account · Đã xác thực]]' },
+      messages: [
+        { who: 'sys', text: '[[c-follow|Bạn đã quan tâm Official Account này từ 28/08/2026]]' },
+        { who: 'them', text: 'Chào mừng tân sinh viên K50! Trường sẽ gửi thông báo lịch học, lịch thi qua kênh này.' },
+        { who: 'sys', text: 'Hôm nay 07:30' },
+        { who: 'them', text: '📢 THÔNG BÁO LỊCH THI GIỮA KỲ HỌC KỲ I NĂM HỌC 2026-2027\nLịch thi giữa kỳ của sinh viên K50 diễn ra từ 26/10 đến 31/10.\nSinh viên xem lịch thi cá nhân tại [[c-link|online.saomai.edu.vn]], mục "Lịch thi".\n[[c-nopass|Nhà trường không hỏi mật khẩu, mã OTP hay thu bất kỳ khoản phí nào qua Zalo.]]\nThắc mắc liên hệ [[c-office|Phòng Khảo thí, phòng 102 nhà A1, email khaothi@saomai.edu.vn]].' }
+      ]
+    },
+    clues: {
+      'c-oa': 'Đây là tài khoản Official Account có dấu xác thực, không phải nick cá nhân đặt tên trường.',
+      'c-follow': 'Hương đã bấm "Quan tâm" kênh này từ hôm nhập học (có lẽ khi quét mã QR trong hồ sơ nhập học), nên mới nhận được tin. Không phải người lạ tự nhắn.',
+      'c-link': 'Chỉ dẫn về cổng chính thức online.saomai.edu.vn, đúng từng chữ, không có tên miền lạ.',
+      'c-nopass': 'Nói rõ không đòi mật khẩu, OTP hay phí. Dấu hiệu tốt.',
+      'c-office': 'Có phòng làm việc và email đuôi @saomai.edu.vn để hỏi lại trực tiếp.'
+    },
+    evidence: {
+      link: { url: 'online.saomai.edu.vn', bad: false, highlight: '', detail: 'Cổng thông tin sinh viên chính thức của ĐH Sao Mai. Lịch thi giữa kỳ K50 đã được đăng tại mục "Lịch thi".', clue: 'c-link' },
+      profile: { bad: false, created: 'Năm 2019', friends: '24.000 người quan tâm', detail: 'Zalo Official Account đã xác thực của Trường ĐH Sao Mai, mã QR in trong giấy báo nhập học và đăng trên saomai.edu.vn.', clue: 'c-oa' }
+    },
+    answer: 'trust',
+    consequence: 'Nếu Hương chặn và báo cáo kênh này, Hương không nhận được tin đổi phòng thi gửi tối hôm trước, sáng thi đi nhầm phòng và suýt bị tính vắng thi.',
+    explain: 'Tin đến từ Zalo Official Account đã xác thực mà Hương tự quan tâm từ lúc nhập học, chỉ dẫn về online.saomai.edu.vn và không đòi gì.',
+    rule: 'Kênh chính thức đã xác thực, chỉ dẫn về tên miền .edu.vn của trường, không đòi gì: yên tâm đọc.'
+  },
+  {
+    id: 'school-4', type: 'school', title: 'Trợ lý khoa gửi link điểm',
+    reporter: 'Khánh Linh · K49 Tâm lý',
+    report: {
+      from: 'Đỗ Khánh Linh', sub: 'SV năm 2 · Khoa Tâm lý học',
+      msgs: [
+        { time: '19:40' },
+        'dạ anh chị ơi em hỏi chút ạ',
+        'trong nhóm zalo lớp có 1 bạn xưng trợ lý khoa gửi link xem điểm giữa kỳ',
+        { shot: ['Trợ lý khoa TLH', 'Điểm giữa kỳ môn Tâm lý học phát triển', 'Các em đăng nhập tài khoản cổng SV để xem', 'tinyurl.com/diemgk-tlh'], app: 'Zalo' },
+        'mấy bạn bấm rồi mà em thấy lạ, trước giờ điểm toàn xem trên cổng trường',
+        'nhưng cũng sợ là thật thì lỡ mất ạ 😭'
+      ]
+    },
+    view: {
+      kind: 'chat', app: 'zalo',
+      contact: { name: 'K49 Tâm lý học A', avatar: '🏫', color: '#7c3aed', sub: '62 thành viên' },
+      messages: [
+        { who: 'sys', text: 'Hôm nay 19:12 · Bảo Ngọc đã thêm [[c-stranger|Trợ lý khoa TLH]] vào nhóm' },
+        { who: 'them', text: 'Trợ lý khoa TLH: Chào các em, khoa đã có điểm giữa kỳ môn Tâm lý học phát triển.' },
+        { who: 'them', text: 'Trợ lý khoa TLH: Các em xem tại [[c-short|tinyurl.com/diemgk-tlh]] nhé, [[c-login|đăng nhập bằng tài khoản cổng sinh viên]] để xem điểm cá nhân.' },
+        { who: 'them', text: 'Trợ lý khoa TLH: Ai có sai sót phúc khảo trước thứ Sáu.' },
+        { who: 'them', text: 'Bảo Ngọc: [[c-who|Ủa mình bấm thêm nhầm, mà anh này là ai vậy ạ]] 😅' },
+        { who: 'them', text: 'Lớp trưởng Tuấn: [[c-wait|Mọi người khoan bấm, để mình hỏi cô cố vấn đã]]' }
+      ]
+    },
+    clues: {
+      'c-stranger': 'Tài khoản không tên thật, được thêm vào nhóm tối nay, không phải thầy cô quen của lớp. Chưa biết là ai.',
+      'c-short': 'Link rút gọn che mất địa chỉ thật. Không biết nó dẫn về cổng trường hay về một trang giả.',
+      'c-login': 'Đòi đăng nhập qua link lạ là bước nguy hiểm nhất. Điểm thật cháu tự vào online.saomai.edu.vn xem được.',
+      'c-who': 'Chính người thêm vào cũng không biết đây là ai. Chưa ai xác nhận danh tính.',
+      'c-wait': 'Lớp trưởng làm đúng: dừng lại và hỏi cố vấn học tập qua kênh chính thức trước.'
+    },
+    evidence: {
+      link: { url: 'tinyurl.com/diemgk-tlh', bad: true, highlight: 'tinyurl.com', detail: 'Link rút gọn, đang chuyển hướng tới một trang chưa xác minh được, không phải online.saomai.edu.vn. Chưa đủ để kết luận, cần hỏi khoa.', clue: 'c-short' },
+      profile: { bad: true, created: '3 tuần trước', friends: '41 bạn bè, chủ yếu sinh viên Tâm lý học', detail: 'Không có thông tin công việc, không có ảnh thật. Danh sách cán bộ khoa trên saomai.edu.vn chưa thấy ai tên như vậy.', clue: 'c-stranger' }
+    },
+    answer: 'suspect',
+    consequence: 'Nếu tin ngay và đăng nhập, Linh có thể mất tài khoản cổng sinh viên và email trường. Nếu chỉ chặn mà không báo, cả lớp vẫn không biết ai đang giả danh khoa.',
+    explain: 'Có thể là trợ lý mới thật, nhưng tài khoản lạ, link rút gọn và đòi đăng nhập thì phải hỏi cố vấn học tập hoặc Phòng CTSV trước.',
+    rule: 'Ai xưng là người của khoa mà chưa quen: hỏi cố vấn học tập hoặc Phòng CTSV qua số, email chính thức rồi mới làm theo.'
+  },
+  {
+    id: 'school-5', type: 'school', title: 'Email đóng học phí',
     reporter: 'Quang Huy · K50 Toán',
     report: {
       from: 'Phạm Quang Huy', sub: 'SV năm 1 · Khoa Toán',
@@ -1358,7 +1602,7 @@ const SCENARIOS = [
     rule: 'Học phí chỉ xem và đóng trên online.saomai.edu.vn, tự gõ địa chỉ, không bấm link trong thư.'
   },
   {
-    id: 'school-5', type: 'school', title: 'Nhắc đăng ký học phần',
+    id: 'school-6', type: 'school', title: 'Nhắc đăng ký học phần',
     reporter: 'Gia Bảo · K50 Tin học',
     report: {
       from: 'Ngô Gia Bảo', sub: 'SV năm 1 · Khoa Tin học',
@@ -1437,50 +1681,7 @@ const SCENARIOS = [
     rule: 'Học bổng thật trao tiền cho bạn, không thu tiền của bạn.'
   },
   {
-    id: 'loan-2', type: 'loan', title: 'Thông báo của Phòng CTSV',
-    reporter: 'Mai Linh · K48 GD Tiểu học',
-    report: {
-      from: 'Đặng Mai Linh', sub: 'SV năm 2 · Khoa Giáo dục Tiểu học',
-      msgs: [
-        { time: '10:14' },
-        'dạ em chào anh chị ạ',
-        'dạo này em thấy nhiều vụ lừa học bổng quá nên giờ thấy cái gì cũng sợ 😅',
-        { shot: ['Phòng Công tác sinh viên - ĐH Sao Mai', 'THÔNG BÁO HỌC BỔNG KKHT HK1', 'nộp hồ sơ tại phòng A1.105', 'không thu bất kỳ khoản phí nào'], app: 'ViệtBook' },
-        'bài này trên trang phòng CTSV, có cả hướng dẫn vay vốn sv nữa',
-        'em nộp theo bài này được ko ạ'
-      ]
-    },
-    view: {
-      kind: 'post',
-      author: { name: 'Phòng Công tác sinh viên - ĐH Sao Mai', avatar: '🏛️', color: '#1d4ed8', verified: true, meta: '[[c-page|Trang chính thức · hoạt động từ 2014]] · 🌐' },
-      text: '📢 THÔNG BÁO XÉT HỌC BỔNG KHUYẾN KHÍCH HỌC TẬP HỌC KỲ 1, NĂM HỌC 2026-2027\n\n1. Đối tượng: sinh viên chính quy có điểm trung bình học kỳ từ 3,2 và điểm rèn luyện từ loại Tốt.\n2. Hồ sơ: đơn theo mẫu, bảng điểm có xác nhận của khoa.\n3. [[c-onsite|Nộp hồ sơ trực tiếp tại Phòng Công tác sinh viên, phòng A1.105]], từ 20/10 đến 31/10, giờ hành chính.\n4. [[c-nofee|Nhà trường không thu bất kỳ khoản phí nào]]. Tiền học bổng chuyển vào tài khoản sinh viên đã đăng ký với trường.\n\n💡 Sinh viên có hoàn cảnh khó khăn cần vay vốn học tập: liên hệ [[c-vbsp|Ngân hàng Chính sách xã hội tại địa phương]] nơi gia đình cư trú. Phòng CTSV cấp giấy xác nhận sinh viên miễn phí.\n\nMẫu đơn và danh sách chi tiết xem tại [[c-site|saomai.edu.vn/ctsv]].',
-      image: { emoji: '🎓', caption: 'Thông báo học bổng KKHT HK1', clue: 'c-img' },
-      stats: '👍 1,3K · 💬 214 · ↗ 380',
-      comments: [
-        { name: 'Lớp trưởng K48 Toán', text: 'Lớp mình ai đủ điều kiện nhớ nộp trước 31/10 nha.' },
-        { name: 'Phòng Công tác sinh viên - ĐH Sao Mai', text: 'Lưu ý: Phòng không nhắn tin riêng thu phí hồ sơ. Gặp trường hợp như vậy, các bạn báo ngay cho Phòng.' }
-      ]
-    },
-    clues: {
-      'c-page': 'Trang có tích xanh, hoạt động hơn 10 năm, đúng tên phòng của trường.',
-      'c-onsite': 'Nộp hồ sơ trực tiếp ở phòng làm việc có số phòng rõ ràng, không qua link lạ.',
-      'c-nofee': 'Ghi rõ không thu phí, đúng như học bổng thật.',
-      'c-vbsp': 'Vay vốn sinh viên đúng kênh: Ngân hàng Chính sách xã hội, không phải app vay trên mạng.',
-      'c-site': 'Dẫn về tên miền chính thức saomai.edu.vn, không sai chữ nào.',
-      'c-img': 'Ảnh thông báo do trường tự thiết kế, có logo và số hiệu văn bản.'
-    },
-    evidence: {
-      link: { url: 'saomai.edu.vn/ctsv', bad: false, detail: 'Tên miền chính thức của Trường Đại học Sao Mai, đăng ký từ năm 2008. Trang có cùng thông báo này.', clue: 'c-site' },
-      profile: { bad: false, created: 'Năm 2014', friends: '18.000 người theo dõi, phần lớn là sinh viên Sao Mai', detail: 'Trang chính thức có dấu tích xanh, được liên kết từ website saomai.edu.vn. Đăng thông báo đều đặn mỗi tuần.', clue: 'c-page' },
-      image: { bad: false, detail: 'Ảnh gốc, chỉ xuất hiện trên trang của trường và website saomai.edu.vn.', clue: 'c-img' }
-    },
-    answer: 'trust',
-    consequence: 'Nếu nghi ngờ rồi bỏ qua, Mai Linh lỡ hạn nộp hồ sơ và mất suất học bổng khuyến khích học tập mà mình đủ điều kiện nhận.',
-    explain: 'Thông báo đến từ trang chính thức có tích xanh, nộp hồ sơ trực tiếp, không thu phí và dẫn về saomai.edu.vn.',
-    rule: 'Học bổng thật: kênh chính thức, nộp tại trường, không mất phí.'
-  },
-  {
-    id: 'loan-3', type: 'loan', title: 'Tin nhắn đòi nợ',
+    id: 'loan-2', type: 'loan', title: 'Tin nhắn đòi nợ',
     reporter: 'Ngọc Bích · K48 Tâm lý học',
     report: {
       from: 'Trần Ngọc Bích', sub: 'SV năm 2 · Khoa Tâm lý học',
@@ -1524,7 +1725,131 @@ const SCENARIOS = [
     rule: 'Bị đòi nợ thay: không trả, chụp màn hình, chặn số và báo 113.'
   },
   {
-    id: 'loan-4', type: 'loan', title: 'Vay 0% lãi',
+    id: 'loan-3', type: 'loan', title: 'Đề cử học bổng',
+    reporter: 'Đức Huy · K49 Lịch sử',
+    report: {
+      from: 'Võ Đức Huy', sub: 'SV năm 1 · Khoa Lịch sử',
+      msgs: [
+        { time: '19:26' },
+        'cho mình hỏi',
+        'có anh nhắn tự giới thiệu cán bộ Đoàn trường, bảo mình dc đề cử học bổng doanh nghiệp',
+        { shot: ['Hoàng Minh Đức', 'em được Đoàn trường đề cử', 'học bổng DN 5.000.000đ', 'điền form trước thứ 6 nhé'], app: 'Messenger' },
+        'nó chưa đòi tiền gì cả, chỉ bảo điền form gg',
+        'mình ko quen anh này. điền thì có sao ko'
+      ]
+    },
+    view: {
+      kind: 'chat', app: 'messenger',
+      contact: { name: 'Hoàng Minh Đức', avatar: '👦', color: '#0284c7', sub: '[[c-nofriend|Các bạn không phải là bạn bè trên ViệtBook]]' },
+      messages: [
+        { who: 'sys', text: 'Hôm nay 18:58' },
+        { who: 'them', text: 'Chào em Huy, anh là Đức, [[c-role|cán bộ Đoàn trường ĐH Sao Mai]] nhé.' },
+        { who: 'them', text: 'Đoàn trường vừa đề cử em vào danh sách nhận [[c-sponsor|học bổng doanh nghiệp 5.000.000đ]] do có thành tích hoạt động phong trào tốt.' },
+        { who: 'them', text: 'Em điền thông tin vào form này giúp anh trước thứ 6 nhé: [[c-form|forms.gle/hb-doanhnghiep-saomai]]' },
+        { who: 'me', text: 'Dạ form cần điền những gì ạ anh?' },
+        { who: 'them', text: 'Họ tên, MSSV, SĐT, [[c-info|số CCCD và số tài khoản ngân hàng]] để doanh nghiệp chuyển tiền thôi em. Không mất phí gì đâu 😊' }
+      ]
+    },
+    clues: {
+      'c-nofriend': 'Huy không quen người này, cũng chưa kết bạn. Cần kiểm tra người nhắn có đúng là cán bộ Đoàn không.',
+      'c-role': 'Ai cũng có thể tự xưng "cán bộ Đoàn". Hãy hỏi lại Văn phòng Đoàn hoặc Phòng Công tác sinh viên.',
+      'c-sponsor': 'Học bổng doanh nghiệp có thật, nhưng thường được thông báo công khai trên trang của trường.',
+      'c-form': 'Form Google ai cũng tạo được trong 2 phút. Chưa chắc là của trường.',
+      'c-info': 'Chưa đòi tiền, nhưng xin số CCCD và tài khoản ngân hàng. Thông tin này có thể bị dùng để lừa tiếp.'
+    },
+    evidence: {
+      link: { url: 'forms.gle/hb-doanhnghiep-saomai', bad: false, detail: 'Đây là form Google thật, không chứa mã độc. Nhưng người tạo form dùng Gmail cá nhân, không phải tài khoản @saomai.edu.vn. Chưa xác định được ai đứng sau.', clue: 'c-form' },
+      profile: { bad: false, created: '4 năm trước', friends: '310 bạn bè, 12 bạn chung là sinh viên Sao Mai', detail: 'Tài khoản có hoạt động lâu, từng đăng ảnh các hoạt động tình nguyện. Không thấy tên trong danh sách Ban chấp hành Đoàn trường công khai trên saomai.edu.vn.', clue: 'c-nofriend' }
+    },
+    answer: 'suspect',
+    consequence: 'Nếu tin ngay: Huy gửi số CCCD và tài khoản, vài ngày sau nhận cuộc gọi "học bổng bị lỗi, cần đọc mã OTP để nhận tiền". Nếu chặn luôn mà không hỏi: Huy có thể lỡ một suất học bổng thật.',
+    explain: 'Tin có thể thật nhưng đến từ người lạ và xin thông tin nhạy cảm, nên phải hỏi Phòng Công tác sinh viên hoặc Văn phòng Đoàn trước.',
+    rule: 'Học bổng đến qua tin nhắn riêng: hỏi Phòng CTSV trước khi điền bất cứ gì.'
+  },
+  {
+    id: 'loan-4', type: 'loan', title: 'Vay vốn chính sách',
+    reporter: 'Kim Ngân · K49 Ngữ văn',
+    report: {
+      from: 'Đinh Kim Ngân', sub: 'SV năm 2 · Khoa Ngữ văn',
+      msgs: [
+        { time: '16:40' },
+        'dạ em chào anh chị',
+        'em nhận mail hướng dẫn vay vốn sinh viên, vay 4tr/tháng',
+        { shot: ['Phòng Công tác sinh viên', 'Hướng dẫn vay vốn tín dụng sinh viên', 'Mức vay tối đa 4.000.000đ/tháng', 'Lãi suất ưu đãi'], app: 'Gmail' },
+        'mẹ em ở quê có người quen dính app vay rồi bị gọi khủng bố, mẹ dặn thấy chữ vay là chặn luôn 🥲',
+        'nhà em cũng đang khó, em muốn hỏi cái này thật ko ạ'
+      ]
+    },
+    view: {
+      kind: 'email',
+      from: { name: 'Phòng Công tác sinh viên - ĐH Sao Mai', addr: '[[c-mail|ctsv@saomai.edu.vn]]' },
+      to: 'ngan.dk49@sv.saomai.edu.vn',
+      subject: 'Hướng dẫn vay vốn tín dụng học sinh, sinh viên năm học 2026-2027',
+      date: 'Th 6, 16 thg 10, 15:10',
+      body: 'Thân gửi các bạn sinh viên,\n\nPhòng Công tác sinh viên gửi hướng dẫn vay vốn theo chương trình tín dụng đối với học sinh, sinh viên có hoàn cảnh khó khăn.\n\n1. Nơi cho vay: [[c-vbsp|Ngân hàng Chính sách xã hội]], thông qua UBND xã, phường nơi gia đình cư trú.\n2. Mức vay tối đa 4.000.000đ/tháng. [[c-rate|Lãi suất ưu đãi theo quy định của Nhà nước, niêm yết công khai tại điểm giao dịch]]; trả nợ sau khi ra trường.\n3. Thủ tục: sinh viên [[c-confirm|nhận giấy xác nhận tại Phòng CTSV, phòng A1.105, miễn phí]]; gia đình [[c-onsite|nộp hồ sơ trực tiếp tại điểm giao dịch xã, phường]].\n\n[[c-noapp|Chương trình không vay qua app, không có "nhân viên tư vấn" gọi điện hay nhắn Zalo, không thu phí làm hồ sơ.]] Gặp ai tự xưng hỗ trợ vay vốn và đòi tiền, các bạn báo ngay cho Phòng.\n\nTrân trọng.',
+      sig: 'Phòng Công tác sinh viên\nTrường Đại học Sao Mai\nPhòng A1.105 · ĐT: (024) 3755 1100 · saomai.edu.vn/ctsv'
+    },
+    clues: {
+      'c-mail': 'Thư gửi từ đúng tên miền @saomai.edu.vn tới email sinh viên của chính Ngân, không phải Gmail hay tên miền lạ.',
+      'c-vbsp': 'Đây là kênh vay vốn sinh viên chính thức: Ngân hàng Chính sách xã hội, làm qua chính quyền địa phương. Khác hẳn app vay trên mạng.',
+      'c-rate': 'Lãi suất ưu đãi do Nhà nước quy định, ai cũng xem được tại điểm giao dịch. Tín dụng đen thì giấu lãi, cộng đủ thứ phí.',
+      'c-confirm': 'Giấy xác nhận lấy trực tiếp ở phòng có số phòng rõ ràng, không mất tiền.',
+      'c-onsite': 'Hồ sơ nộp tận nơi ở xã, phường, có cán bộ nhận. Không phải gửi ảnh CCCD qua tin nhắn.',
+      'c-noapp': 'Ghi rõ không qua app, không thu phí, không có ai gọi mời vay. Đây chính là những điều phân biệt vay thật với tín dụng đen.'
+    },
+    evidence: {
+      link: { url: 'saomai.edu.vn/ctsv', bad: false, highlight: '', detail: 'Tên miền chính thức của Trường ĐH Sao Mai. Trang của Phòng CTSV có cùng hướng dẫn vay vốn và mẫu giấy xác nhận.', clue: 'c-mail' }
+    },
+    answer: 'trust',
+    consequence: 'Nếu Ngân xóa thư và báo cáo là lừa đảo, gia đình lỡ đợt xét cho vay của phường trong tháng 11. Ngân phải đi làm thêm đến khuya để đóng học phí, hoặc bị dụ sang app vay lãi cắt cổ đúng như mẹ lo.',
+    explain: 'Thư đến từ tên miền của trường, hướng dẫn vay qua Ngân hàng Chính sách xã hội, nộp hồ sơ trực tiếp, lãi suất công khai và không thu phí.',
+    rule: 'Vay vốn sinh viên thật: qua Ngân hàng Chính sách xã hội và chính quyền địa phương, giấy tờ nộp tận nơi, không qua app.'
+  },
+  {
+    id: 'loan-5', type: 'loan', title: 'Thông báo của Phòng CTSV',
+    reporter: 'Mai Linh · K48 GD Tiểu học',
+    report: {
+      from: 'Đặng Mai Linh', sub: 'SV năm 2 · Khoa Giáo dục Tiểu học',
+      msgs: [
+        { time: '10:14' },
+        'dạ em chào anh chị ạ',
+        'dạo này em thấy nhiều vụ lừa học bổng quá nên giờ thấy cái gì cũng sợ 😅',
+        { shot: ['Phòng Công tác sinh viên - ĐH Sao Mai', 'THÔNG BÁO HỌC BỔNG KKHT HK1', 'nộp hồ sơ tại phòng A1.105', 'không thu bất kỳ khoản phí nào'], app: 'ViệtBook' },
+        'bài này trên trang phòng CTSV, có cả hướng dẫn vay vốn sv nữa',
+        'em nộp theo bài này được ko ạ'
+      ]
+    },
+    view: {
+      kind: 'post',
+      author: { name: 'Phòng Công tác sinh viên - ĐH Sao Mai', avatar: '🏛️', color: '#1d4ed8', verified: true, meta: '[[c-page|Trang chính thức · hoạt động từ 2014]] · 🌐' },
+      text: '📢 THÔNG BÁO XÉT HỌC BỔNG KHUYẾN KHÍCH HỌC TẬP HỌC KỲ 1, NĂM HỌC 2026-2027\n\n1. Đối tượng: sinh viên chính quy có điểm trung bình học kỳ từ 3,2 và điểm rèn luyện từ loại Tốt.\n2. Hồ sơ: đơn theo mẫu, bảng điểm có xác nhận của khoa.\n3. [[c-onsite|Nộp hồ sơ trực tiếp tại Phòng Công tác sinh viên, phòng A1.105]], từ 20/10 đến 31/10, giờ hành chính.\n4. [[c-nofee|Nhà trường không thu bất kỳ khoản phí nào]]. Tiền học bổng chuyển vào tài khoản sinh viên đã đăng ký với trường.\n\n💡 Sinh viên có hoàn cảnh khó khăn cần vay vốn học tập: liên hệ [[c-vbsp|Ngân hàng Chính sách xã hội tại địa phương]] nơi gia đình cư trú. Phòng CTSV cấp giấy xác nhận sinh viên miễn phí.\n\nMẫu đơn và danh sách chi tiết xem tại [[c-site|saomai.edu.vn/ctsv]].',
+      image: { emoji: '🎓', caption: 'Thông báo học bổng KKHT HK1', clue: 'c-img' },
+      stats: '👍 1,3K · 💬 214 · ↗ 380',
+      comments: [
+        { name: 'Lớp trưởng K48 Toán', text: 'Lớp mình ai đủ điều kiện nhớ nộp trước 31/10 nha.' },
+        { name: 'Phòng Công tác sinh viên - ĐH Sao Mai', text: 'Lưu ý: Phòng không nhắn tin riêng thu phí hồ sơ. Gặp trường hợp như vậy, các bạn báo ngay cho Phòng.' }
+      ]
+    },
+    clues: {
+      'c-page': 'Trang có tích xanh, hoạt động hơn 10 năm, đúng tên phòng của trường.',
+      'c-onsite': 'Nộp hồ sơ trực tiếp ở phòng làm việc có số phòng rõ ràng, không qua link lạ.',
+      'c-nofee': 'Ghi rõ không thu phí, đúng như học bổng thật.',
+      'c-vbsp': 'Vay vốn sinh viên đúng kênh: Ngân hàng Chính sách xã hội, không phải app vay trên mạng.',
+      'c-site': 'Dẫn về tên miền chính thức saomai.edu.vn, không sai chữ nào.',
+      'c-img': 'Ảnh thông báo do trường tự thiết kế, có logo và số hiệu văn bản.'
+    },
+    evidence: {
+      link: { url: 'saomai.edu.vn/ctsv', bad: false, detail: 'Tên miền chính thức của Trường Đại học Sao Mai, đăng ký từ năm 2008. Trang có cùng thông báo này.', clue: 'c-site' },
+      profile: { bad: false, created: 'Năm 2014', friends: '18.000 người theo dõi, phần lớn là sinh viên Sao Mai', detail: 'Trang chính thức có dấu tích xanh, được liên kết từ website saomai.edu.vn. Đăng thông báo đều đặn mỗi tuần.', clue: 'c-page' },
+      image: { bad: false, detail: 'Ảnh gốc, chỉ xuất hiện trên trang của trường và website saomai.edu.vn.', clue: 'c-img' }
+    },
+    answer: 'trust',
+    consequence: 'Nếu nghi ngờ rồi bỏ qua, Mai Linh lỡ hạn nộp hồ sơ và mất suất học bổng khuyến khích học tập mà mình đủ điều kiện nhận.',
+    explain: 'Thông báo đến từ trang chính thức có tích xanh, nộp hồ sơ trực tiếp, không thu phí và dẫn về saomai.edu.vn.',
+    rule: 'Học bổng thật: kênh chính thức, nộp tại trường, không mất phí.'
+  },
+  {
+    id: 'loan-6', type: 'loan', title: 'Vay 0% lãi',
     reporter: 'Khánh · K47 Tin học',
     report: {
       from: 'Phạm Quốc Khánh', sub: 'SV năm 3 · Khoa Tin học',
@@ -1565,48 +1890,6 @@ const SCENARIOS = [
     consequence: 'Khánh vay 3 triệu, chỉ nhận 2,1 triệu vì bị trừ "phí hồ sơ". 10 ngày sau nợ thành 4 triệu, app gửi tin bôi nhọ Khánh tới cả danh bạ, từ mẹ tới cố vấn học tập.',
     explain: 'Vay "0% lãi, không thẩm định" qua app .apk đòi danh bạ là tín dụng đen trá hình.',
     rule: 'App vay nào đòi danh bạ thì xóa ngay, đừng vay.'
-  },
-  {
-    id: 'loan-5', type: 'loan', title: 'Đề cử học bổng',
-    reporter: 'Đức Huy · K49 Lịch sử',
-    report: {
-      from: 'Võ Đức Huy', sub: 'SV năm 1 · Khoa Lịch sử',
-      msgs: [
-        { time: '19:26' },
-        'cho mình hỏi',
-        'có anh nhắn tự giới thiệu cán bộ Đoàn trường, bảo mình dc đề cử học bổng doanh nghiệp',
-        { shot: ['Hoàng Minh Đức', 'em được Đoàn trường đề cử', 'học bổng DN 5.000.000đ', 'điền form trước thứ 6 nhé'], app: 'Messenger' },
-        'nó chưa đòi tiền gì cả, chỉ bảo điền form gg',
-        'mình ko quen anh này. điền thì có sao ko'
-      ]
-    },
-    view: {
-      kind: 'chat', app: 'messenger',
-      contact: { name: 'Hoàng Minh Đức', avatar: '👦', color: '#0284c7', sub: '[[c-nofriend|Các bạn không phải là bạn bè trên ViệtBook]]' },
-      messages: [
-        { who: 'sys', text: 'Hôm nay 18:58' },
-        { who: 'them', text: 'Chào em Huy, anh là Đức, [[c-role|cán bộ Đoàn trường ĐH Sao Mai]] nhé.' },
-        { who: 'them', text: 'Đoàn trường vừa đề cử em vào danh sách nhận [[c-sponsor|học bổng doanh nghiệp 5.000.000đ]] do có thành tích hoạt động phong trào tốt.' },
-        { who: 'them', text: 'Em điền thông tin vào form này giúp anh trước thứ 6 nhé: [[c-form|forms.gle/hb-doanhnghiep-saomai]]' },
-        { who: 'me', text: 'Dạ form cần điền những gì ạ anh?' },
-        { who: 'them', text: 'Họ tên, MSSV, SĐT, [[c-info|số CCCD và số tài khoản ngân hàng]] để doanh nghiệp chuyển tiền thôi em. Không mất phí gì đâu 😊' }
-      ]
-    },
-    clues: {
-      'c-nofriend': 'Huy không quen người này, cũng chưa kết bạn. Cần kiểm tra người nhắn có đúng là cán bộ Đoàn không.',
-      'c-role': 'Ai cũng có thể tự xưng "cán bộ Đoàn". Hãy hỏi lại Văn phòng Đoàn hoặc Phòng Công tác sinh viên.',
-      'c-sponsor': 'Học bổng doanh nghiệp có thật, nhưng thường được thông báo công khai trên trang của trường.',
-      'c-form': 'Form Google ai cũng tạo được trong 2 phút. Chưa chắc là của trường.',
-      'c-info': 'Chưa đòi tiền, nhưng xin số CCCD và tài khoản ngân hàng. Thông tin này có thể bị dùng để lừa tiếp.'
-    },
-    evidence: {
-      link: { url: 'forms.gle/hb-doanhnghiep-saomai', bad: false, detail: 'Đây là form Google thật, không chứa mã độc. Nhưng người tạo form dùng Gmail cá nhân, không phải tài khoản @saomai.edu.vn. Chưa xác định được ai đứng sau.', clue: 'c-form' },
-      profile: { bad: false, created: '4 năm trước', friends: '310 bạn bè, 12 bạn chung là sinh viên Sao Mai', detail: 'Tài khoản có hoạt động lâu, từng đăng ảnh các hoạt động tình nguyện. Không thấy tên trong danh sách Ban chấp hành Đoàn trường công khai trên saomai.edu.vn.', clue: 'c-nofriend' }
-    },
-    answer: 'suspect',
-    consequence: 'Nếu tin ngay: Huy gửi số CCCD và tài khoản, vài ngày sau nhận cuộc gọi "học bổng bị lỗi, cần đọc mã OTP để nhận tiền". Nếu chặn luôn mà không hỏi: Huy có thể lỡ một suất học bổng thật.',
-    explain: 'Tin có thể thật nhưng đến từ người lạ và xin thông tin nhạy cảm, nên phải hỏi Phòng Công tác sinh viên hoặc Văn phòng Đoàn trước.',
-    rule: 'Học bổng đến qua tin nhắn riêng: hỏi Phòng CTSV trước khi điền bất cứ gì.'
   }
 ];
 

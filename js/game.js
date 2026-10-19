@@ -13,7 +13,7 @@
   const HEAL_QUIZ = 20;
   const REWARD_BASE = 40;
   const REWARD_CLUE = 10;
-  const STARS_PER_TYPE = 5;
+  const STARS_PER_TYPE = 6;   // = số vụ của mỗi chương
   const UNLOCK_NEXT = 2;     // số sao cần để mở chương tiếp theo
   const BOSS_NEED = 3;       // mỗi kiểu cần ít nhất 3 sao để mở trùm cuối
   // Điểm xếp hạng
@@ -716,7 +716,7 @@
     emit('case:solved');
     if (first && starsOf(s.type) === STARS_PER_TYPE) {
       const t = typeById[s.type];
-      setTimeout(() => modal('<div class="badge-pop">' + I.medal(t.id, true, 110) + '<h2>Mở khóa huy hiệu!</h2><h3>' + esc(t.badge) + '</h3><p>Bạn đã thu thập đủ 5 sao kiểu lừa "' + esc(t.name) + '". Bí kíp phòng tránh đã được thêm vào Sổ Huy hiệu.</p></div>',
+      setTimeout(() => modal('<div class="badge-pop">' + I.medal(t.id, true, 110) + '<h2>Mở khóa huy hiệu!</h2><h3>' + esc(t.badge) + '</h3><p>Bạn đã thu thập đủ ' + STARS_PER_TYPE + ' sao kiểu lừa "' + esc(t.name) + '". Bí kíp phòng tránh đã được thêm vào Sổ Huy hiệu.</p></div>',
         [{ label: 'Xem Sổ Huy hiệu', onClick: () => WM.open('badges') }]), 900);
     }
     if (first && !bossWasOpen && bossUnlocked()) {
@@ -815,7 +815,7 @@
   function renderBadges(body) {
     const r = rank();
     let h = '<div class="bb"><div class="bb-tabs">' + SCAM_TYPES.map((t, i) =>
-      '<button class="bb-tab' + (i === badgeTab ? ' on' : '') + '" data-tab="' + i + '" style="--c:' + t.color + '">' + I.typeIcon(t.id, 30) + '<small>' + starsOf(t.id) + '/5</small></button>').join('') +
+      '<button class="bb-tab' + (i === badgeTab ? ' on' : '') + '" data-tab="' + i + '" style="--c:' + t.color + '">' + I.typeIcon(t.id, 30) + '<small>' + starsOf(t.id) + '/' + STARS_PER_TYPE + '</small></button>').join('') +
       '</div><div class="scroll pad">';
     h += '<div class="rank-line"><span class="rank ' + r.cls + '">' + r.name + '</span> ' + U.star + ' ' + totalStars() + '/' + SCENARIOS.length + ' · ' + badgesCount() + ' huy hiệu</div>';
     const t = SCAM_TYPES[badgeTab];
@@ -824,11 +824,11 @@
     h += '<div class="bb-page" style="--c:' + t.color + '"><div class="bb-medal">' + I.medal(t.id, full, 100) + '</div>' +
       '<h2>' + esc(t.name) + '</h2><div class="bb-stars">' + starRow(n) + '</div>' +
       (t.sign ? '<p class="bb-sign"><b>Dấu hiệu nhận biết:</b> ' + esc(t.sign) + '</p>' : '') +
-      '<p class="muted center">' + (full ? 'Huy hiệu: <b>' + esc(t.badge) + '</b>' : 'Thu thập đủ 5 sao để nhận huy hiệu "' + esc(t.badge) + '" và mở Bí kíp phòng tránh.') + '</p>';
+      '<p class="muted center">' + (full ? 'Huy hiệu: <b>' + esc(t.badge) + '</b>' : 'Thu thập đủ ' + STARS_PER_TYPE + ' sao để nhận huy hiệu "' + esc(t.badge) + '" và mở Bí kíp phòng tránh.') + '</p>';
     h += '<h3>Quy tắc vàng đã học</h3>';
     const learned = SCENARIOS.filter(s => s.type === t.id);
     h += '<ul class="rules">' + learned.map(s => S.solved[s.id] ? '<li class="got">' + U.star + '<span><b>' + esc(s.title) + ':</b> ' + esc(s.rule) + '</span></li>' : '<li class="muted">☆ <span>??? (chưa phá vụ này)</span></li>').join('') + '</ul>';
-    h += '<h3>Bí kíp phòng tránh</h3>' + (full ? '<ol class="tips">' + t.tips.map(x => '<li>' + esc(x) + '</li>').join('') + '</ol>' : '<div class="locked-tips">' + U.lock + ' Mở khóa khi đủ 5 sao</div>');
+    h += '<h3>Bí kíp phòng tránh</h3>' + (full ? '<ol class="tips">' + t.tips.map(x => '<li>' + esc(x) + '</li>').join('') + '</ol>' : '<div class="locked-tips">' + U.lock + ' Mở khóa khi đủ ' + STARS_PER_TYPE + ' sao</div>');
     h += '</div>';
     if (typeof HELP !== 'undefined') {
       h += '<div class="bb-page help-card"><h2>Khi gặp dấu hiệu lừa đảo</h2><ol class="tips">' + HELP.steps.map(x => '<li>' + esc(x) + '</li>').join('') + '</ol>' +
@@ -1031,7 +1031,7 @@
       { text: 'Bước cuối: chọn đúng <b>kiểu lừa đảo</b>. Bài đăng tặng iPhone bắt trả phí là kiểu gì nhỉ?', target: '.panel [data-type="prize"]', on: { 'case:solved': 10 } },
       { text: 'Tuyệt vời! Cháu nhận được <b>1 sao</b> và <b>tiền thưởng</b>. Tìm được càng nhiều manh mối thì càng nhiều tiền. Giờ mở <b>Cửa hàng</b>.', target: '#icons [data-app="shop"]', on: { 'open:shop': 11 } },
       { text: 'Dùng tiền để mua hoặc nâng cấp thiết bị dò tìm. Thử <b>mua Máy soi hồ sơ</b> nhé. Nó giúp xem tài khoản được tạo khi nào.', target: '[data-buy="profile"]', on: { 'shop:buy': 12 }, next: true },
-      { text: 'Mở <b>Sổ Huy hiệu</b>. Mỗi kiểu lừa đảo có 5 sao. Đủ 5 sao sẽ nhận huy hiệu và mở <b>Bí kíp phòng tránh</b>.', target: '#icons [data-app="badges"]', on: { 'open:badges': 13 } },
+      { text: 'Mở <b>Sổ Huy hiệu</b>. Mỗi kiểu lừa đảo có 6 vụ, mỗi vụ phá được 1 sao. Đủ 6 sao sẽ nhận huy hiệu và mở <b>Bí kíp phòng tránh</b>.', target: '#icons [data-app="badges"]', on: { 'open:badges': 13 } },
       { text: 'Cuối cùng là <b>Bảng xếp hạng</b>. Mỗi sao, mỗi huy hiệu đều được cộng điểm. Cố gắng đứng đầu nhé!', target: '#icons [data-app="leaderboard"]', on: { 'open:leaderboard': 14 }, next: true },
       { text: 'Cháu đã sẵn sàng rồi! Mỗi vụ án chỉ cần: <b>Xem, chạm, chọn</b>. Ta đã hồi đầy máu cho cháu. Vào Hộp thư nhận vụ tiếp theo nhé. Chúc may mắn, thám tử!', next: true, last: true }
     ];

@@ -6,10 +6,20 @@
   <title>Thám Tử Mạng - Hồ Sơ Lừa Đảo</title>
   <meta name="description" content="Game giáo dục giúp học sinh nhận biết và phòng tránh lừa đảo trên mạng.">
   <link rel="icon" href="img/logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/fonts.css">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/fonts.css?v=1019d">
+  <link rel="stylesheet" href="css/style.css?v=1019d">
 </head>
 <body>
+  <script>
+    // Hiện lỗi ngay trên màn hình để dễ chụp gửi người làm game
+    window.addEventListener('error', function (e) {
+      var d = document.createElement('div');
+      d.style.cssText = 'position:fixed;left:8px;right:8px;top:8px;z-index:99999;background:#fde8e8;color:#9b1c1c;border:1px solid #f5b5b5;border-radius:8px;padding:8px 10px;font:12px/1.4 monospace;word-break:break-word';
+      d.textContent = 'Lỗi: ' + e.message + ' (' + String(e.filename || '').split('/').pop() + ':' + e.lineno + ')';
+      d.onclick = function () { d.remove(); };
+      document.body.appendChild(d);
+    });
+  </script>
   <!-- Màn hình khóa / đăng nhập -->
   <div id="lock" class="hidden"></div>
 
@@ -49,10 +59,10 @@
   <div id="modal-bg" class="hidden"><div id="modal"></div></div>
   <div id="toasts"></div>
 
-  <script src="js/config.js"></script>
-  <script src="js/icons.js"></script>
-  <script src="js/store.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/game.js"></script>
+  <script src="js/config.js?v=1019d"></script>
+  <script src="js/icons.js?v=1019d"></script>
+  <script src="js/store.js?v=1019d"></script>
+  <script src="js/data.js?v=1019d"></script>
+  <script src="js/game.js?v=1019d"></script>
 </body>
 </html>
