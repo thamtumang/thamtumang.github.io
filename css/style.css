@@ -17,7 +17,9 @@
   --radius: 8px;
   --taskbar: 48px;
   --shadow: 0 8px 32px rgba(0,0,0,.18), 0 2px 8px rgba(0,0,0,.12);
-  font-family: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font: "Be Vietnam Pro", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --font-display: "Baloo 2", "Be Vietnam Pro", system-ui, sans-serif;
+  font-family: var(--font);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font-size: 14px; }
@@ -258,7 +260,7 @@ input { font: inherit; }
 /* ---------- ViệtBook ---------- */
 .vb { display: flex; flex-direction: column; height: 100%; background: #f0f2f5; }
 .vb-top { flex: none; display: flex; align-items: center; gap: 10px; background: #fff; padding: 6px 12px; border-bottom: 1px solid #ddd; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
-.vb-logo { color: var(--vb); font-weight: 800; font-size: 22px; letter-spacing: -.8px; font-family: "Segoe UI", Arial, sans-serif; }
+.vb-logo { color: var(--vb); font-weight: 800; font-size: 22px; letter-spacing: -.8px; font-family: var(--font); }
 .vb-search { flex: 1; min-width: 0; border: 0; background: #f0f2f5; border-radius: 20px; padding: 8px 14px; font-size: 14px; }
 .vb-me { line-height: 0; }
 .vb-feed { flex: 1; min-height: 0; padding: 12px; }
@@ -547,3 +549,10 @@ body.hurt::after { content: ""; position: fixed; inset: 0; box-shadow: inset 0 0
 .help-card h2 { font-size: 18px; }
 .help-list { padding-left: 18px; line-height: 1.55; font-size: 13.5px; }
 .help-list li { margin-bottom: 6px; }
+
+/* Phông chữ kiểu game cho tiêu đề */
+h1, h2, .tut-name, .ch-name, .cf-chapter, #lock-time, .login-card h2, .rank, .boss h2, .podium b, .verdict {
+  font-family: var(--font-display);
+  letter-spacing: 0;
+}
+h1, h2 { font-weight: 800; }
