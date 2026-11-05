@@ -53,7 +53,7 @@ Ví dụ muốn dùng Tahoma thì thay `"Segoe UI"` bằng `Tahoma`. Lưu file, 
 
 ## Đưa vào repository
 
-Chép bản này vào repository hiện có sau khi sao lưu. Các file chính thay đổi so với bản gốc: `index.html`, `css/readability.css`, `js/game.js`, `js/store.js`, `js/data.js`, ảnh trong `img/posts`, ảnh iPhone và ghi nguồn. `js/icons.js` và `css/style.css` khớp bản gốc. Bản bàn giao chưa được đẩy lên GitHub hay xuất bản. Không cần xóa localStorage.
+Chép bản này vào repository hiện có sau khi sao lưu. Các file chính thay đổi so với bản gốc: `index.html`, `css/readability.css`, `js/game.js`, `js/store.js`, `js/data.js`, ảnh trong `img/posts`, ảnh iPhone và ghi nguồn. `js/icons.js` và `css/style.css` khớp bản gốc. Mã nguồn được quản lý tại thamtumang/thamtumang.github.io. Không cần xóa localStorage.
 
 ![Bài đăng mới](docs/news-posts-preview.jpg)
 
@@ -87,3 +87,7 @@ Không sửa JavaScript, nội dung vụ án, ảnh quảng cáo, điểm hay l�
 
 ![Cỡ chữ desktop](docs/typography-desktop.jpg)
 ![Cỡ chữ màn hình hẹp](docs/typography-mobile.jpg)
+
+## Ca trực an toàn số (05/11/2026)
+
+Thêm biểu tượng Ca trực ở cuối danh sách desktop và nút truy cập trong Hộp thư. Hai ca điều tra mới có hội thoại theo lựa chọn, nguồn xác minh, sổ đối chiếu và kế hoạch ứng phó. Xem [SHIFT-README.md](SHIFT-README.md) để biết cách chơi, điểm và phạm vi.
