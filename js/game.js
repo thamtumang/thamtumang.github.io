@@ -53,11 +53,12 @@
 
   /* ---------------- Trạng thái & lưu ---------------- */
   function freshState() {
+    const testing = !!(Store.user && Store.user.test);
     return {
-      hp: MAX_HP, money: 100,
+      hp: MAX_HP, money: testing ? 10000 : 100,
       solved: {}, rules: [],
-      tools: { link: 1, image: 0, account: 0, profile: 0 },
-      tutorialDone: false, bossDone: false, letterSeen: 0
+      tools: testing ? { link: 3, image: 3, account: 3, profile: 3 } : { link: 1, image: 0, account: 0, profile: 0 },
+      tutorialDone: testing, bossDone: false, letterSeen: 0
     };
   }
   let S = freshState();
@@ -86,8 +87,8 @@
     return SCENARIOS.filter(s => s.type === typeId && S.solved[s.id]).length;
   }
   function totalStars() { return Object.keys(S.solved).filter(id => scById[id]).length; }
-  function typeUnlocked(i) { return i === 0 || starsOf(SCAM_TYPES[i - 1].id) >= UNLOCK_NEXT; }
-  function bossUnlocked() { return SCAM_TYPES.every(t => starsOf(t.id) >= BOSS_NEED); }
+  function typeUnlocked(i) { return me().test || i === 0 || starsOf(SCAM_TYPES[i - 1].id) >= UNLOCK_NEXT; }
+  function bossUnlocked() { return !!me().test || SCAM_TYPES.every(t => starsOf(t.id) >= BOSS_NEED); }
   function rank() {
     if (S.bossDone) return RANKS[RANKS.length - 1];
     let r = RANKS[0];
@@ -130,7 +131,7 @@
     });
     $('#modal-bg').classList.remove('hidden');
   }
-  function closeModal() { $('#modal-bg').classList.add('hidden'); }
+  function closeModal() { $('#modal-bg').classList.add('hidden'); $('#modal').classList.remove('media-modal'); }
 
   function floatText(text, cls) {
     const f = document.createElement('div');
@@ -392,7 +393,7 @@
       '<div class="sm-pmenu hidden" id="sm-pmenu">' +
       '<button data-sm="about">Giới thiệu game</button>' +
       '<button data-sm="reset">Xóa tiến trình, chơi lại từ đầu</button>' +
-      '<button data-sm="logout">' + (u.guest ? 'Thoát chế độ khách' : 'Đăng xuất') + '</button></div></div></div>';
+      '<button data-sm="logout">' + (u.test ? 'Thoát tài khoản test' : u.guest ? 'Thoát chế độ khách' : 'Đăng xuất') + '</button></div></div></div>';
     const inp = $('#sm-search');
     inp.oninput = () => { const v = inp.value; renderStartMenu(v); const i2 = $('#sm-search'); i2.focus(); i2.setSelectionRange(v.length, v.length); };
     $$('[data-sm-app]').forEach(b => (b.onclick = () => { toggleStart(false); WM.open(b.dataset.smApp); }));
@@ -445,6 +446,7 @@
     if (S.letterSeen !== letters.length) { S.letterSeen = letters.length; save(); setTimeout(renderIcons, 0); }
 
     let h = '<div class="scroll pad">';
+    if (me().test) h += '<div class="test-notice"><b>Tài khoản thử nghiệm</b><span>Đã mở 7 chương và chuyên án Bóng Đêm. Công cụ cấp 3. Tiến trình lưu riêng trên máy này, không ghi bảng xếp hạng.</span></div>';
     h += '<div class="letter"><div class="letter-head">' + I.bacTu(44) + '<div><div class="letter-from">Thư từ Bác Tư</div><h3>' + esc(latest.title) + '</h3></div></div><p>' + esc(latest.text) + '</p>';
     if (letters.length > 1) {
       h += '<details><summary>Xem thư cũ (' + (letters.length - 1) + ')</summary>' +
@@ -556,17 +558,20 @@
     h += '<div class="vb-hint">' + U.search + ' Chạm vào chỗ bạn thấy đáng ngờ. Đã tìm <b>' + C.found.size + '/' + Object.keys(s.clues).length + '</b> manh mối.</div>';
     if (v.kind === 'post') {
       h += '<div class="vb-card post">' +
-        '<div class="post-head">' + I.forEntity(v.author, 42) + '<div><b>' + esc(v.author.name) + (v.author.verified ? ' <span class="tick">✔</span>' : '') + '</b><small>' + clueText(v.author.meta) + '</small></div></div>' +
+        '<div class="post-head">' + postAvatar(v.author) + '<div><b>' + esc(v.author.name) + (v.author.verified ? ' <span class="tick">✔</span>' : '') + '</b><small>' + clueText(v.author.meta) + '</small></div></div>' +
         '<div class="post-text">' + clueText(v.text) + '</div>';
       if (v.image) {
-        h += '<div class="post-img' + (v.image.clue ? ' clue' : '') + (v.image.clue && C.found.has(v.image.clue) ? ' found' : '') + '"' + (v.image.clue ? ' data-clue="' + v.image.clue + '"' : '') + ' style="--c:' + (v.author.color || '#6366f1') + '"><span>' + v.image.emoji + '</span><small>' + esc(v.image.caption) + '</small></div>';
+        const found = v.image.clue && C.found.has(v.image.clue);
+        h += '<div class="post-media' + (v.image.clue ? ' clue' : '') + (found ? ' found' : '') + '"' + (v.image.clue ? ' data-clue="' + v.image.clue + '"' : '') + '><img src="' + esc(v.image.src) + '" alt="' + esc(v.image.caption) + '" width="' + v.image.width + '" height="' + v.image.height + '"></div>' +
+          '<div class="post-media-caption"><span>' + esc(v.image.caption) + '</span><button class="media-open" data-open-media="1">Xem ảnh</button></div>';
+        if (v.image.credit) h += '<div class="media-credit">Ảnh minh họa · <a href="' + esc(v.image.source) + '" target="_blank" rel="noopener noreferrer">' + esc(v.image.credit) + '</a></div>';
       }
       if (v.link) {
         h += '<div class="post-link clue' + (C.found.has(v.link.clue) ? ' found' : '') + '" data-clue="' + v.link.clue + '"><small>' + esc(v.link.url.toUpperCase()) + '</small><b>' + esc(v.link.title) + '</b></div>';
       }
-      h += '<div class="post-stats">' + esc(v.stats || '') + '</div><div class="post-actions"><span>Thích</span><span>Bình luận</span><span>Chia sẻ</span></div>';
+      h += postStats(v.stats) + '<div class="post-actions" aria-label="Thanh tương tác của bài đăng mô phỏng"><span>' + postGlyph('like') + 'Thích</span><span>' + postGlyph('comment') + 'Bình luận</span><span>' + postGlyph('share') + 'Chia sẻ</span></div>';
       if (v.comments) {
-        h += '<div class="comments">' + v.comments.map(c => '<div class="cmt">' + I.commenter(plain(c.name), 32) + '<div><b>' + clueText(c.name) + '</b><p>' + clueText(c.text) + '</p></div></div>').join('') + '</div>';
+        h += '<div class="comments">' + v.comments.map(c => '<div class="cmt">' + postAvatar({ name: plain(c.name), color: '#e4e6eb' }, true) + '<div><b>' + clueText(c.name) + '</b><p>' + clueText(c.text) + '</p><small class="comment-meta">Thích · Phản hồi</small></div></div>').join('') + '</div>';
       }
       h += '</div>';
     } else if (v.kind === 'email') {
@@ -591,12 +596,43 @@
     h += '<div class="panel">' + renderPanel(s) + '</div></div>';
     body.innerHTML = h;
 
+    const mediaButton = $('[data-open-media]', body);
+    if (mediaButton) mediaButton.onclick = () => {
+      modal('<h2>' + esc(v.image.caption) + '</h2><div class="media-full"><img src="' + esc(v.image.src) + '" alt="' + esc(v.image.caption) + '"></div>');
+      $('#modal').classList.add('media-modal');
+    };
     $$('.clue', body).forEach(el => (el.onclick = e => { e.stopPropagation(); findClue(el.dataset.clue); }));
     $$('[data-tool]', body).forEach(b => (b.onclick = () => WM.open(b.dataset.tool)));
     $$('[data-decide]', body).forEach(b => (b.onclick = () => decide(b.dataset.decide)));
     $$('[data-type]', body).forEach(b => (b.onclick = () => pickType(b.dataset.type)));
     const nx = $('#btn-next', body); if (nx) nx.onclick = nextCase;
     const bi = $('#btn-back', body); if (bi) bi.onclick = () => { C = null; inboxView = { mode: 'list' }; WM.refresh('vietbook'); WM.open('inbox'); WM.refresh('inbox'); };
+  }
+
+  // Avatars for simulated posts avoid attaching a real person's face to a fictional scam.
+  function postAvatar(author, comment) {
+    const label = plain(author.name).split(/\s+/).filter(Boolean).slice(-2).map(w => w[0]).join('').toUpperCase();
+    return '<span class="post-avatar' + (comment ? ' comment-avatar' : '') + '" style="--avatar-color:' + esc(author.color || '#486984') + '" aria-hidden="true">' + esc(label) + '</span>';
+  }
+
+  function postGlyph(kind) {
+    const paths = {
+      like: '<path d="M7 10v11H3V10h4Zm0 0 5-7c2 0 2 2 1 6h6a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 2H7"/>',
+      comment: '<path d="M20 15a3 3 0 0 1-3 3H9l-5 4v-4a3 3 0 0 1-2-3V6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3Z"/>',
+      share: '<path d="m14 3 8 7-8 7v-4C8 13 5 15 2 20c0-8 4-13 12-13Z"/>'
+    };
+    return '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">' + paths[kind] + '</svg>';
+  }
+
+  function postStats(stats) {
+    const values = (stats || '').split(' · ').map(v => v.replace(/^[^0-9]+/, ''));
+    if (values.length !== 3) return '<div class="post-stats">' + esc(stats || '') + '</div>';
+    return '<div class="post-stats"><span class="reaction-count"><i aria-hidden="true">' + postGlyph('like') + '</i>' + esc(values[0]) + '</span><span>' + esc(values[1]) + ' bình luận · ' + esc(values[2]) + ' lượt chia sẻ</span></div>';
+  }
+
+  function renderReferences(s) {
+    if (!s.references || !s.references.length) return '';
+    return '<details class="case-references"><summary>Nguồn đối chiếu tình huống</summary><p>Bài đăng, nhân vật và giao dịch trong game là mô phỏng. Phạm vi tham khảo:</p><ul>' + s.references.map(ref => '<li><a href="' + esc(ref.url) + '" target="_blank" rel="noopener noreferrer">' + esc(ref.title) + '</a><small>' + esc(ref.publisher) + '</small><p>' + esc(ref.scope) + '</p></li>').join('') + '</ul></details>';
   }
 
   function demoPost(name, color, text) {
@@ -631,6 +667,7 @@
       '<div class="res-head">' + (r.first ? '<span class="big-star">' + U.star + '</span>' : U.check) + '<div><b>Phá án thành công!</b><small>' + (r.first ? '+1 sao ' + t.name + ' · +' + r.reward + ' tiền' : 'Ôn tập xong (đã nhận thưởng trước đó)') + '</small></div></div>' +
       '<p>' + esc(s.explain) + '</p>' +
       '<div class="golden"><b>Quy tắc vàng:</b> ' + esc(s.rule) + '</div>' +
+      renderReferences(s) +
       '<div class="panel-row"><button class="btn ghost" id="btn-back">Về hộp thư</button><button class="btn primary" id="btn-next">Vụ tiếp theo →</button></div></div>';
   }
 
@@ -938,7 +975,8 @@
         '<span class="lb-name"><b>' + esc(p.name) + (p.id === u.id ? ' (bạn)' : '') + '</b><small>' + U.star + ' ' + p.stars + ' · ' + p.badges + ' huy hiệu' + (p.bossDone ? ' · Phá Bóng Đêm' : '') + '</small></span>' +
         '<span class="lb-score">' + money(p.score) + '</span></div>').join('') + '</div>';
     }
-    if (u.guest) h += '<p class="muted small center">Bạn đang chơi chế độ khách nên không có tên trên bảng xếp hạng. Tạo tài khoản để ghi điểm.</p>';
+    if (u.test) h += '<p class="muted small center">Tài khoản thử nghiệm không ghi điểm lên bảng xếp hạng.</p>';
+    else if (u.guest) h += '<p class="muted small center">Bạn đang chơi chế độ khách nên không có tên trên bảng xếp hạng. Tạo tài khoản để ghi điểm.</p>';
     else if (Store.mode === 'local') h += '<p class="muted small center">Muốn xếp hạng chung với cả lớp trên mạng? Xem README, mục "Bảng xếp hạng trực tuyến".</p>';
     h += '</div>';
     body.innerHTML = h;
@@ -1163,13 +1201,14 @@
         (pre ? '<button class="link-btn" id="li-other">Đăng nhập tài khoản khác</button>' : '') +
         '<button class="link-btn" id="li-new">Chưa có tài khoản? <b>Tạo tài khoản mới</b></button>' +
         '<button class="link-btn dim" id="li-guest">Chơi thử không cần tài khoản</button>' +
-        modeNote + '</div>';
+        '<button class="link-btn" id="li-test">Vào tài khoản thử nghiệm (mở tất cả chương)</button>' +
+        '<p class="test-login-hint">Tài khoản thử nghiệm: <b>admin_test</b><br>Mật khẩu: <b>Test@12345</b></p>' + modeNote + '</div>';
     } else {
       card = '<div class="login-card reg">' +
         '<h1>Tạo tài khoản thám tử</h1>' +
         '<div class="av-pick">' + I.PLAYER_AVATARS.map((a, i) => '<button type="button" class="av-opt' + (i === regAvatar ? ' on' : '') + '" data-av="' + i + '">' + I.player(i, 52) + '</button>').join('') + '</div>' +
         '<form id="reg-form">' +
-        '<input id="rg-name" placeholder="Tên hiển thị (ví dụ: Minh Anh 7A)" maxlength="24">' +
+        '<input id="rg-name" placeholder="Tên hiển thị (ví dụ: Minh Anh 10A)" maxlength="24">' +
         '<input id="rg-user" placeholder="Tên đăng nhập (chữ thường, không dấu)" autocomplete="username" maxlength="20">' +
         '<input id="rg-pass" type="password" placeholder="Mật khẩu (ít nhất 6 ký tự)" autocomplete="new-password">' +
         '<input id="rg-pass2" type="password" placeholder="Nhập lại mật khẩu" autocomplete="new-password">' +
@@ -1198,6 +1237,7 @@
       const o = $('#li-other'); if (o) o.onclick = () => { loginPrefill = ''; renderLock(); };
       $('#li-new').onclick = () => { lockView = 'register'; renderLock(); };
       $('#li-guest').onclick = async () => { Store.guest(); await startSession(); };
+      $('#li-test').onclick = async () => { Store.testAccount(); await startSession(); };
       $$('[data-acc]').forEach(b => (b.onclick = () => { loginPrefill = b.dataset.acc; renderLock(); }));
     } else {
       $$('[data-av]').forEach(b => (b.onclick = () => {
@@ -1225,7 +1265,13 @@
   async function startSession(isNew) {
     const data = await Store.loadSave();
     S = Object.assign(freshState(), data || {});
-    if (!data) save();
+    if (me().test) {
+      S.hp = MAX_HP;
+      S.money = Math.max(10000, Number(S.money) || 0);
+      S.tools = { link: 3, image: 3, account: 3, profile: 3 };
+      S.tutorialDone = true;
+    }
+    if (!data || me().test) save();
     C = null; inboxView = { mode: 'list' }; bossState = null; lbCache = null; quizQ = null;
     $('#lock').classList.add('hidden');
     $('#lock').classList.remove('busy');

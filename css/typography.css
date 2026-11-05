@@ -1,0 +1,96 @@
+/* Thang chữ chung. Chỉnh một dòng font-size ở :root để đổi toàn bộ tỷ lệ.
+   390/768px: 14px; 1280px: 15.34px; 1366px: 15.60px; 1920px: 17px.
+   Có phần px + vw để vẫn tôn trọng phóng to chữ của trình duyệt. */
+:root {
+  --type-base:clamp(14px,calc(11.5px + .3vw),17px);
+  --text-caption:.875rem;
+  --text-ui:.9375rem;
+  --text-body:1rem;
+  --text-reading:1.0625rem;
+  --text-heading:1.375rem;
+}
+html {font-size:var(--type-base)}
+body {font-size:1rem;line-height:1.5}
+button,input,select,textarea {font-family:var(--font);font-size:var(--text-body)}
+h1,h2,h3 {line-height:1.3;font-weight:600}
+h1 {font-size:1.75rem}
+h2 {font-size:var(--text-heading)}
+h3 {font-size:1.125rem}
+small,.small {font-size:var(--text-caption)}
+
+/* Nhãn hệ thống và thông tin phụ: cùng một cỡ, không xuống 9–11px. */
+.i-label,.sm-app,.sm-recitem small,.sm-sec,.rank,.t-title,#tray,.tray-clock,
+.mode,.tiny,.lock-hint,.login-err,.link-btn,.test-login-hint,
+.letter-from,.letter details,.ci-main small,.ci-go,.cf-chapter,.cf-meta,
+.report-head small,.r-time,.sms-time,.post-head small,.chat-head small,.chat-app,
+.post-media-caption,.media-open,.media-credit,.post-link small,.post-stats,
+.cmt .comment-meta,.msg.sys,.mail-from small,.mail-sig,.btn small,
+.res-head small,.tool-head small,.bb-tab small,.si-main small,.lv,.maxed,
+.pod span,.lb-name small,.tut-name small,.case-references,.case-references p {
+  font-size:var(--text-caption);line-height:1.5;
+}
+/* Cỡ thao tác thống nhất trên cả desktop và điện thoại. */
+.btn,.btn.small,.btn.big,.decide .btn,.type-pick,.tool-chip,
+.post-actions,.post-actions span,.vb-search,.vb-hint,.test-notice,
+.toast,.scan-input span,.help-list,.bb-sign {
+  font-size:var(--text-ui);line-height:1.45;
+}
+.btn {min-height:2.5rem}
+.btn.small {min-height:2.125rem}
+.btn.big {font-weight:600}
+.type-pick,.tool-chip {min-height:2.25rem}
+.decide .btn {padding:.55rem .65rem;white-space:normal}
+
+/* Nội dung cần đọc và các tên/nhãn quan trọng. */
+.ci-main b,.post-head b,.chat-head b,.post-link b,.cmt>div,.cmt b,
+.mail,.notes,.res-head div,.bb-page h3,.pod b,.tut-name {
+  font-size:var(--text-body);line-height:1.5;
+}
+.r-msg,.msg,.post-text,.mail-body,.letter p,.cf-boss,.tut-text,
+.rules,.tips,.result p,.golden,.scan-box,.boss-msg p {
+  font-size:var(--text-reading);line-height:1.6;
+}
+.cmt b,.ci-main b,.post-head b,.post-link b {font-weight:600}
+.cmt p {font-size:var(--text-body);line-height:1.55}
+.letter h3,.ch-name,.cf-chapter,.verdict {font-size:1.125rem;line-height:1.4}
+.case-file h2,.mail-subject,.bb-page h2,.fb h2,.help-card h2,#modal h2 {
+  font-size:var(--text-heading);line-height:1.35;
+}
+.login-card h1,.login-card h2 {font-size:1.75rem;line-height:1.3}
+.vb-logo {font-size:1.5rem;line-height:1.25}
+.bb-stars,.pod-base,.crown {font-size:1.625rem}
+.float {font-size:1.75rem}
+.post-avatar {font-size:var(--text-ui)}
+.comment-avatar {font-size:var(--text-caption)}
+
+/* Tin trình báo: chữ trong ảnh giả lập cũng phải đọc được, không cắt dòng cuối. */
+.r-shot {
+  width:min(100%,15rem);height:auto;min-height:13rem;
+  flex-shrink:0;padding-bottom:1.8rem;font-size:var(--text-caption);
+}
+.r-shot .rs-bar {height:auto;min-height:1.2rem;font-size:.8rem;line-height:1.5;flex-shrink:0}
+.r-shot .rs-body {padding:.5rem;gap:.3rem}
+.r-shot .rs-line {line-height:1.5;overflow-wrap:anywhere}
+.r-shot::after {font-size:.8rem;line-height:1.5}
+
+/* Giữ các dòng có chữ to hơn trong chính khung cũ. */
+.ci-main,.ch-name,.report-head>div,.chat-head>div,.tool-head>div,.si-main {min-width:0}
+.ci-main b,.ch-name,.report-head b,.chat-head b,.tool-head b,.si-main b {overflow-wrap:anywhere}
+.ch-head {flex-wrap:wrap}
+.ch-name {flex-basis:60%}
+.ch-stars {white-space:nowrap}
+.vb-hint {display:block}
+.vb-hint>.gly {vertical-align:middle;margin-right:.25rem}
+.vb-hint b {white-space:nowrap}
+.post-media-caption {align-items:flex-start}
+.post-actions span {padding:.45rem .3rem}
+.post-actions svg {flex-shrink:0}
+.case-references small {font-size:var(--text-caption)}
+@media(max-width:760px) {
+  .decide {gap:.35rem}
+  .decide .btn {padding:.55rem .3rem;min-height:3rem}
+  .post-actions span {gap:.25rem}
+  .post-stats {row-gap:.25rem}
+  .cf-boss {align-items:flex-start}
+}
+.case-references p {font-size:var(--text-caption);line-height:1.5}

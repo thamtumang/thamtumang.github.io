@@ -140,6 +140,7 @@ const BONG_DEM_ACC = '1903 6688 2468';
 const SCENARIOS = [
   /* ===================== GIẢ MẠO TRÚNG THƯỞNG ===================== */
   {
+    references: [{"publisher": "Bộ Công an", "title": "Triệt phá đường dây lừa đảo bằng hình thức thông báo trúng thưởng", "url": "https://bocongan.gov.vn/bai-viet/cong-an-tinh-thanh-hoa-triet-pha-duong-day-lua-dao-bang-hinh-thuc-thong-bao-trung-thuong-1766998122", "scope": "Tham khảo thủ đoạn mượn danh tri ân, thông báo quà giá trị lớn rồi yêu cầu thanh toán. Bài nguồn là vụ gọi điện tặng đồ gia dụng; iPhone, bài post và phí 50.000đ trong game là chi tiết hư cấu."}],
     id: 'prize-1', type: 'prize', title: 'Vòng quay iPhone',
     reporter: 'Minh Anh · K48 Tiếng Anh',
     report: {
@@ -156,7 +157,7 @@ const SCENARIOS = [
       kind: 'post',
       author: { name: 'Thế Giới Điện Thoại - Tri Ân', avatar: '📱', color: '#f97316', meta: '[[c-new|Trang tạo 3 ngày trước]] · 🌐' },
       text: '🎉🎉 TRI ÂN KHÁCH HÀNG 🎉🎉\nTặng [[c-free|100 iPhone 15 Pro Max MIỄN PHÍ]] cho 100 bạn may mắn!\n✅ Like + chia sẻ bài viết\n✅ Điền thông tin tại link bên dưới\n✅ [[c-fee|Thanh toán 50.000đ phí vận chuyển]] để nhận máy\n⏰ [[c-rush|Chỉ còn 2 giờ!]]',
-      image: { emoji: '📱', caption: 'iPhone 15 Pro Max', clue: 'c-img' },
+      image: { src: 'img/posts/prize-campaign.svg', caption: 'Ảnh đăng trong chương trình tri ân', clue: 'c-img', credit: 'Ảnh sản phẩm: Ka Kit Pang · CC BY-SA 4.0; ghép vào quảng cáo mô phỏng', source: 'https://commons.wikimedia.org/wiki/File:IPhone_15_Pro_Max.jpeg', width: 900, height: 650 },
       link: { url: 'thegioidienthoai-trian.xyz', title: 'Đăng ký nhận quà tri ân', clue: 'c-link' },
       stats: '👍 4,2K · 💬 1,1K · ↗ 900',
       comments: [
@@ -174,7 +175,7 @@ const SCENARIOS = [
     },
     evidence: {
       link: { url: 'thegioidienthoai-trian.xyz', bad: true, highlight: '-trian.xyz', detail: 'Trang chính thức của cửa hàng có đuôi .com hoặc .vn. Tên miền này mới đăng ký 4 ngày trước, đuôi .xyz rất rẻ và hay bị dùng để lừa đảo.', clue: 'c-link' },
-      image: { bad: true, detail: 'Ảnh này xuất hiện trên hơn 1.200 trang web khác. Bản gốc là ảnh quảng cáo của hãng.', clue: 'c-img' },
+      image: { bad: true, detail: 'Ảnh minh họa sản phẩm được lấy lại từ một nguồn công khai. Có ảnh sản phẩm không chứng minh trang đăng bài sở hữu hay sẽ gửi quà.', clue: 'c-img' },
       profile: { bad: true, created: '3 ngày trước', friends: '0 bạn bè, 12K người theo dõi (mua ảo)', detail: 'Trang đã đổi tên 2 lần. Tên cũ: "Bán hàng thanh lý giá rẻ".', clue: 'c-new' }
     },
     answer: 'report',
@@ -324,6 +325,7 @@ const SCENARIOS = [
       kind: 'post',
       author: { name: 'Đoàn TNCS Hồ Chí Minh Trường ĐH Sao Mai', avatar: '🏫', color: '#2563eb', verified: true, meta: '[[c-page|Trang hoạt động từ 2014 · 18K người theo dõi]] · 🌐' },
       text: '🎉 KẾT QUẢ BỐC THĂM MAY MẮN NGÀY HỘI TÂN SINH VIÊN 2024\n\n[[c-event|Bốc thăm công khai trên sân khấu chiều Chủ nhật 13/10]], từ phiếu các bạn bỏ vào thùng tại cổng hội trường.\n\n🎁 Giải Nhất: 01 xe đạp - Phiếu 0912 - Vũ Thanh Hà - K49 Ngữ văn\n🎁 Giải Nhì: 03 tai nghe bluetooth - Phiếu 0347 - Đỗ Quốc Huy - K49 Tin học; Phiếu 1105 - Lý Minh Châu - K49 Hóa học; Phiếu 0088 - Đinh Gia Bảo - K49 Toán\n\n📍 [[c-office|Nhận quà trực tiếp tại Văn phòng Đoàn, phòng 105 nhà A1]], giờ hành chính từ 14/10 đến 25/10. Mang thẻ sinh viên để đối chiếu.\n✅ [[c-nofee|Không thu bất kỳ khoản phí nào.]] Đoàn trường không nhắn tin riêng đòi chuyển khoản.',
+      image: {"src": "img/posts/campus-draw.svg", "caption": "Kết quả bốc thăm Ngày hội tân sinh viên", "clue": null, width: 900, height: 650 },
       link: { url: 'doantruong.saomai.edu.vn/ngay-hoi-tan-sv-2024', title: 'Ảnh và video Ngày hội tân sinh viên 2024', clue: 'c-link' },
       stats: '👍 1,3K · 💬 214 · ↗ 56',
       comments: [
@@ -645,6 +647,7 @@ const SCENARIOS = [
 
   /* ===================== ĐẦU TƯ, VIỆC LÀM ONLINE ===================== */
   {
+    references: [{"publisher": "Cảnh sát QLHC về TTXH", "title": "Cảnh giác tuyển cộng tác viên online “việc nhẹ, lương cao”", "url": "https://www.canhsatquanlyhanhchinh.gov.vn/phong-chong-toi-pham/canh-giac-thu-doan-lua-dao-tuyen-cong-tac-vien-lam-online-viec-nhe-luong-cao-2681", "scope": "Tham khảo lời mời đánh giá 5 sao nhận 15.000đ, không cần kinh nghiệm, dùng tài khoản tương tác tạo lòng tin. Ảnh tuyển dụng được dựng lại; không phải ảnh gốc trong bài báo."}, {"publisher": "Chuyên đề Công an TP.HCM", "title": "Nhiều phụ nữ bị lừa tiền tỷ bằng chiêu “xem video cũng có tiền”", "url": "https://congan.com.vn/vu-an/canh-giac/cam-bay-xem-video-cung-co-tien-nhieu-phu-nu-bi-lua-tien-ty_160420.html", "scope": "Tham khảo trình tự trả công lúc đầu, tăng mức nhiệm vụ và yêu cầu chuyển thêm tiền khi không rút được. Nhân vật và số tiền trong game đã được hư cấu."}],
     id: 'job-1', type: 'job', title: 'CTV like video 15k',
     reporter: 'Thảo Vy · K49 Hóa học',
     report: {
@@ -663,6 +666,7 @@ const SCENARIOS = [
       kind: 'post',
       author: { name: 'Hương Giang Tuyển Dụng', avatar: '👩', color: '#db2777', meta: 'Việc làm thêm SV Sao Mai · [[c-acc|Thành viên mới tham gia nhóm]] · 2 giờ' },
       text: '🔥🔥 CẦN GẤP 20 BẠN CTV LÀM ONLINE TẠI NHÀ 🔥🔥\n👉 Công việc: like video, đánh giá 5 sao cho shop, tăng tương tác\n💵 [[c-pay|15k/lượt, làm 10 phút được 150k]]\n✅ Không cần kinh nghiệm, chỉ cần điện thoại\n✅ Làm xong có [[c-vip|nhiệm vụ VIP hoa hồng 30%]]\n📩 [[c-zalo|Ib riêng em qua Zalo 0879.xxx.312 để nhận việc]], không trả lời bình luận nha',
+      image: { src: "img/posts/recruitment-ad.svg", caption: "Ảnh tuyển cộng tác viên được đăng kèm bài viết", clue: null, width: 900, height: 650 },
       link: { url: 'ctv-tuongtac-saomai.online', title: 'Đăng ký CTV nhận việc ngay', clue: 'c-link' },
       stats: '👍 312 · 💬 208 · ↗ 45',
       comments: [
@@ -793,6 +797,7 @@ const SCENARIOS = [
       kind: 'post',
       author: { name: 'Trung tâm Hỗ trợ sinh viên - ĐH Sao Mai', avatar: '🏛️', color: '#0f766e', verified: true, meta: '[[c-page|Trang chính thức · hoạt động từ 2015]] · 🌐' },
       text: '📌 VIỆC LÀM THÊM ĐÃ ĐƯỢC TRUNG TÂM KIỂM TRA\n\nTiệm sách cà phê Gác Nhỏ tuyển 03 nhân viên part-time (sắp xếp sách, thu ngân, pha chế đơn giản).\n💰 25.000đ/giờ, ca 4 tiếng, xếp lịch theo thời khóa biểu. Không cần kinh nghiệm, được hướng dẫn.\n📍 [[c-addr|Địa chỉ: 18 ngõ 47 đường Sao Mai, cách cổng phụ trường 300m]]\n🗣️ [[c-meet|Phỏng vấn trực tiếp tại quán]] từ 21/10, mang CV và thẻ sinh viên.\n📝 [[c-contract|Ký hợp đồng lao động thời vụ, lương trả cuối tháng]] vào tài khoản đứng tên sinh viên.\n✅ [[c-nofee|Không thu phí đồng phục, phí giữ chỗ hay đặt cọc. Không giữ CCCD bản gốc.]]\n\nĐăng ký phỏng vấn tại Trung tâm, tầng 1 nhà A2, hoặc xem chi tiết bên dưới.',
+      image: {"src": "img/posts/cafe.jpg", "caption": "Minh họa không gian quán cà phê", "clue": null, "credit": "Cater Yang · CC0", "source": "https://commons.wikimedia.org/wiki/File:Coffee_shop_(Unsplash).jpg", width: 960, height: 640 },
       link: { url: 'saomai.edu.vn/hotrosv/viec-lam-them', title: 'Danh sách việc làm thêm đã kiểm tra - Trung tâm Hỗ trợ SV', clue: 'c-link' },
       stats: '👍 642 · 💬 87 · ↗ 120',
       comments: [
@@ -1002,6 +1007,7 @@ const SCENARIOS = [
       kind: 'post',
       author: { name: 'Đinh Huy Hoàng', avatar: '👦', color: '#2563eb', meta: 'Nhóm K48 Toán - ĐH Sao Mai · [[c-time|1 giờ trước]] · 👥' },
       text: 'Đề cương ôn thi Giải tích 2 + đề các năm có lời giải nhé mn, [[c-text|ai cần thì tải về trước khi mình xóa]] 📚\nMai thi rồi, cố lên cả lớp 💪',
+      image: {"src": "img/posts/study-file.svg", "caption": "Bản xem trước tài liệu ôn thi", "clue": null, width: 900, height: 660 },
       link: { url: 'drive.goog1e-docs.com/file/d/1aX9kQ', title: 'De_cuong_Giai_tich_2.pdf · Google Drive', clue: 'c-link' },
       stats: '👍 38 · 💬 12',
       comments: [
@@ -1231,6 +1237,7 @@ const SCENARIOS = [
     rule: 'OTP mình vừa tự yêu cầu thì tự nhập vào app; ai xin mã đó thì mới là lừa.'
   },
   {
+    references: [{"publisher": "MoMo", "title": "Nhận biết dấu hiệu lừa đảo như thế nào?", "url": "https://www.momo.vn/hoi-dap/nhan-biet-dau-hieu-lua-dao-nhu-the-nao", "scope": "Nguồn chính thức về giả mạo ví điện tử để lấy OTP. Kịch bản hoàn tiền, tên MoMi và giao dịch trong game là tình huống hư cấu, không phải vụ việc được nguồn này ghi nhận."}, {"publisher": "Amber Fintech", "title": "Cảnh báo rủi ro từ Fanpage giả mạo lừa đảo nhận thưởng ví MoMo", "url": "https://amft.vn/vi/tin-tuyen-dung/canh-bao-rui-ro-tu-fanpage-gia-mao-lua-dao-nhan-thuong-vi-momo-1-112", "scope": "Tham khảo cách lập fanpage hỗ trợ giả, đăng hình mạo danh và dùng bình luận tạo lòng tin. Bài nguồn nói về nhận thưởng; không xác nhận kịch bản hoàn tiền trong game."}],
     id: 'otp-3', type: 'otp', title: 'Hoàn tiền giao dịch lỗi',
     reporter: 'Thu Trang · K47 Sinh học',
     report: {
@@ -1248,6 +1255,7 @@ const SCENARIOS = [
       kind: 'post',
       author: { name: 'Ví MoMi - Trung Tâm Hoàn Tiền', avatar: '💳', color: '#a50064', meta: '[[c2-page|Trang · Tạo ngày 11/10/2026]] · 🌐' },
       text: '📢 THÔNG BÁO HOÀN TIỀN GIAO DỊCH LỖI\nDo sự cố hệ thống ngày 15-17/10, nhiều giao dịch nạp tiền điện thoại, thanh toán bị trừ tiền nhưng không thành công.\nVí MoMi cam kết hoàn 100% cho Quý khách:\n✅ Bình luận SĐT + số tiền bị lỗi\n✅ [[c2-call|Nhân viên sẽ gọi điện hỗ trợ trong 15 phút]]\n✅ [[c2-otp|Đọc mã OTP 6 số gửi về máy để hệ thống hoàn tiền]]\n⚠️ [[c2-rush|Sau 48h không xác minh, tiền lỗi sẽ bị hủy hoàn]]',
+      image: {"src": "img/posts/refund-notice.svg", "caption": "Thông báo hoàn tiền giao dịch lỗi", "clue": null, width: 900, height: 650 },
       link: { url: 'momi-hoantien.online', title: 'Tra cứu giao dịch lỗi - Ví MoMi', clue: 'c2-link' },
       stats: '👍 312 · 💬 845 · ↗ 57',
       comments: [
@@ -1823,7 +1831,7 @@ const SCENARIOS = [
       kind: 'post',
       author: { name: 'Phòng Công tác sinh viên - ĐH Sao Mai', avatar: '🏛️', color: '#1d4ed8', verified: true, meta: '[[c-page|Trang chính thức · hoạt động từ 2014]] · 🌐' },
       text: '📢 THÔNG BÁO XÉT HỌC BỔNG KHUYẾN KHÍCH HỌC TẬP HỌC KỲ 1, NĂM HỌC 2026-2027\n\n1. Đối tượng: sinh viên chính quy có điểm trung bình học kỳ từ 3,2 và điểm rèn luyện từ loại Tốt.\n2. Hồ sơ: đơn theo mẫu, bảng điểm có xác nhận của khoa.\n3. [[c-onsite|Nộp hồ sơ trực tiếp tại Phòng Công tác sinh viên, phòng A1.105]], từ 20/10 đến 31/10, giờ hành chính.\n4. [[c-nofee|Nhà trường không thu bất kỳ khoản phí nào]]. Tiền học bổng chuyển vào tài khoản sinh viên đã đăng ký với trường.\n\n💡 Sinh viên có hoàn cảnh khó khăn cần vay vốn học tập: liên hệ [[c-vbsp|Ngân hàng Chính sách xã hội tại địa phương]] nơi gia đình cư trú. Phòng CTSV cấp giấy xác nhận sinh viên miễn phí.\n\nMẫu đơn và danh sách chi tiết xem tại [[c-site|saomai.edu.vn/ctsv]].',
-      image: { emoji: '🎓', caption: 'Thông báo học bổng KKHT HK1', clue: 'c-img' },
+      image: {"src": "img/posts/scholarship-notice.svg", "caption": "Thông báo xét học bổng học kỳ 1", "clue": "c-img", width: 840, height: 1050 },
       stats: '👍 1,3K · 💬 214 · ↗ 380',
       comments: [
         { name: 'Lớp trưởng K48 Toán', text: 'Lớp mình ai đủ điều kiện nhớ nộp trước 31/10 nha.' },
@@ -1836,7 +1844,7 @@ const SCENARIOS = [
       'c-nofee': 'Ghi rõ không thu phí, đúng như học bổng thật.',
       'c-vbsp': 'Vay vốn sinh viên đúng kênh: Ngân hàng Chính sách xã hội, không phải app vay trên mạng.',
       'c-site': 'Dẫn về tên miền chính thức saomai.edu.vn, không sai chữ nào.',
-      'c-img': 'Ảnh thông báo do trường tự thiết kế, có logo và số hiệu văn bản.'
+      'c-img': 'Thông báo có số hiệu văn bản, thời gian và nơi tiếp nhận hồ sơ rõ ràng; cần đối chiếu với kênh chính thức của trường.'
     },
     evidence: {
       link: { url: 'saomai.edu.vn/ctsv', bad: false, detail: 'Tên miền chính thức của Trường Đại học Sao Mai, đăng ký từ năm 2008. Trang có cùng thông báo này.', clue: 'c-site' },
@@ -1849,6 +1857,7 @@ const SCENARIOS = [
     rule: 'Học bổng thật: kênh chính thức, nộp tại trường, không mất phí.'
   },
   {
+    references: [{"publisher": "Bộ Công an", "title": "Cảnh báo hoạt động “tín dụng đen” cho vay lãi nặng trên không gian mạng", "url": "https://www.bocongan.gov.vn/bai-viet/canh-bao-hoat-dong-tin-dung-den-cho-vay-lai-nang-tren-khong-gian-mang-1766661176", "scope": "Tham khảo quảng cáo vay nhanh, không gặp mặt, không thế chấp, trừ phí trước và đòi nợ qua người thân. Tên ứng dụng, giao diện và các mức tiền trong game là hư cấu."}],
     id: 'loan-6', type: 'loan', title: 'Vay 0% lãi',
     reporter: 'Khánh · K47 Tin học',
     report: {
@@ -1866,7 +1875,7 @@ const SCENARIOS = [
       kind: 'post',
       author: { name: 'Vay Nhanh Sinh Viên - Hỗ Trợ 24/7', avatar: '💸', color: '#16a34a', meta: 'Được tài trợ · [[c-page|Trang tạo 9 ngày trước]]' },
       text: '💥 SINH VIÊN CẦN TIỀN GẤP? 💥\n✅ [[c-zero|Vay 0% lãi cho sinh viên]] từ 1 đến 10 triệu\n✅ [[c-easy|Chỉ cần CCCD + thẻ sinh viên, không thẩm định]]\n✅ Giải ngân 5 phút, không cần gặp mặt\n✅ Nợ xấu vẫn hỗ trợ\n👉 Tải app tại link dưới, [[c-perm|cho phép truy cập danh bạ]] để duyệt hồ sơ nhanh hơn!',
-      image: { emoji: '📲', caption: 'App Vay Nhanh SV', clue: null },
+      image: {"src": "img/posts/loan-app.svg", "caption": "Quảng cáo ứng dụng Vay Nhanh SV", "clue": null, width: 900, height: 650 },
       link: { url: 'vaynhanh-sv.top/app.apk', title: 'Tải app Vay Nhanh SV (Android)', clue: 'c-apk' },
       stats: '👍 812 · 💬 340 · ↗ 95',
       comments: [

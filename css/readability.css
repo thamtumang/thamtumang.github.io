@@ -1,0 +1,85 @@
+/* Giữ nguyên desktop, icon, cửa sổ và thanh tác vụ trong style.css. */
+:root {--font:"Segoe UI",Arial,sans-serif;--font-display:var(--font)}
+html,body {font-family:var(--font);font-size:14px}
+button,input {font-family:var(--font)}
+h1,h2,h3,.tut-name,.ch-name,.cf-chapter,.rank,.boss h2,.podium b,.verdict {font-family:var(--font);font-weight:600;letter-spacing:0}
+#lock-time {font-family:var(--font);font-weight:500}
+.t-title {font-size:13px}
+.letter p,.r-msg,.cf-boss,.tut-text,.rules,.tips,.help-list,.result p {line-height:1.65}
+.letter-from {text-transform:none;font-weight:600;letter-spacing:0}
+.ci-main b {font-size:14px;font-weight:600}
+.ci-main small {font-size:12px;line-height:1.5;margin-top:3px}
+.ch-name {font-size:15px}
+.r-msg,.msg {font-size:15px;line-height:1.55}
+.r-shot .rs-body {filter:none}
+.btn {font-size:14px}
+.btn.small {font-size:12.5px}
+.test-login-hint {font-size:12px;line-height:1.6;margin:6px 0 0;color:#fff;text-shadow:0 1px 3px #0005}
+.test-notice {background:#eef5ff;border:1px solid #c6daef;border-left:3px solid #337ab6;border-radius:4px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.6}
+.test-notice b,.test-notice span {display:block}
+.test-notice span {margin-top:3px;color:#42576d}
+/* Bài đăng có chiều rộng đọc ổn định; không kéo theo chiều rộng cửa sổ. */
+.vb-feed {padding:16px;overflow-x:hidden}
+.vb-feed>.post,.vb-feed>.notes,.vb-feed>.vb-hint,.vb-feed>.empty-case {width:100%;max-width:600px;margin-left:auto;margin-right:auto;box-sizing:border-box}
+.panel>.panel-row,.panel>.panel-q,.panel>.type-grid,.panel>.result {max-width:600px;margin-left:auto;margin-right:auto}
+.vb-feed>.post {border:1px solid #dfe3e8;box-shadow:0 1px 2px #0000000a;border-radius:8px}
+.post-head {padding:14px 16px;align-items:flex-start}
+.post-head>div {flex:1;min-width:0}
+.post-head b {font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.post-head small {font-size:12px;line-height:1.5;margin-top:2px;overflow-wrap:anywhere}
+.post-text {padding:0 16px 14px;font-size:15px;line-height:1.65;overflow-wrap:anywhere;text-align:left}
+.post-media {display:block;line-height:0;background:#edf0f3;border-top:1px solid #e4e7eb;border-bottom:1px solid #e4e7eb;text-decoration:none;overflow:hidden;border-radius:0}
+.post-media img {display:block;width:100%;height:auto;max-height:430px;object-fit:contain;margin:0 auto}
+.post-media.clue.found {background:#edf0f3;box-shadow:inset 0 0 0 3px #e7bf3f}
+.post-media.clue.found img {outline:3px solid #e7bf3f;outline-offset:-3px}
+.post-media-caption {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 14px;font-size:12px;line-height:1.5;background:#fafbfc;color:#65707d}
+.post-media-caption>span {min-width:0;overflow-wrap:anywhere}
+.media-open {border:0;background:none;color:#2868ad;padding:4px 0;white-space:nowrap;font-size:12px}
+.media-open:hover {text-decoration:underline}
+.media-credit {padding:0 14px 9px;background:#fafbfc;font-size:10px;line-height:1.5;color:#77818b}
+.media-credit a {color:inherit;text-underline-offset:2px}
+.post-link {padding:12px 16px;overflow-wrap:anywhere;line-height:1.5}
+.post-link b {font-size:14px;font-weight:600}
+.post-link small {font-size:11px;overflow-wrap:anywhere}
+.post-stats {font-size:12px;padding:10px 16px}
+.post-actions {font-size:13px;padding:4px 8px}
+.comments {padding:12px 14px}
+.cmt {gap:8px;align-items:flex-start}
+.cmt>div {min-width:0;max-width:calc(100% - 40px);font-size:14px;line-height:1.55;border-radius:12px;padding:8px 12px}
+.cmt b {font-size:13px;font-weight:600}
+.cmt p {overflow-wrap:anywhere}
+#modal.media-modal {max-width:min(900px,calc(100vw - 32px))}
+.media-full {background:#f1f3f5;text-align:center;overflow:auto;max-height:70vh}
+.media-full img {display:block;width:auto;max-width:100%;height:auto;margin:0 auto}
+button:focus-visible,input:focus-visible {outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:760px) {
+ .vb-feed {padding:10px}
+ .post-head {padding:12px}
+ .post-text {padding:0 12px 12px;font-size:14px;line-height:1.65}
+ .post-media img {max-height:360px}
+ .post-media-caption {font-size:11px;padding:7px 12px}
+ .post-actions span {padding:6px 8px}
+ .cmt>div {font-size:13px}
+ .r-msg,.msg {font-size:14px}
+ .ch-name {font-size:14px}
+ .test-login-hint {font-size:11px}
+}
+/* Chỉ thay phần bài đăng trong ViệtBook, giữ nguyên desktop và cửa sổ. */
+.post-avatar {display:flex;align-items:center;justify-content:center;flex:0 0 42px;width:42px;height:42px;border-radius:50%;background:var(--avatar-color);color:#fff;font:600 14px var(--font);border:1px solid #0000000d}
+.comment-avatar {flex-basis:32px;width:32px;height:32px;color:#606770;font-size:11px}
+.post-stats {display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;line-height:1.5;color:#65676b}
+.reaction-count {display:inline-flex;align-items:center;gap:5px}
+.reaction-count i {display:flex;align-items:center;justify-content:center;width:18px;height:18px;background:#1877f2;border-radius:50%;color:#fff}
+.reaction-count svg {width:12px;height:12px;stroke-width:2}
+.post-actions span {display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:1;font-weight:600}
+.comments {background:#fff}
+.cmt .comment-meta {display:block;margin-top:5px;font-size:11px;color:#65676b;line-height:1.4}
+.case-references {margin:14px 0;border-top:1px solid #dce2e8;padding-top:12px;font-size:12px;line-height:1.6;text-align:left}
+.case-references summary {cursor:pointer;font-weight:600;color:#285b88}
+.case-references ul {padding-left:18px;margin:8px 0}
+.case-references li {margin-bottom:12px;overflow-wrap:anywhere}
+.case-references a {color:#245d98;text-underline-offset:2px}
+.case-references small {display:block;color:#667382}
+.case-references p {font-size:12px;margin:4px 0}
+@media(max-width:760px) {.post-stats {font-size:11px;padding:10px 12px}.post-actions span {font-size:12px;padding:7px 3px;gap:4px}}
+.case-references[open] {max-height:30vh;overflow-y:auto;padding-right:8px}

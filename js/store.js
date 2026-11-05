@@ -10,6 +10,9 @@
   const SESSION_KEY = 'ttm_session';
   const SAVE_PREFIX = 'ttm_save_';
   const GUEST = '__khach__';
+  // Tài khoản demo công khai, chỉ lưu cục bộ; không có quyền quản trị Firebase.
+  const TEST_USER = 'admin_test';
+  const TEST_PASS = 'Test@12345';
   const EMAIL_DOMAIN = '@thamtumang.game';
   const FB_VER = '10.12.2';
 
@@ -100,6 +103,7 @@
 
     async register(username, password, name, avatar) {
       username = normUser(username);
+      if (username === TEST_USER) throw new Error('Tên này dành cho tài khoản thử nghiệm.');
       name = String(name || '').trim().slice(0, 24);
       if (!name) throw new Error('Hãy nhập tên hiển thị.');
       if (!validUsername(username)) throw new Error('Tên đăng nhập dài 3 đến 20 ký tự, chỉ gồm chữ thường không dấu, số, dấu chấm hoặc gạch dưới.');
@@ -127,6 +131,12 @@
     async login(username, password) {
       username = normUser(username);
       if (!username || !password) throw new Error('Hãy nhập tên đăng nhập và mật khẩu.');
+      if (username === TEST_USER) {
+        if (password !== TEST_PASS) throw new Error('Sai mật khẩu tài khoản thử nghiệm.');
+        await this.flush();
+        this._pending = null;
+        return this.testAccount();
+      }
       if (mode === 'online') {
         try {
           const cred = await fb.auth.signInWithEmailAndPassword(username + EMAIL_DOMAIN, password);
@@ -139,6 +149,12 @@
       if (!u || u.pw !== hashPw(username, password)) throw new Error('Sai tên đăng nhập hoặc mật khẩu.');
       ls.set(SESSION_KEY, username);
       user = { id: username, username, name: u.name, avatar: u.avatar };
+      return user;
+    },
+
+    // Lối vào demo công khai, tương tự chế độ khách; không tạo quyền máy chủ.
+    testAccount() {
+      user = { id: '__admin_test__', username: TEST_USER, name: 'Admin test', avatar: 0, guest: true, test: true };
       return user;
     },
 
