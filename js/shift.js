@@ -56,6 +56,42 @@
       profile: ['◷', 'Tài khoản cá nhân', 'Không có dấu xác minh. Có bài sinh hoạt CLB từ năm trước.']
     }
   };
+  const VY_PHOTOS = {
+    ad: {
+      skin: 'post', app: 'Việc làm thêm Sao Mai', name: 'Hương Giang', meta: 'Hôm nay · Bài đăng công khai',
+      heading: 'Tuyển CTV tương tác online',
+      rows: ['15.000đ/lượt · Làm tại nhà', 'Không cần kinh nghiệm, chỉ cần điện thoại.',
+        'Không phải ứng tiền hoặc mua hàng để nhận việc.', 'Liên hệ Hương Giang qua tin nhắn riêng.'],
+      clue: 2, hint: 'Tìm điều kiện liên quan đến việc ứng tiền trong bài tuyển.'
+    },
+    task: {
+      skin: 'chat', app: 'Tin nhắn', name: 'Hương Giang', meta: 'Đoạn chat Vy gửi',
+      heading: 'Nhiệm vụ số 4',
+      rows: ['Em làm xong 3 lượt rồi đúng không?', 'Để nhận nhiệm vụ VIP, chuyển trước 500.000đ.',
+        'Hoàn thành nhận 650.000đ.', 'Xác nhận trong 15 phút.'],
+      clue: 1, hint: 'Tìm chỗ người tuyển nói Vy phải làm gì trước khi được giao nhiệm vụ.'
+    },
+    receipt: {
+      skin: 'bank', app: 'Lịch sử giao dịch', name: 'Tiền vào', meta: 'Giao dịch thành công',
+      heading: '+45.000đ',
+      rows: ['Nội dung: Thanh toán nhiệm vụ 1–3', 'Người chuyển: LE THI H',
+        'Trạng thái: Tiền đã vào tài khoản'],
+      clue: 2, hint: 'Tìm chi tiết cho thấy tiền đã vào tài khoản của Vy.'
+    },
+    school: {
+      skin: 'school', app: 'Danh bạ trường', name: 'THPT Sao Mai', meta: 'Tổ tư vấn học sinh · Kênh đã lưu',
+      heading: 'Phản hồi xác minh',
+      rows: ['Tổ tư vấn học sinh · THPT Sao Mai',
+        'Trường không liên kết với chương trình CTV này.',
+        'Hoạt động do trường phối hợp được đăng trong mục Hoạt động học sinh.'],
+      clue: 1, hint: 'Tìm câu nhà trường trả lời về chương trình cộng tác viên.'
+    },
+    transfer: {
+      skin: 'bank', app: 'Chuyển tiền', name: 'Giao dịch đang soạn', meta: 'Ảnh Vy gửi trước khi chuyển',
+      heading: '500.000đ',
+      rows: ['Người nhận: LE THI H', 'Nội dung: Nhiệm vụ VIP', 'Trạng thái: Chưa xác nhận']
+    }
+  };
   const RELATIONS = {
     confirm: 'Khớp nhau',
     conflict: 'Mâu thuẫn',
@@ -211,7 +247,75 @@
     function button(label,action,p,cls,disabled) {
       return '<button class="shift-button '+(cls||'')+'" data-shift="'+action+'" data-payload="'+esc(JSON.stringify(p||{}))+'"'+(disabled?' disabled':'')+'>'+esc(label)+'</button>';
     }
-    function doc(id,compact){const d=CASES[s.id][id];return '<article class="shift-document'+(compact?' compact':'')+'"><small>'+esc(d.source)+'</small><h3>'+esc(d.title)+'</h3><p>'+esc(d.text)+'</p>'+(d.image?'<img class="shift-ad" src="'+esc(d.image)+'" alt="Ảnh tuyển cộng tác viên trong hồ sơ mô phỏng">':'')+(s.phase==='review'?'':button(s.notes.includes(id)?'Gỡ bằng chứng':'Ghim làm bằng chứng','note',{id},'subtle'))+'</article>';}
+    function photoMarkup(id, interactive) {
+      const photo = VY_PHOTOS[id];
+      const rows = photo.rows.map((row, index) => interactive
+        ? '<button type="button" class="shift-shot-row" data-region="'+index+'" aria-pressed="false">'+esc(row)+'</button>'
+        : '<span class="shift-shot-row">'+esc(row)+'</span>').join('');
+      return '<span class="shift-shot '+photo.skin+'"><span class="shift-shot-status"><span>19:42</span><span>▮▮▮ ▰</span></span>'+
+        '<span class="shift-shot-bar">'+esc(photo.app)+'</span><span class="shift-shot-content">'+
+        '<span class="shift-shot-profile"><span aria-hidden="true">'+esc(photo.name[0])+'</span><span><b>'+
+        esc(photo.name)+'</b><small>'+esc(photo.meta)+'</small></span></span><strong class="shift-shot-heading">'+
+        esc(photo.heading)+'</strong><span class="shift-shot-rows">'+rows+'</span></span><span class="shift-shot-home"></span></span>';
+    }
+    function photoAttachment(id) {
+      const photo = VY_PHOTOS[id];
+      return '<button type="button" class="shift-photo-open" data-photo="'+id+'" aria-label="Mở ảnh '+esc(photo.app)+'">'+
+        '<span class="shift-photo-preview" aria-hidden="true">'+photoMarkup(id,false)+'</span>'+
+        '<span class="shift-photo-caption">▧ '+esc(photo.app)+' <b>Mở ảnh ↗</b></span></button>';
+    }
+    function openPhoto(id, trigger) {
+      const photo = VY_PHOTOS[id];
+      const canPin = photo.clue !== undefined && s.phase !== 'review' && !s.notes.includes(id);
+      const dialog = document.createElement('dialog');
+      dialog.className = 'shift-photo-dialog';
+      dialog.setAttribute('aria-label','Ảnh '+photo.app);
+      dialog.innerHTML = '<header><strong>'+esc(photo.app)+'</strong><button type="button" class="shift-button" data-close-photo autofocus>Đóng ảnh</button></header>'+
+        '<div class="shift-photo-body">'+(canPin?'<p>'+esc(photo.hint)+'</p>':'')+photoMarkup(id,canPin)+
+        (canPin?'<div class="shift-photo-controls"><p role="status">Bấm trực tiếp vào chi tiết trong ảnh để khoanh.</p>'+
+          '<button type="button" class="shift-button primary" data-pin-region disabled>Ghim vùng đã khoanh</button></div>':'')+
+        '</div><footer>Ảnh mô phỏng trong game</footer>';
+      const closeButton = dialog.querySelector('[data-close-photo]');
+      closeButton.onclick = () => dialog.close();
+      dialog.addEventListener('close', () => {
+        dialog.remove();
+        if (trigger.isConnected) trigger.focus({preventScroll:true});
+      }, {once:true});
+      if (canPin) {
+        let selected;
+        const pin = dialog.querySelector('[data-pin-region]');
+        const status = dialog.querySelector('[role=status]');
+        const regions = Array.from(dialog.querySelectorAll('[data-region]'));
+        regions.forEach((region,index) => {
+          region.onclick = () => {
+            selected = index;
+            regions.forEach((item,i) => item.setAttribute('aria-pressed',String(i===selected)));
+            status.textContent = 'Đã khoanh một chi tiết. Bấm ghim để kiểm tra.';
+            pin.disabled = false;
+          };
+        });
+        pin.onclick = () => {
+          if (selected !== photo.clue) {
+            status.textContent = 'Chi tiết này chưa trả lời câu hỏi. Thử khoanh chỗ khác trong ảnh.';
+            return;
+          }
+          dialog.close();
+          act('note',{id,region:selected});
+          host.querySelector('[data-photo="'+id+'"]')?.focus({preventScroll:true});
+        };
+      }
+      host.append(dialog);
+      dialog.showModal();
+    }
+    function doc(id,compact) {
+      const d = CASES[s.id][id];
+      const isPhoto = s.id==='vy' && VY_PHOTOS[id];
+      const note = s.phase==='review' || (isPhoto && !s.notes.includes(id)) ? '' :
+        button(s.notes.includes(id)?'Gỡ bằng chứng':'Ghim làm bằng chứng','note',{id},'subtle');
+      return '<article class="shift-document'+(compact?' compact':'')+'"><small>'+esc(d.source)+'</small><h3>'+
+        esc(d.title)+'</h3>'+(isPhoto ? photoAttachment(id) : '<p>'+esc(d.text)+'</p>')+
+        (isPhoto && s.notes.includes(id)?'<small class="shift-photo-pinned">✓ Đã ghim</small>':'')+note+'</article>';
+    }
     function intro(){
       host.innerHTML='<div class="shift-app"><div class="shift-intro scroll"><p class="shift-eyebrow">VĂN PHÒNG THÁM TỬ MẠNG / CA TRỰC</p><h1>Một người bạn<br>đang cần lời khuyên.</h1><p>Trò chuyện với bạn học, tìm nguồn xác minh, đối chiếu dữ kiện rồi cùng xử lý. Bạn có thể tạm dừng bất cứ lúc nào.</p><div class="shift-case-list">'+Object.entries(CASES).map(([id,c],i)=>'<article><span>CA 0'+(i+1)+'</span><h2>'+esc(c.title)+'</h2><p>'+esc(c.hook)+'</p><button class="shift-button primary" data-start="'+id+'">Nhận ca của '+esc(c.person)+'</button></article>').join('')+'</div><details class="shift-guide"><summary>Cách chơi</summary><p>1. Chọn lời đáp hoặc hỏi thêm trong Tin nhắn.<br>2. Mở Tra cứu để tìm nguồn kiểm chứng. Các tài liệu đều là dữ liệu mô phỏng.<br>3. Ghim dữ kiện cần dùng rồi ghép hai thẻ ở Bàn đối chiếu.<br>4. Gửi lời khuyên và kế hoạch xử lý. Không cần mở mọi đầu mối để hoàn thành.</p></details><small>Nhân vật, giao dịch, trường và trang web trong ca chơi là hư cấu. Không có giao dịch hay tin nhắn nào được gửi ra ngoài.</small></div></div>';
       host.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>{s=fresh(b.dataset.start);persist();render();});
@@ -270,12 +374,15 @@
       if(!s)return intro();
       const c=CASES[s.id],tabs=s.phase==='review'?[['notebook','Sổ đã ghi'],['plan','Kết quả']]:[['chat','Tin nhắn'],['sources','Tra cứu'],['notebook','Bàn đối chiếu'],['plan',s.phase==='review'?'Kết quả':'Xử lý']];
       const panel=s.tab==='trail'?trail():s.phase==='review'&&s.tab==='plan'?review():s.tab==='sources'?sources():s.tab==='notebook'?notebook():s.tab==='plan'?plan():chatActions();
-      host.innerHTML='<div class="shift-app"><header class="shift-header"><div><small>CA TRỰC / '+(s.id==='vy'?'01':'02')+'</small><h1>'+esc(c.title)+'</h1></div><span class="shift-status">'+(s.phase==='review'?'Đã kết thúc ca':s.transferred?'Đã chuyển tiền · cần hỗ trợ':s.paused?'Đã tạm dừng để kiểm tra':'Đang chờ lời khuyên')+'</span></header><div class="shift-nav" role="navigation" aria-label="Các khu vực ca trực">'+tabs.map(([id,l])=>button(l,'tab',{tab:id},s.tab===id?'selected':'')).join('')+'</div><div class="shift-workspace'+(s.tab==='notebook'&&s.phase!=='review'?' shift-workspace-board':'')+'"><section class="shift-conversation"><div class="shift-contact"><span>'+esc(c.person.split(' ').map(w=>w[0]).join(''))+'</span><div><b>'+esc(c.person)+'</b><small>'+esc(c.sub)+'</small></div></div><div class="shift-thread" aria-label="Cuộc trò chuyện với '+esc(c.person)+'">'+s.messages.map(m=>m.who==='document'?'<div class="shift-shared">'+doc(m.id,true)+'</div>':'<div class="shift-message '+m.who+'"><small>'+esc(m.who==='me'?'Bạn':c.person)+'</small><p>'+esc(m.text)+'</p></div>').join('')+'</div><small class="shift-simulation">Tin nhắn và giao dịch đều là mô phỏng.</small></section><section class="shift-panel scroll" aria-label="Bàn điều tra">'+(s.notice?'<p class="shift-notice" role="status">'+esc(s.notice)+'</p>':'')+panel+'<details class="shift-guide"><summary>Hướng dẫn thao tác</summary><p>Hỏi thêm ở Tin nhắn. Mở Tra cứu để tìm nguồn. Ghim dữ kiện rồi ghép hai thẻ ở Bàn đối chiếu. Gửi lời khuyên trong Tin nhắn; hoàn thiện kế hoạch ở Xử lý. Bạn có thể quay lại các khu vực mà không mất tiến trình.</p></details></section></div><footer class="shift-footer"><span>Đã lưu theo tài khoản hiện tại · '+s.notes.length+' dữ kiện trong sổ</span><button class="shift-text-button" data-choose>Chọn ca / chơi lại</button></footer></div>';
+      host.innerHTML='<div class="shift-app"><header class="shift-header"><div><small>CA TRỰC / '+(s.id==='vy'?'01':'02')+'</small><h1>'+esc(c.title)+'</h1></div><span class="shift-status">'+(s.phase==='review'?'Đã kết thúc ca':s.transferred?'Đã chuyển tiền · cần hỗ trợ':s.paused?'Đã tạm dừng để kiểm tra':'Đang chờ lời khuyên')+'</span></header><div class="shift-nav" role="navigation" aria-label="Các khu vực ca trực">'+tabs.map(([id,l])=>button(l,'tab',{tab:id},s.tab===id?'selected':'')).join('')+'</div><div class="shift-workspace'+(s.tab==='notebook'&&s.phase!=='review'?' shift-workspace-board':'')+'"><section class="shift-conversation"><div class="shift-contact"><span>'+esc(c.person.split(' ').map(w=>w[0]).join(''))+'</span><div><b>'+esc(c.person)+'</b><small>'+esc(c.sub)+'</small></div></div><div class="shift-thread" aria-label="Cuộc trò chuyện với '+esc(c.person)+'">'+s.messages.map(m=>m.who==='document'?'<div class="shift-shared">'+doc(m.id,true)+'</div>':'<div class="shift-message '+m.who+'"><small>'+esc(m.who==='me'?'Bạn':c.person)+'</small><p>'+esc(m.text)+'</p></div>').join('')+(s.id==='vy'&&!s.transferred&&s.phase==='play'&&s.messages.length===2?'<div class="shift-shared">'+photoAttachment('transfer')+'</div>':'')+'</div><small class="shift-simulation">Tin nhắn và giao dịch đều là mô phỏng.</small></section><section class="shift-panel scroll" aria-label="Bàn điều tra">'+(s.notice?'<p class="shift-notice" role="status">'+esc(s.notice)+'</p>':'')+panel+'<details class="shift-guide"><summary>Hướng dẫn thao tác</summary><p>Hỏi thêm ở Tin nhắn. Mở Tra cứu để tìm nguồn. Ghim dữ kiện rồi ghép hai thẻ ở Bàn đối chiếu. Gửi lời khuyên trong Tin nhắn; hoàn thiện kế hoạch ở Xử lý. Bạn có thể quay lại các khu vực mà không mất tiến trình.</p></details></section></div><footer class="shift-footer"><span>Đã lưu theo tài khoản hiện tại · '+s.notes.length+' dữ kiện trong sổ</span><button class="shift-text-button" data-choose>Chọn ca / chơi lại</button></footer></div>';
       bind();
       const thread=host.querySelector('.shift-thread');thread.scrollTop=s.messages.length!==lastMessageCount?thread.scrollHeight:previousThreadTop;lastMessageCount=s.messages.length;
     }
     function bind(){
       host.querySelectorAll('[data-shift]').forEach(b=>b.onclick=()=>{if(b.dataset.shift==='choose'){choose();return;}act(b.dataset.shift,JSON.parse(b.dataset.payload));});
+      host.querySelectorAll('[data-photo]').forEach(trigger => {
+        trigger.onclick = () => openPhoto(trigger.dataset.photo, trigger);
+      });
       host.querySelectorAll('[data-resource]').forEach(b=>b.onclick=()=>act('inspect',{id:b.dataset.resource}));
       host.querySelectorAll('[data-plan]').forEach(b=>b.onchange=()=>act('planToggle',{id:b.dataset.plan}));
       const search=host.querySelector('#shift-search');if(search)search.onsubmit=e=>{e.preventDefault();act('query',{query:new FormData(search).get('q')});};
