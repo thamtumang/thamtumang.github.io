@@ -109,3 +109,56 @@
  .shift-panel{flex:none;overflow:visible}
 }
 @container shift (max-width:540px){.shift-case-list{grid-template-columns:1fr}}
+
+.shift-workspace.shift-workspace-board { display: block; overflow: auto; }
+.shift-workspace-board .shift-conversation { display: none; }
+.shift-workspace-board .shift-panel { overflow: visible; }
+.shift-board { max-width: 56rem; margin: 0 auto; }
+.shift-compare {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+  align-items: center;
+  gap: .5rem;
+  padding: .8rem;
+  background: #e8eef4;
+  border: 1px solid #c8d6e3;
+  border-radius: .65rem;
+}
+.shift-slot, .shift-clue {
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+  border-radius: .5rem;
+  overflow-wrap: anywhere;
+}
+.shift-slot {
+  min-height: 5rem;
+  padding: .5rem;
+  border: 2px dashed #879db2;
+  background: #f6f8fa;
+}
+.shift-slot:not([aria-disabled]), .shift-slot.drag-over {
+  border-style: solid;
+  border-color: #22639c;
+  background: #fff;
+}
+.shift-slot:not([aria-disabled]) { cursor: pointer; }
+.shift-slot span, .shift-slot strong, .shift-slot small { display: block; }
+.shift-slot span, .shift-clue-label { font-size: .8rem; color: #465c70; }
+.shift-link { font-size: 1.5rem; color: #456886; }
+.shift-relations { display: flex; gap: .4rem; flex-wrap: wrap; margin: .65rem 0 1rem; }
+.shift-clues { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,13rem),1fr)); gap: .65rem; }
+.shift-clue {
+  display: grid;
+  gap: .2rem;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #9fb2c3;
+  padding: .75rem;
+  cursor: grab;
+}
+.shift-clue:hover, .shift-clue[aria-pressed=true] { border-color: #22639c; background: #eef6ff; }
+.shift-clue[aria-pressed=true] { box-shadow: inset 0 0 0 2px #22639c; }
+.shift-clue:focus-visible, .shift-slot:focus-visible { outline: 3px solid #22639c; outline-offset: 2px; }
+.shift-clue-icon { font-size: 1.3rem; color: #286594; }
+.shift-board-log { padding: .65rem; background: #e7f3eb; border-radius: .45rem; margin: .65rem 0; }

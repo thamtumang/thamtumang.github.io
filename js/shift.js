@@ -38,6 +38,29 @@
     }
   };
   const LABELS = { ad:'Bài đăng', task:'Hướng dẫn công việc', receipt:'Thông tin thanh toán', claim:'Lời giới thiệu', school:'Kênh nhà trường', profile:'Hồ sơ người đăng' };
+  const EVIDENCE_CARDS = {
+    vy: {
+      ad: ['▤', '15.000đ / lượt', 'Không phải ứng tiền hoặc mua hàng để nhận việc.'],
+      task: ['▣', '500.000đ → 650.000đ', 'Chuyển trước để nhận nhiệm vụ VIP.'],
+      receipt: ['₫', '+45.000đ', 'Thanh toán nhiệm vụ 1–3. Tiền đã vào tài khoản.'],
+      claim: ['☏', 'THPT Sao Mai', '“Bên chị liên kết với tổ hỗ trợ việc làm của trường.”'],
+      school: ['✓', 'THPT Sao Mai', 'Nhà trường xác nhận không liên kết với chương trình CTV.'],
+      profile: ['◷', 'Tạo năm 2018', 'Tên hiển thị đổi sang Hương Giang Tuyển Dụng tuần trước.']
+    },
+    event: {
+      ad: ['▤', '80.000đ / buổi', 'Gian sách sáng thứ Bảy. Gặp cô phụ trách. Không thu phí.'],
+      task: ['▣', 'Phòng Đoàn', 'Gặp cô Lan để đăng ký. Không gửi tiền hay CCCD.'],
+      receipt: ['₫', '+80.000đ', 'Ảnh giao dịch do thành viên nhóm gửi.'],
+      claim: ['☏', 'CLB Ánh Dương', '“Cô Lan phụ trách. Bạn có thể hỏi trực tiếp cô.”'],
+      school: ['✓', '80.000đ / buổi', 'Cô Lan xác nhận gian sách thứ Bảy, đăng ký tại phòng Đoàn, không thu phí.'],
+      profile: ['◷', 'Tài khoản cá nhân', 'Không có dấu xác minh. Có bài sinh hoạt CLB từ năm trước.']
+    }
+  };
+  const RELATIONS = {
+    confirm: 'Khớp nhau',
+    conflict: 'Mâu thuẫn',
+    insufficient: 'Chưa đủ căn cứ'
+  };
   const PLANS = {
     prevent: [
       ['halt','Không nạp thêm, dừng làm nhiệm vụ yêu cầu ứng tiền',true],
@@ -168,7 +191,7 @@
   function mount(host, opts) {
     let saved=opts.read();
     let s=saved&&saved.version===1&&CASES[saved.id]?JSON.parse(JSON.stringify(saved)):null;
-    let pairDraft={};
+    let pairDraft=[];
     let lastMessageCount=-1;
     function persist(){opts.write(s);}
     function act(type,p){
@@ -179,23 +202,51 @@
       if(keep){
         const w=host.querySelector('.shift-workspace'),v=host.querySelector('.shift-panel'),t=host.querySelector('.shift-thread');
         if(w)w.scrollTop=positions.workspace;if(v)v.scrollTop=positions.panel;if(t)t.scrollTop=positions.thread;
-        const focus=type==='planToggle'?host.querySelector('[data-plan="'+p.id+'"]'):type==='pair'?host.querySelector('#shift-pair button'):null;
+        const focus=type==='planToggle'?host.querySelector('[data-plan="'+p.id+'"]'):type==='pair'?host.querySelector('[data-relation="'+p.relation+'"]'):null;
         if(focus)focus.focus({preventScroll:true});
       }
+      if(type==='pair')host.querySelector('.shift-notice')?.scrollIntoView({block:'nearest'});
       if(type==='inspect')host.querySelector('.shift-panel .shift-document')?.scrollIntoView({block:'nearest'});
     }
     function button(label,action,p,cls,disabled) {
       return '<button class="shift-button '+(cls||'')+'" data-shift="'+action+'" data-payload="'+esc(JSON.stringify(p||{}))+'"'+(disabled?' disabled':'')+'>'+esc(label)+'</button>';
     }
-    function doc(id,compact){const d=CASES[s.id][id];return '<article class="shift-document'+(compact?' compact':'')+'"><small>'+esc(d.source)+'</small><h3>'+esc(d.title)+'</h3><p>'+esc(d.text)+'</p>'+(d.image?'<img class="shift-ad" src="'+esc(d.image)+'" alt="Ảnh tuyển cộng tác viên trong hồ sơ mô phỏng">':'')+(s.phase==='review'?'':button(s.notes.includes(id)?'Bỏ khỏi sổ':'Giữ trong sổ điều tra','note',{id},'subtle'))+'</article>';}
+    function doc(id,compact){const d=CASES[s.id][id];return '<article class="shift-document'+(compact?' compact':'')+'"><small>'+esc(d.source)+'</small><h3>'+esc(d.title)+'</h3><p>'+esc(d.text)+'</p>'+(d.image?'<img class="shift-ad" src="'+esc(d.image)+'" alt="Ảnh tuyển cộng tác viên trong hồ sơ mô phỏng">':'')+(s.phase==='review'?'':button(s.notes.includes(id)?'Gỡ bằng chứng':'Ghim làm bằng chứng','note',{id},'subtle'))+'</article>';}
     function intro(){
-      host.innerHTML='<div class="shift-app"><div class="shift-intro scroll"><p class="shift-eyebrow">VĂN PHÒNG THÁM TỬ MẠNG / CA TRỰC</p><h1>Một người bạn<br>đang cần lời khuyên.</h1><p>Trò chuyện với bạn học, tìm nguồn xác minh, đối chiếu dữ kiện rồi cùng xử lý. Bạn có thể tạm dừng bất cứ lúc nào.</p><div class="shift-case-list">'+Object.entries(CASES).map(([id,c],i)=>'<article><span>CA 0'+(i+1)+'</span><h2>'+esc(c.title)+'</h2><p>'+esc(c.hook)+'</p><button class="shift-button primary" data-start="'+id+'">Nhận ca của '+esc(c.person)+'</button></article>').join('')+'</div><details class="shift-guide"><summary>Cách chơi</summary><p>1. Chọn lời đáp hoặc hỏi thêm trong Tin nhắn.<br>2. Mở Tra cứu để tìm nguồn kiểm chứng. Các tài liệu đều là dữ liệu mô phỏng.<br>3. Giữ dữ kiện cần dùng vào Sổ điều tra, chọn hai dữ kiện và mối liên hệ.<br>4. Gửi lời khuyên và kế hoạch xử lý. Không cần mở mọi đầu mối để hoàn thành.</p></details><small>Nhân vật, giao dịch, trường và trang web trong ca chơi là hư cấu. Không có giao dịch hay tin nhắn nào được gửi ra ngoài.</small></div></div>';
+      host.innerHTML='<div class="shift-app"><div class="shift-intro scroll"><p class="shift-eyebrow">VĂN PHÒNG THÁM TỬ MẠNG / CA TRỰC</p><h1>Một người bạn<br>đang cần lời khuyên.</h1><p>Trò chuyện với bạn học, tìm nguồn xác minh, đối chiếu dữ kiện rồi cùng xử lý. Bạn có thể tạm dừng bất cứ lúc nào.</p><div class="shift-case-list">'+Object.entries(CASES).map(([id,c],i)=>'<article><span>CA 0'+(i+1)+'</span><h2>'+esc(c.title)+'</h2><p>'+esc(c.hook)+'</p><button class="shift-button primary" data-start="'+id+'">Nhận ca của '+esc(c.person)+'</button></article>').join('')+'</div><details class="shift-guide"><summary>Cách chơi</summary><p>1. Chọn lời đáp hoặc hỏi thêm trong Tin nhắn.<br>2. Mở Tra cứu để tìm nguồn kiểm chứng. Các tài liệu đều là dữ liệu mô phỏng.<br>3. Ghim dữ kiện cần dùng rồi ghép hai thẻ ở Bàn đối chiếu.<br>4. Gửi lời khuyên và kế hoạch xử lý. Không cần mở mọi đầu mối để hoàn thành.</p></details><small>Nhân vật, giao dịch, trường và trang web trong ca chơi là hư cấu. Không có giao dịch hay tin nhắn nào được gửi ra ngoài.</small></div></div>';
       host.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>{s=fresh(b.dataset.start);persist();render();});
     }
+    function evidenceCard(id) {
+      const [icon, headline, detail] = EVIDENCE_CARDS[s.id][id];
+      const position = pairDraft.indexOf(id);
+      return '<button type="button" class="shift-clue" draggable="true" data-clue="'+id+
+        '" aria-pressed="'+(position!==-1)+'"><span class="shift-clue-icon" aria-hidden="true">'+icon+
+        '</span><span class="shift-clue-label">'+esc(LABELS[id])+'</span><strong>'+esc(headline)+
+        '</strong><span>'+esc(detail)+'</span></button>';
+    }
     function notebook(){
-      if(s.phase==='review') return '<h2>Sổ đã ghi trong ca trực</h2>'+s.notes.map(id=>doc(id,true)).join('')+'<p>Ca đã kết thúc; các dữ kiện và điểm của lượt này được giữ nguyên.</p>';
-      const options='<option value="">Chọn dữ kiện…</option>'+s.notes.map(id=>'<option value="'+id+'">'+esc(CASES[s.id][id].title)+'</option>').join('');
-      return '<h2>Sổ điều tra</h2><p class="shift-muted">Giữ những dữ kiện cần dùng, rồi giải thích mối liên hệ giữa chúng. Không có điểm cho việc mở hết hồ sơ.</p>'+(s.notes.length?s.notes.map(id=>doc(id,true)).join(''):'<p class="shift-empty">Sổ còn trống. Trong Tin nhắn hoặc Tra cứu, mở tài liệu rồi chọn “Giữ trong sổ điều tra”.</p>')+'<form class="shift-pair" id="shift-pair"><h3>Đối chiếu hai dữ kiện</h3><label>Dữ kiện thứ nhất<select name="a" required>'+options+'</select></label><label>Dữ kiện thứ hai<select name="b" required>'+options+'</select></label><label>Mối liên hệ<select name="relation" required><option value="">Chọn mối liên hệ…</option><option value="confirm">Hai nguồn xác nhận cùng thông tin</option><option value="conflict">Hai nguồn mâu thuẫn</option><option value="insufficient">Dữ kiện này chưa chứng minh bên kia đáng tin</option></select></label><button class="shift-button primary"'+(s.notes.length<2?' disabled':'')+'>Ghi nhận đối chiếu</button></form>'+(s.pairs.length?'<h3>Đối chiếu đã ghi</h3>'+s.pairs.map(p=>'<p class="shift-pair-result">'+esc(LABELS[p.a])+' ↔ '+esc(LABELS[p.b])+': '+esc({confirm:'xác nhận cùng thông tin',conflict:'có mâu thuẫn',insufficient:'chưa chứng minh độ tin cậy'}[p.relation])+'</p>').join(''):'');
+      if(s.phase==='review') return '<h2>Sổ đã ghi trong ca trực</h2>'+s.notes.map(id=>doc(id,true)).join('')+'<p>Ca đã kết thúc.</p>';
+      pairDraft = pairDraft.filter(id=>s.notes.includes(id));
+      const slots = [0,1].map(i=>{
+        const id=pairDraft[i];
+        return '<button type="button" class="shift-slot" data-slot="'+i+'"'+(id?'':' aria-disabled="true"')+
+          '><span>Mảnh '+(i+1)+'</span><strong>'+esc(id?LABELS[id]:'Thả thẻ vào đây')+'</strong>'+
+          (id?'<small>'+esc(EVIDENCE_CARDS[s.id][id][2])+'</small><span>Bấm để gỡ</span>':'')+'</button>';
+      });
+      return '<div class="shift-board"><h2>Bàn đối chiếu</h2>'+
+        '<p>Ghép hai thẻ rồi chọn mối liên hệ. Bấm vào thẻ hoặc kéo thả.</p>'+
+        '<div class="shift-compare">'+slots.join('<span class="shift-link" aria-hidden="true">↔</span>')+'</div>'+
+        '<div class="shift-relations" aria-label="Mối liên hệ">'+Object.entries(RELATIONS).map(([id,label])=>
+          '<button type="button" class="shift-button" data-relation="'+id+'"'+(pairDraft.length<2?' disabled':'')+'>'+label+'</button>').join('')+'</div>'+
+        (s.pairs.length?'<div class="shift-board-log"><b>Đã nối '+s.pairs.length+' cặp</b>'+s.pairs.map(p=>
+          '<p>'+esc(LABELS[p.a])+' ↔ '+esc(LABELS[p.b])+' · '+esc(RELATIONS[p.relation])+'</p>').join('')+
+          button('Quay lại gửi lời khuyên','tab',{tab:'chat'},'primary')+'</div>':'')+
+        '<h3>Thẻ đã thu · '+s.notes.length+'</h3>'+
+        (s.notes.length?'<div class="shift-clues">'+s.notes.map(evidenceCard).join('')+'</div>':
+          '<p class="shift-empty">Xin bài đăng hoặc hỏi thêm trong Tin nhắn. Mở tài liệu rồi bấm “Ghim làm bằng chứng”.</p>')+
+        (s.notes.length<2?button('Về tin nhắn','tab',{tab:'chat'},'primary'):'')+
+        (s.notes.length?'<details class="shift-guide"><summary>Xem tài liệu gốc</summary>'+s.notes.map(id=>doc(id,true)).join('')+'</details>':'')+
+        '</div>';
     }
     function sources(){
       const resources=[['school','Danh bạ và xác nhận nhà trường','Kênh liên hệ đã lưu từ trước · Sao Mai · CLB · giáo viên'],['profile','Hồ sơ người đăng','Tài khoản · lịch sử · tên hiển thị'],['claim','Lời tự giới thiệu của người tuyển','Tự nhận liên kết · tổ chức · công ty']];
@@ -203,7 +254,7 @@
       return '<h2>Tra cứu hồ sơ</h2><p class="shift-muted">Chọn nguồn theo câu hỏi bạn muốn kiểm tra. Lời người tuyển tự nói và xác nhận từ một kênh độc lập có giá trị khác nhau.</p><form id="shift-search" class="shift-search"><label for="shift-query">Tên đơn vị hoặc đầu mối</label><div><input id="shift-query" name="q" maxlength="100" value="'+esc(s.query)+'" placeholder="Ví dụ: Sao Mai, tài khoản, CLB"><button class="shift-button">Tìm</button></div></form><div class="shift-resources">'+(found.length?found.map(r=>'<button data-resource="'+r[0]+'"><b>'+esc(r[1])+'</b><small>'+esc(r[2])+'</small><span>Mở hồ sơ →</span></button>').join(''):'<p>Không có hồ sơ khớp. Thử “Sao Mai”, “tài khoản” hoặc để trống để xem các nguồn.</p>')+'</div>'+s.visited.slice().reverse().map(id=>doc(id,false)).join('');
     }
     function chatActions(){
-      return '<h2>Bạn muốn làm gì?</h2><div class="shift-choices">'+button('Đề nghị bạn tạm dừng để kiểm tra','pause',{},'',s.actions.includes('pause'))+Object.entries({ad:'Xin bài đăng gốc',task:'Hỏi rõ công việc và bước tiếp theo',receipt:'Kiểm tra thông tin thanh toán',claim:'Hỏi đơn vị đứng sau',profile:'Xem hồ sơ người đăng'}).map(([id,l])=>button(l,'ask',{id},'',s.actions.includes('ask:'+id))).join('')+'</div><h3>Gửi lời khuyên</h3><div class="shift-choices">'+button('Chưa đủ căn cứ: tạm dừng và xác minh','advice',{choice:'wait'})+button('Không tiếp tục; giữ bằng chứng và cảnh báo','advice',{choice:'stop'})+button(CASES[s.id].legitimate?'Nhận lời qua kênh đã xác minh':'Khuyên Vy nạp 500.000đ để làm tiếp','advice',{choice:'proceed'})+'</div>';
+      return '<h2>Bạn muốn làm gì?</h2><div class="shift-choices">'+button('Đề nghị bạn tạm dừng để kiểm tra','pause',{},'',s.actions.includes('pause'))+Object.entries({ad:'Xin bài đăng gốc',task:'Hỏi rõ công việc và bước tiếp theo',receipt:'Kiểm tra thông tin thanh toán',claim:'Hỏi đơn vị đứng sau',profile:'Xem hồ sơ người đăng'}).map(([id,l])=>button(l,'ask',{id},'',s.actions.includes('ask:'+id))).join('')+'</div>'+(s.notes.length>=2?button('Đặt thẻ lên bàn đối chiếu','tab',{tab:'notebook'},'primary'):'')+'<h3>Gửi lời khuyên</h3><div class="shift-choices">'+button('Chưa đủ căn cứ: tạm dừng và xác minh','advice',{choice:'wait'})+button('Không tiếp tục; giữ bằng chứng và cảnh báo','advice',{choice:'stop'})+button(CASES[s.id].legitimate?'Nhận lời qua kênh đã xác minh':'Khuyên Vy nạp 500.000đ để làm tiếp','advice',{choice:'proceed'})+'</div>';
     }
     function plan(){
       if(s.phase!=='plan')return '<h2>Việc cần làm tiếp</h2><p>Hãy tìm hiểu và gửi lời khuyên trong Tin nhắn. Kế hoạch ở đây sẽ thay đổi theo tình huống thực tế của nhân vật.</p>';
@@ -217,9 +268,9 @@
     function render(){
       const previousThread=host.querySelector('.shift-thread'),previousThreadTop=previousThread?.scrollTop||0;
       if(!s)return intro();
-      const c=CASES[s.id],tabs=s.phase==='review'?[['notebook','Sổ đã ghi'],['plan','Kết quả']]:[['chat','Tin nhắn'],['sources','Tra cứu'],['notebook','Sổ điều tra'],['plan',s.phase==='review'?'Kết quả':'Xử lý']];
+      const c=CASES[s.id],tabs=s.phase==='review'?[['notebook','Sổ đã ghi'],['plan','Kết quả']]:[['chat','Tin nhắn'],['sources','Tra cứu'],['notebook','Bàn đối chiếu'],['plan',s.phase==='review'?'Kết quả':'Xử lý']];
       const panel=s.tab==='trail'?trail():s.phase==='review'&&s.tab==='plan'?review():s.tab==='sources'?sources():s.tab==='notebook'?notebook():s.tab==='plan'?plan():chatActions();
-      host.innerHTML='<div class="shift-app"><header class="shift-header"><div><small>CA TRỰC / '+(s.id==='vy'?'01':'02')+'</small><h1>'+esc(c.title)+'</h1></div><span class="shift-status">'+(s.phase==='review'?'Đã kết thúc ca':s.transferred?'Đã chuyển tiền · cần hỗ trợ':s.paused?'Đã tạm dừng để kiểm tra':'Đang chờ lời khuyên')+'</span></header><div class="shift-nav" role="navigation" aria-label="Các khu vực ca trực">'+tabs.map(([id,l])=>button(l,'tab',{tab:id},s.tab===id?'selected':'')).join('')+'</div><div class="shift-workspace"><section class="shift-conversation"><div class="shift-contact"><span>'+esc(c.person.split(' ').map(w=>w[0]).join(''))+'</span><div><b>'+esc(c.person)+'</b><small>'+esc(c.sub)+'</small></div></div><div class="shift-thread" aria-label="Cuộc trò chuyện với '+esc(c.person)+'">'+s.messages.map(m=>m.who==='document'?'<div class="shift-shared">'+doc(m.id,true)+'</div>':'<div class="shift-message '+m.who+'"><small>'+esc(m.who==='me'?'Bạn':c.person)+'</small><p>'+esc(m.text)+'</p></div>').join('')+'</div><small class="shift-simulation">Tin nhắn và giao dịch đều là mô phỏng.</small></section><section class="shift-panel scroll" aria-label="Bàn điều tra">'+(s.notice?'<p class="shift-notice" role="status">'+esc(s.notice)+'</p>':'')+panel+'<details class="shift-guide"><summary>Hướng dẫn thao tác</summary><p>Hỏi thêm ở Tin nhắn. Mở Tra cứu để tìm nguồn. Giữ dữ kiện vào sổ, rồi chọn hai dữ kiện và mối liên hệ. Gửi lời khuyên trong Tin nhắn; hoàn thiện kế hoạch ở Xử lý. Bạn có thể quay lại các khu vực mà không mất tiến trình.</p></details></section></div><footer class="shift-footer"><span>Đã lưu theo tài khoản hiện tại · '+s.notes.length+' dữ kiện trong sổ</span><button class="shift-text-button" data-choose>Chọn ca / chơi lại</button></footer></div>';
+      host.innerHTML='<div class="shift-app"><header class="shift-header"><div><small>CA TRỰC / '+(s.id==='vy'?'01':'02')+'</small><h1>'+esc(c.title)+'</h1></div><span class="shift-status">'+(s.phase==='review'?'Đã kết thúc ca':s.transferred?'Đã chuyển tiền · cần hỗ trợ':s.paused?'Đã tạm dừng để kiểm tra':'Đang chờ lời khuyên')+'</span></header><div class="shift-nav" role="navigation" aria-label="Các khu vực ca trực">'+tabs.map(([id,l])=>button(l,'tab',{tab:id},s.tab===id?'selected':'')).join('')+'</div><div class="shift-workspace'+(s.tab==='notebook'&&s.phase!=='review'?' shift-workspace-board':'')+'"><section class="shift-conversation"><div class="shift-contact"><span>'+esc(c.person.split(' ').map(w=>w[0]).join(''))+'</span><div><b>'+esc(c.person)+'</b><small>'+esc(c.sub)+'</small></div></div><div class="shift-thread" aria-label="Cuộc trò chuyện với '+esc(c.person)+'">'+s.messages.map(m=>m.who==='document'?'<div class="shift-shared">'+doc(m.id,true)+'</div>':'<div class="shift-message '+m.who+'"><small>'+esc(m.who==='me'?'Bạn':c.person)+'</small><p>'+esc(m.text)+'</p></div>').join('')+'</div><small class="shift-simulation">Tin nhắn và giao dịch đều là mô phỏng.</small></section><section class="shift-panel scroll" aria-label="Bàn điều tra">'+(s.notice?'<p class="shift-notice" role="status">'+esc(s.notice)+'</p>':'')+panel+'<details class="shift-guide"><summary>Hướng dẫn thao tác</summary><p>Hỏi thêm ở Tin nhắn. Mở Tra cứu để tìm nguồn. Ghim dữ kiện rồi ghép hai thẻ ở Bàn đối chiếu. Gửi lời khuyên trong Tin nhắn; hoàn thiện kế hoạch ở Xử lý. Bạn có thể quay lại các khu vực mà không mất tiến trình.</p></details></section></div><footer class="shift-footer"><span>Đã lưu theo tài khoản hiện tại · '+s.notes.length+' dữ kiện trong sổ</span><button class="shift-text-button" data-choose>Chọn ca / chơi lại</button></footer></div>';
       bind();
       const thread=host.querySelector('.shift-thread');thread.scrollTop=s.messages.length!==lastMessageCount?thread.scrollHeight:previousThreadTop;lastMessageCount=s.messages.length;
     }
@@ -228,10 +279,50 @@
       host.querySelectorAll('[data-resource]').forEach(b=>b.onclick=()=>act('inspect',{id:b.dataset.resource}));
       host.querySelectorAll('[data-plan]').forEach(b=>b.onchange=()=>act('planToggle',{id:b.dataset.plan}));
       const search=host.querySelector('#shift-search');if(search)search.onsubmit=e=>{e.preventDefault();act('query',{query:new FormData(search).get('q')});};
-      const pair=host.querySelector('#shift-pair');if(pair){Object.entries(pairDraft).forEach(([key,value])=>{if(pair.elements[key])pair.elements[key].value=value;});pair.onchange=()=>{pairDraft=Object.fromEntries(new FormData(pair));};pair.onsubmit=e=>{e.preventDefault();act('pair',Object.fromEntries(new FormData(pair)));};}
+      function selectClue(id, slot) {
+        const panel = host.querySelector('.shift-panel');
+        const workspace = host.querySelector('.shift-workspace');
+        const top = panel.scrollTop;
+        const workspaceTop = workspace.scrollTop;
+        const existing = pairDraft.indexOf(id);
+        if (slot === undefined) {
+          if (existing !== -1) pairDraft.splice(existing, 1);
+          else if (pairDraft.length < 2) pairDraft.push(id);
+          else pairDraft[1] = id;
+        } else if (existing !== slot) {
+          if (existing !== -1) pairDraft.splice(existing, 1);
+          pairDraft[Math.min(slot, pairDraft.length)] = id;
+        }
+        render();
+        host.querySelector('.shift-panel').scrollTop = top;
+        host.querySelector('.shift-workspace').scrollTop = workspaceTop;
+        host.querySelector('[data-clue="'+id+'"]')?.focus({preventScroll:true});
+      }
+      host.querySelectorAll('[data-clue]').forEach(card=>{
+        card.onclick=()=>selectClue(card.dataset.clue);
+        card.ondragstart=e=>{
+          e.dataTransfer.setData('text/plain',card.dataset.clue);
+          e.dataTransfer.effectAllowed='copy';
+        };
+      });
+      host.querySelectorAll('[data-slot]').forEach(target=>{
+        const slot = Number(target.dataset.slot);
+        target.onclick=()=>{if(pairDraft[slot])selectClue(pairDraft[slot]);};
+        target.ondragover=e=>{e.preventDefault();target.classList.add('drag-over');};
+        target.ondragleave=()=>target.classList.remove('drag-over');
+        target.ondrop=e=>{
+          e.preventDefault();
+          target.classList.remove('drag-over');
+          const id=e.dataTransfer.getData('text/plain');
+          if(s.notes.includes(id))selectClue(id,slot);
+        };
+      });
+      host.querySelectorAll('[data-relation]').forEach(button=>{
+        button.onclick=()=>act('pair',{a:pairDraft[0],b:pairDraft[1],relation:button.dataset.relation});
+      });
       const chooseButton=host.querySelector('[data-choose]');if(chooseButton)chooseButton.onclick=choose;
     }
-    function choose(){host.innerHTML='<div class="shift-app"><div class="shift-intro scroll"><h2>Đổi ca trực?</h2><p>Tiến trình hiện tại vẫn được giữ cho đến khi bạn nhận một ca mới. Chơi lại sẽ bắt đầu một lượt mới; tiến trình 42 hồ sơ cũ không thay đổi.</p><button class="shift-button" data-resume>Tiếp tục ca hiện tại</button>'+Object.entries(CASES).map(([id,c])=>'<button class="shift-button" data-start="'+id+'">Bắt đầu lại: '+esc(c.title)+'</button>').join('')+'</div></div>';host.querySelector('[data-resume]').onclick=render;host.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>{s=fresh(b.dataset.start);pairDraft={};persist();render();});}
+    function choose(){host.innerHTML='<div class="shift-app"><div class="shift-intro scroll"><h2>Đổi ca trực?</h2><p>Tiến trình hiện tại vẫn được giữ cho đến khi bạn nhận một ca mới. Chơi lại sẽ bắt đầu một lượt mới; tiến trình 42 hồ sơ cũ không thay đổi.</p><button class="shift-button" data-resume>Tiếp tục ca hiện tại</button>'+Object.entries(CASES).map(([id,c])=>'<button class="shift-button" data-start="'+id+'">Bắt đầu lại: '+esc(c.title)+'</button>').join('')+'</div></div>';host.querySelector('[data-resume]').onclick=render;host.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>{s=fresh(b.dataset.start);pairDraft=[];persist();render();});}
     render();
   }
   return {CASES,LABELS,fresh,step,score,compare,planOptions,mount};
