@@ -1,4 +1,4 @@
-/* Ca trực mới, nằm trong cửa sổ của desktop gốc. */
+/* Ca trực an toàn số */
 .shift-app{display:flex;flex-direction:column;flex:1;min-height:0;background:#f4f5f7;color:#24292f;font-size:var(--text-body,1rem);line-height:1.55}
 .shift-app *{box-sizing:border-box}
 .shift-app h1{font-size:1.45rem;margin:0;line-height:1.3;font-weight:600}
@@ -85,9 +85,6 @@
 .shift-panel details p,.shift-panel details li{font-size:.85rem}
 .shift-panel>.shift-button{margin:4px 5px 4px 0}
 .shift-panel a{color:#20649b;overflow-wrap:anywhere}
-.shift-launch{border:1px solid #c8d8e7;border-left:4px solid #326d9e;background:#f0f6fc;margin-bottom:18px;padding:14px;border-radius:5px;line-height:1.6}
-.shift-launch b{display:block;font-size:1.1rem}
-.shift-launch p{margin:4px 0 10px}
 @media(max-width:900px){
  .shift-workspace{display:flex;flex-direction:column;overflow:auto}
  .shift-conversation{flex:none;border-right:0;border-bottom:1px solid #ced9e4}
@@ -259,3 +256,42 @@ button.shift-shot-row[aria-pressed=true] { border-color: #235e92; background: #e
 .shift-photo-controls p { margin: .65rem 0; }
 
 .shift-shot-content { display: block; }
+
+:root {
+  --font: system-ui, "Segoe UI", sans-serif;
+  color: #24292f;
+  background: #e4ebf3;
+  font-family: var(--font);
+}
+body {
+  margin: 0;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+.shift-site-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem 1rem;
+  flex-wrap: wrap;
+  padding: .75rem clamp(.8rem, 3vw, 2rem);
+  background: #173a59;
+  color: white;
+}
+.shift-site-bar a { color: #e4f3ff; }
+#shift-game {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: min(100%, 78rem);
+  margin-inline: auto;
+}
+.shift-save-warning {
+  margin: 0;
+  padding: .5rem 1rem;
+  color: #533200;
+  background: #ffedcd;
+}

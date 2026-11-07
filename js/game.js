@@ -311,7 +311,7 @@
   }
 
   /* ---------------- Desktop, taskbar, menu Start ---------------- */
-  const DESKTOP_APPS = ['inbox', 'vietbook', 'link', 'image', 'account', 'profile', 'badges', 'shop', 'leaderboard', 'shift'];
+  const DESKTOP_APPS = ['inbox', 'vietbook', 'link', 'image', 'account', 'profile', 'badges', 'shop', 'leaderboard'];
   const PINNED = ['inbox', 'vietbook', 'badges', 'shop', 'leaderboard'];
 
   function renderIcons() {
@@ -414,8 +414,6 @@
 
   /* ---------------- Các ứng dụng ---------------- */
   const APPS = {
-    shift: { title: 'Ca trực an toàn số', short: 'Ca trực', icon: 'inbox', w: 1120, h: 740,
-      render: body => { Tutorial.stop(); window.ShiftGame.mount(body, { read: () => S.shift || null, write: value => { S.shift = value; save(); } }); } },
     inbox: { title: 'Hộp thư vụ án', short: 'Hộp thư', icon: 'inbox', w: 640, h: 600, render: renderInbox },
     vietbook: { title: 'ViệtBook', short: 'ViệtBook', icon: 'vietbook', w: 720, h: 660, render: renderVietBook },
     badges: { title: 'Sổ Huy hiệu', short: 'Sổ Huy hiệu', icon: 'badges', w: 700, h: 620, render: renderBadges },
@@ -448,7 +446,6 @@
     if (S.letterSeen !== letters.length) { S.letterSeen = letters.length; save(); setTimeout(renderIcons, 0); }
 
     let h = '<div class="scroll pad">';
-    h += '<div class="shift-launch"><b>Ca trực mới: 45 nghìn đầu tiên</b><p>Vy đang cân nhắc nạp 500.000đ. Trò chuyện, kiểm chứng và cùng bạn xử lý.</p><button class="btn primary" data-open-shift>Vào ca trực an toàn số</button></div>';
     if (me().test) h += '<div class="test-notice"><b>Tài khoản thử nghiệm</b><span>Đã mở 7 chương và chuyên án Bóng Đêm. Công cụ cấp 3. Tiến trình lưu riêng trên máy này, không ghi bảng xếp hạng.</span></div>';
     h += '<div class="letter"><div class="letter-head">' + I.bacTu(44) + '<div><div class="letter-from">Thư từ Bác Tư</div><h3>' + esc(latest.title) + '</h3></div></div><p>' + esc(latest.text) + '</p>';
     if (letters.length > 1) {
@@ -478,7 +475,6 @@
     });
     h += '</div>';
     body.innerHTML = h;
-    const shiftLaunch = $('[data-open-shift]', body); if (shiftLaunch) shiftLaunch.onclick = () => WM.open('shift');
     $$('[data-case]', body).forEach(b => (b.onclick = () => { inboxView = { mode: 'case', id: b.dataset.case }; WM.refresh('inbox'); emit('case:open'); Tutorial.highlight(); }));
     const bb = $('[data-boss]', body);
     if (bb) bb.onclick = () => WM.open('boss');
@@ -1285,7 +1281,7 @@
     renderTray();
     renderTaskbar();
     const u = me();
-    if (!S.tutorialDone) setTimeout(() => { if (!WM.wins.shift) Tutorial.start(); }, 500);
+    if (!S.tutorialDone) setTimeout(Tutorial.start, 500);
     else toast('Chào mừng trở lại, <b>' + esc(u.name) + '</b>!', 'good');
     if (isNew) toast('Đã tạo tài khoản <b>' + esc(u.name) + '</b>.', 'good');
   }

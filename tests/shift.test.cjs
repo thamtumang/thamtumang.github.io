@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict');
-const G=require('../js/shift.js');
+const G=require('../ca-truc/game.js');
 const apply=(s,a,p)=>G.step(s,a,p);
 function learn(s,a,b,relation){
  for(const id of [a,b]){
