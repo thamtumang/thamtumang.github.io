@@ -1,70 +1,16 @@
-<!DOCTYPE html> 
+<!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Thám Tử Mạng - Hồ Sơ Lừa Đảo</title>
-  <meta name="description" content="Game giáo dục giúp học sinh nhận biết và phòng tránh lừa đảo trên mạng.">
-  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/fonts.css?v=posts-test-20261031">
-  <link rel="stylesheet" href="css/style.css?v=posts-test-20261031">
-  <link rel="stylesheet" href="css/readability.css?v=type-20261101">
-  <link rel="stylesheet" href="css/typography.css?v=type-20261101">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thám Tử Mạng · Chọn chế độ</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:28px;background:#101b21;color:#f6f3e9;font:16px/1.5 system-ui,sans-serif}main{width:min(880px,100%)}header p{color:#b9ccc9}h1{font-size:clamp(2.5rem,7vw,5rem);line-height:1;margin:.2em 0;letter-spacing:-.06em}h2{margin:0;font-size:1.45rem}.modes{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:28px}.mode{display:flex;flex-direction:column;align-items:flex-start;background:#f7f2e6;color:#162629;padding:22px;border-radius:18px;border-top:6px solid #85bcad}.mode:nth-child(2){border-color:#dfa567}.mode p{flex:1}.mode a{display:inline-block;background:#163d39;color:white;text-decoration:none;padding:.7rem 1rem;border-radius:10px;font-weight:700}.mode a:hover{background:#236159}a:focus-visible{outline:3px solid #b8601a;outline-offset:4px}.label{font-size:.78rem;font-weight:700;letter-spacing:.09em;color:#4d635f;margin-bottom:12px}@media(max-width:600px){.modes{grid-template-columns:1fr}}
+</style>
 </head>
-<body>
-  <script>
-    // Hiện lỗi ngay trên màn hình để dễ chụp gửi người làm game
-    window.addEventListener('error', function (e) {
-      var d = document.createElement('div');
-      d.style.cssText = 'position:fixed;left:8px;right:8px;top:8px;z-index:99999;background:#fde8e8;color:#9b1c1c;border:1px solid #f5b5b5;border-radius:8px;padding:8px 10px;font:12px/1.4 monospace;word-break:break-word';
-      d.textContent = 'Lỗi: ' + e.message + ' (' + String(e.filename || '').split('/').pop() + ':' + e.lineno + ')';
-      d.onclick = function () { d.remove(); };
-      document.body.appendChild(d);
-    });
-  </script>
-  <!-- Màn hình khóa / đăng nhập -->
-  <div id="lock" class="hidden"></div>
-
-  <!-- Màn hình desktop -->
-  <div id="desktop">
-    <div id="icons"></div>
-    <div id="windows"></div>
-  </div>
-
-  <!-- Menu Start -->
-  <div id="start-menu" class="hidden"></div>
-
-  <!-- Thanh taskbar -->
-  <div id="taskbar">
-    <div id="tb-center">
-      <button id="start-btn" title="Bắt đầu"></button>
-      <button id="tb-search"><span class="tbs-ico"></span><span class="tbs-text">Tìm kiếm</span></button>
-      <div id="task-apps"></div>
-    </div>
-    <div id="tray">
-      <div class="tray-item" id="tray-hp" title="Máu">
-        <span id="hp-ico"></span>
-        <div class="hpbar"><div id="hp-fill"></div></div>
-        <span id="hp-text"></span>
-      </div>
-      <div class="tray-item" title="Tiền thưởng"><span id="money-ico"></span><span id="money-text"></span></div>
-      <div class="tray-item hide-sm" title="Tổng số sao"><span id="star-ico"></span><span id="star-text"></span></div>
-      <div class="tray-sys hide-sm" id="tray-sys"></div>
-      <div class="tray-clock hide-sm"><span id="clock"></span><span id="date"></span></div>
-    </div>
-  </div>
-
-  <!-- Bác Tư hướng dẫn -->
-  <div id="tutor" class="hidden"></div>
-
-  <!-- Hộp thoại thông báo -->
-  <div id="modal-bg" class="hidden"><div id="modal"></div></div>
-  <div id="toasts"></div>
-
-  <script src="js/config.js?v=posts-test-20261031"></script>
-  <script src="js/icons.js?v=posts-test-20261031"></script>
-  <script src="js/store.js?v=posts-test-20261031"></script>
-  <script src="js/data.js?v=posts-test-20261031"></script>
-  <script src="js/game.js?v=posts-test-20261031"></script>
-</body>
-</html>
+<body><main>
+<header><p>Chọn chế độ chơi</p><h1>Thám Tử Mạng</h1></header>
+<div class="modes">
+<article class="mode"><span class="label">42 HỒ SƠ</span><h2>Thám Tử Mạng gốc</h2><p>Mở desktop, dùng công cụ điều tra và lần theo chuyên án Bóng Đêm.</p><a href="./game-goc.html">Vào game gốc →</a></article>
+<article class="mode"><span class="label">CA TRỰC AN TOÀN SỐ</span><h2>Vy sắp chuyển 500k</h2><p>Mở cuộc chat, tự tìm bằng chứng và giúp Vy quyết định trước khi chuyển tiền.</p><a href="./ca-truc/">Nhận ca của Vy →</a></article>
+</div></main></body></html>
