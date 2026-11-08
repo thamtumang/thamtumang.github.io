@@ -6,11 +6,12 @@
 <title>Thám Tử Mạng · Chọn chế độ</title>
 <style>
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:28px;background:#101b21;color:#f6f3e9;font:16px/1.5 system-ui,sans-serif}main{width:min(880px,100%)}header p{color:#b9ccc9}h1{font-size:clamp(2.5rem,7vw,5rem);line-height:1;margin:.2em 0;letter-spacing:-.06em}h2{margin:0;font-size:1.45rem}.modes{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:28px}.mode{display:flex;flex-direction:column;align-items:flex-start;background:#f7f2e6;color:#162629;padding:22px;border-radius:18px;border-top:6px solid #85bcad}.mode:nth-child(2){border-color:#dfa567}.mode p{flex:1}.mode a{display:inline-block;background:#163d39;color:white;text-decoration:none;padding:.7rem 1rem;border-radius:10px;font-weight:700}.mode a:hover{background:#236159}a:focus-visible{outline:3px solid #b8601a;outline-offset:4px}.label{font-size:.78rem;font-weight:700;letter-spacing:.09em;color:#4d635f;margin-bottom:12px}@media(max-width:600px){.modes{grid-template-columns:1fr}}
+.mode-links{display:flex;gap:.55rem;flex-wrap:wrap}.mode .previous{background:transparent;color:#163d39;box-shadow:inset 0 0 0 1px #87a39e}.mode .previous:hover{background:#e4eee5}
 </style>
 </head>
 <body><main>
 <header><p>Chọn chế độ chơi</p><h1>Thám Tử Mạng</h1></header>
 <div class="modes">
 <article class="mode"><span class="label">42 HỒ SƠ</span><h2>Thám Tử Mạng gốc</h2><p>Mở desktop, dùng công cụ điều tra và lần theo chuyên án Bóng Đêm.</p><a href="./game-goc.html">Vào game gốc →</a></article>
-<article class="mode"><span class="label">CA TRỰC AN TOÀN SỐ</span><h2>Vy sắp chuyển 500k</h2><p>Mở cuộc chat, tự tìm bằng chứng và giúp Vy quyết định trước khi chuyển tiền.</p><a href="./ca-truc/">Nhận ca của Vy →</a></article>
+<article class="mode"><span class="label">CA TRỰC AN TOÀN SỐ</span><h2>Vy sắp chuyển 500k</h2><p>Mở cuộc chat, tự tìm bằng chứng và giúp Vy quyết định trước khi chuyển tiền.</p><div class="mode-links"><a href="./ca-truc/ban-thu/">Chơi bản thử ca Vy →</a><a class="previous" href="./ca-truc/">Ca trực hiện hành</a></div></article>
 </div></main></body></html>
