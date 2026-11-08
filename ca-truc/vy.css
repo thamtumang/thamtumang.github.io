@@ -113,3 +113,90 @@ button.hotspot[aria-pressed=true], .evidence button[aria-pressed=true] { border-
   .documents { grid-template-columns: 1fr; }
   .pinbar { align-items: start; }
 }
+
+.glyph { flex: none; vertical-align: middle; }
+.vy-portrait { width: 3.25rem; height: 3.25rem; flex: none; }
+.desk-empty { justify-items: center; gap: .35rem; }
+.desk-empty .vy-portrait {
+  width: min(42vw, 11rem); height: auto; margin: .25rem 0 .85rem;
+  border-radius: 31%; box-shadow: 0 0 0 12px #dce9db, 0 0 0 24px #eaf0e4;
+}
+.desk-empty p { max-width: 32ch; }
+.visual-tool {
+  display: inline-flex; align-items: center; gap: .35rem; justify-content: center;
+  min-height: 2.55rem;
+}
+.visual-tool .glyph { width: 1.08rem; height: 1.08rem; }
+button.transfer-preview {
+  display: grid; grid-template-columns: auto 1fr; align-items: center; gap: .7rem;
+  width: min(17rem,100%); padding: .65rem .8rem; border-radius: .85rem;
+}
+.transfer-preview > .glyph {
+  width: 2.45rem; height: 2.45rem; padding: .45rem; border-radius: .8rem; background: #eadab8;
+}
+.transfer-preview small, .transfer-preview strong, .transfer-preview span span { display: block; }
+.transfer-preview small { font-size: .72rem; }
+.transfer-preview strong { font-size: 1.45rem; letter-spacing: -.04em; line-height: 1.15; }
+.transfer-preview span span { color: var(--muted); font-size: .77rem; }
+.pinbar { display: grid; gap: .45rem; }
+.pin-actions { display: flex; align-items: center; gap: .55rem; }
+.pin-actions button { flex: none; }
+.clue-tray, .composer {
+  border: 1px dashed #809e94; border-radius: .75rem; background: #eef6f0;
+  display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; padding: .5rem .65rem;
+}
+.clue-tray small, .composer small, .clue-tile small { display: block; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: .28rem; }
+.clue-chip {
+  display: inline-flex; align-items: center; gap: .22rem; border-radius: .35rem;
+  background: #fff; padding: .18rem .35rem; border: 1px solid #c5d7ca; font-size: .76rem;
+}
+.clue-chip .glyph { width: .9rem; height: .9rem; }
+.clue-tile {
+  display: flex; align-items: center; gap: .65rem; padding: .55rem .7rem; border-left-width: .3rem;
+}
+.clue-tile.kind-post { border-left-color: #3e8a69; }
+.clue-tile.kind-task { border-left-color: #557bac; }
+.clue-tile.kind-receipt { width: 100%; border-left-color: #a77936; margin: 0; }
+.clue-tile.kind-school { border-left-color: #846a9d; }
+.composer { margin: .8rem 0; }
+.composer .chips { margin-top: .25rem; }
+.drop-ready { border-color: #1c7157; border-style: solid; background: #d7f3e4; }
+.call-strip {
+  margin-top: .55rem; display: flex; flex-wrap: wrap; align-items: center; gap: .35rem;
+  padding: .45rem; border-radius: .5rem; background: #d9eee5; font-size: .84rem;
+}
+.call-strip .glyph, .receipt-head .glyph { width: 1.05rem; height: 1.05rem; }
+.receipt-head { align-items: center; justify-content: start; }
+.receipt-head small { margin-left: auto; }
+.wave { display: inline-flex; align-items: center; gap: 2px; height: 1rem; }
+.wave i { width: 3px; height: .62rem; border-radius: 2px; background: #2d7f68; }
+.wave i:nth-child(2n) { height: .35rem; animation-delay: .1s; }
+.recovery-meter {
+  display: flex; flex-wrap: wrap; gap: .35rem; margin: 0 0 .65rem;
+}
+.recovery-meter span {
+  display: flex; align-items: center; gap: .3rem; background: #e9eeea; border-radius: .45rem;
+  padding: .28rem .45rem; font-size: .78rem;
+}
+.recovery-meter .glyph { width: .94rem; height: .94rem; }
+.recovery-meter .done { background: #d0efdd; color: #175940; }
+.reacting .vy-portrait, .fresh-bubble { animation: vy-appear .32s ease-out both; }
+.reacting .transfer-preview, .clue-tray.pop, .receipt.snapshot { animation: vy-pulse .55s ease-out; }
+.calling .wave i { animation: vy-wave .3s ease-in-out 3 alternate; }
+@keyframes vy-appear {
+  from { opacity: .35; transform: translateY(7px) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes vy-pulse {
+  from { box-shadow: inset 0 0 0 2px #287b62; background-color: #d4f4e5; }
+  to { box-shadow: none; }
+}
+@keyframes vy-wave { from { transform: scaleY(.45); } to { transform: scaleY(1.5); } }
+@media (prefers-reduced-motion: reduce) {
+  .reacting .vy-portrait, .fresh-bubble, .reacting .transfer-preview, .clue-tray.pop,
+  .receipt.snapshot, .calling .wave i { animation: none; }
+}
+@media (max-width: 760px) {
+  .phone .vy-portrait { width: 2.75rem; height: 2.75rem; }
+}
