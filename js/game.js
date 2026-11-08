@@ -1335,9 +1335,8 @@
     window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => WM.layout(), 120); });
 
     document.body.classList.add('locked');
-    const user = await Store.init();
-    if (user) await startSession();
-    else showLock('lock');
+    await Store.init();
+    showLock('login');
   }
 
   // Cho phép kiểm thử từ console
