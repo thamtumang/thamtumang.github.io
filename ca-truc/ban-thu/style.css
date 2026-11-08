@@ -51,3 +51,36 @@ button.amount[aria-pressed=true] { border-color:#aa761e; background:#fff0c9; }
  .attachments .attachment:not(.shared-post) .attachment-icon{display:none}
  .attachments .attachment strong{font-size:.9rem}
 }
+
+/* Bài tuyển và đối chiếu: nguồn bên trái, cuộc trò chuyện bên phải. */
+.evidence-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(15rem,18rem); align-items:start; gap:1rem; }
+.evidence-sources { min-width:0; }
+.evidence-sources .artifact { max-width:none; }
+.evidence-sources .artifact img { height:clamp(6rem,17vh,9rem); aspect-ratio:auto; object-position:center 48%; }
+.evidence-sources .comparison { margin-top:0; }
+.evidence-sources .line { background:#f6f8fc; border:1px solid #cbd5e6; padding:.5rem .65rem; }
+.evidence-sources .line:hover { background:#eaf0fc; }
+.evidence-sources .line[aria-pressed=true] { background:#fff0c9; border-color:#aa761e; }
+.vy-dock { position:sticky; top:.75rem; padding:.75rem; border:1px solid #cbd5e6; border-radius:.8rem; background:#ecf1fa; }
+.vy-head { display:flex; align-items:center; gap:.55rem; }
+.vy-head small { display:block; }
+.vy-avatar { flex:none; width:2.4rem; aspect-ratio:1; border-radius:50%; background:#d1b18b var(--scene) left center / 300% 100% no-repeat; }
+.vy-avatar.dang-nghe { background-position:center; }
+.vy-avatar.nhe-nhom { background-position:right center; }
+.vy-reply,.vy-compose { margin-top:.55rem; padding:.55rem; border-radius:.55rem; background:white; overflow-wrap:anywhere; }
+.vy-reply { font-size:.9rem; }
+.vy-draft { display:flex; align-items:center; justify-content:space-between; gap:.4rem; margin-top:.35rem; }
+.vy-draft blockquote { margin:0; font-size:.9rem; }
+.vy-dock .draft-remove { font-size:.78rem; padding:.3rem .45rem; flex:none; }
+.vy-dock > .primary { width:100%; margin-top:.55rem; }
+.vy-toggle { display:none; }
+@media(max-width:760px) {
+  .evidence-layout { display:block; }
+  .evidence-sources .comparison { grid-template-columns:1fr; }
+  .evidence-sources .artifact img { height:7rem; }
+  .vy-dock { position:sticky; top:auto; bottom:0; z-index:2; margin-top:.75rem; box-shadow:0 -4px 18px #23375328; }
+  .vy-toggle { display:inline-flex; margin-left:auto; font-size:.8rem; padding:.25rem .5rem; }
+  .vy-head small { font-size:.72rem; }
+  .vy-content { display:none; }
+  .expanded .vy-content { display:block; max-height:26vh; overflow:auto; }
+}

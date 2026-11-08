@@ -14,6 +14,8 @@
   let notice = '';
   let search = '';
   let wantsTransfer = false;
+  let chatOpen = false;
+  const openingMessage = 'Tớ nhận 45k thật rồi. Giờ họ bảo nạp 500k. Cậu coi giúp tớ với.';
   const e = x => String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const B = (label, action, id='', cls='', extra='') => '<button type="button" class="'+cls+'" data-action="'+action+'" data-id="'+id+'" '+extra+'>'+e(label)+'</button>';
   const go = (name,label,cls='') => '<a class="button '+cls+'" href="#'+name+'">'+e(label)+'</a>';
@@ -58,14 +60,36 @@
     return '<article class="artifact recruiter"><header>'+publisher('Hương Giang · Người tuyển')+
       '<small>Đoạn trò chuyện Vy chia sẻ</small></header><div class="artifact-body">'+pickLines('chat')+'</div></article>';
   }
-  function selectedExcerpts() {
-    const items = [['post','Bài tuyển'],['chat','Đoạn chat']].flatMap(([group,title]) => {
-      const selected = choices[group].find(([id])=>id===state[group]);
-      if (!selected) return [];
-      return ['<article><b>'+e(title)+'</b><p>'+e(selected[1])+'</p>'+
-        go(group==='post'?'post':'recruiter','Mở bản đầy đủ')+'</article>'];
+  function vyDock(pair = false) {
+    const groups = pair ? ['post','chat'] : ['post'];
+    const drafts = groups.flatMap(group => {
+      const quote = selected(group);
+      if (!quote) return [];
+      const title = group==='post' ? 'Bài tuyển' : 'Đoạn chat';
+      return ['<div class="vy-draft"><div><small>'+title+'</small><blockquote>'+e(quote)+'</blockquote></div>'+
+        B('Bỏ chọn','pick',group+'-'+state[group],'draft-remove','aria-label="Bỏ chọn đoạn từ '+title.toLowerCase()+'"')+'</div>'];
     });
-    return items.length?'<div class="excerpts" aria-label="Các đoạn đã chọn">'+items.join('')+'</div>':'';
+    const latest = state.stopped ? 'Tớ dừng nạp thêm rồi.' : state.transfer==='paid'
+      ? 'Tớ chuyển rồi. Họ lại đòi nạp thêm để hoàn tiền.'
+      : [...state.messages].reverse().find(message=>message.who==='vy')?.text || openingMessage;
+    return '<aside class="vy-dock'+(chatOpen?' expanded':'')+'" aria-label="Chat với Vy">'+
+      '<div class="vy-head"><span class="vy-avatar '+art()+'" aria-hidden="true"></span><div><b>Thảo Vy</b><small>500.000đ · '+e(status())+'</small></div>'+
+      B(chatOpen?'Thu gọn':'Mở chat','toggle-vy','','vy-toggle','aria-controls="vy-chat" aria-expanded="'+chatOpen+'"')+'</div>'+
+      '<div class="vy-content" id="vy-chat"><p class="vy-reply">'+e(latest)+'</p>'+
+      (unsettled()?'<div class="vy-compose"><small>Sắp gửi cho Vy</small>'+
+        (drafts.length?drafts.join(''):'<p>Chưa chọn đoạn nào.</p>')+
+        (pair&&drafts.length===1?'<small>Chọn thêm một đoạn ở nguồn còn lại.</small>':'')+'</div>':'')+'</div>'+
+      sendBar('Gửi Vy',pair?'pair':'post',drafts.length===groups.length)+'</aside>';
+  }
+  function recruitment(pair = false) {
+    const title = pair ? 'Đối chiếu hai nguồn' : 'Bài tuyển';
+    const hint = pair ? 'Chọn một đoạn ở mỗi nguồn để gửi Vy.' : 'Chọn đoạn muốn gửi Vy.';
+    const postActions = '<div class="actions">'+go('compare','Đặt cạnh đoạn chat','primary')+
+      (state.reported?pill('Đã gửi báo cáo · Chờ xem xét'):go('report','Báo cáo bài viết'))+
+      go('inbox','Về hộp thư')+'</div>';
+    return '<h1>'+title+'</h1><p>'+hint+'</p><div class="evidence-layout"><div class="evidence-sources">'+
+      (pair?'<div class="comparison">'+postCard()+chatCard()+'</div>'+sourceLinks():postCard()+postActions)+
+      '</div>'+vyDock(pair)+'</div>';
   }
   function sourceLinks() {
     return '<div class="actions">'+go('post','Bài gốc')+go('recruiter','Đoạn chat')+go('inbox','Về hộp thư','primary')+'</div>';
@@ -140,13 +164,21 @@
     }
     state.finished=false;
     save();
+    if (id==='post'||id==='pair') {
+      chatOpen = true;
+      render();
+      const reply = host.querySelector('.vy-reply');
+      reply?.setAttribute('tabindex','-1');
+      reply?.focus({preventScroll:true});
+      return;
+    }
     navigate('inbox');
   }
   const panels = {
     inbox,
-    post:()=>'<h1>Bài tuyển</h1>'+postCard()+'<div class="actions">'+sendBar('Gửi đoạn đã chọn cho Vy','post',Boolean(selected('post')))+(state.reported?pill('Đã gửi báo cáo · Chờ xem xét'):go('report','Báo cáo bài viết'))+go('compare','Đặt cạnh đoạn chat')+go('inbox','Về hộp thư','primary')+'</div>',
+    post:()=>recruitment(),
     page:()=>'<div class="cover"></div>'+publisher()+'<h1>Việc làm thêm Sao Mai</h1><p>Trang giới thiệu việc cộng tác online. Trang tự giới thiệu có liên hệ với CLB Truyền thông Sao Mai.</p><small>Thông tin do trang tự khai.</small><div class="actions">'+go('post','Mở bài tuyển gốc')+go('recruiter','Hỏi người tuyển')+go('search','Tìm trên ViệtBook')+go('inbox','Về hộp thư','primary')+'</div>',
-    compare:()=>'<h1>Đối chiếu hai nguồn</h1><p>Chạm vào một đoạn ở mỗi nguồn. Chạm lại để bỏ chọn.</p>'+selectedExcerpts()+'<div class="comparison">'+postCard()+chatCard()+'</div><div class="actions">'+sendBar('Gửi hai đoạn cho Vy','pair',Boolean(selected('post')&&selected('chat')))+'</div>'+sourceLinks(),
+    compare:()=>recruitment(true),
     receipt:()=>'<h1>Biên lai Vy gửi</h1>'+transaction(true,true)+'<div class="actions">'+sendBar('Gửi +45.000đ cho Vy','receipt',state.receiptPick)+go('inbox','Về hộp thư','primary')+'</div>',
     transfer:()=>'<h1>Ảnh giao dịch Vy gửi</h1>'+transaction(false,true)+'<div class="actions">'+sendBar('Gửi chi tiết giao dịch cho Vy','transfer',state.transferPick)+go('inbox','Về hộp thư','primary')+'</div>',
     recruiter:()=>'<h1>Hộp thư · Hương Giang</h1>'+chatCard()+'<div class="actions">'+sendBar('Gửi đoạn đã chọn cho Vy','chat',Boolean(selected('chat')))+(state.asked?go('intro','Mở ảnh tự giới thiệu'):B('Hỏi chị có liên hệ với CLB không','ask'))+go('compare','Đặt cạnh bài tuyển')+go('inbox','Về hộp thư','primary')+'</div>',
@@ -201,7 +233,12 @@
       state.transfer='waiting'; message('player','Khoan chuyển.'); message('vy','Ừ, tớ để đây.');
     } else if(action==='pick') {
       const [group,value]=id.split('-');
-      if(choices[group]?.some(([key])=>key===value)) state[group]=state[group]===value?'':value;
+      if(choices[group]?.some(([key])=>key===value)) {
+        state[group]=state[group]===value?'':value;
+        if(state[group]&&['post','compare'].includes(current())) chatOpen=true;
+      }
+    } else if(action==='toggle-vy') {
+      chatOpen=!chatOpen;
     } else if(action==='pick-amount'&&['receiptPick','transferPick'].includes(id)) {
       state[id]=!state[id];
     } else if(action==='ask') {state.asked=true;save();navigate('intro');return;}
@@ -228,11 +265,12 @@
       if(!window.confirm('Đặt lại lượt chơi bản thử này?'))return;
       state=blank();
       if(id==='paid')state.transfer='paid';
-      search='';save();navigate(id==='paid'?'recover':'inbox');return;
+      search='';chatOpen=false;save();navigate(id==='paid'?'recover':'inbox');return;
     }
     save();render();
     const same=[...host.querySelectorAll('[data-action]')].find(b=>b.dataset.action===action&&b.dataset.id===id);
     if(same&&!same.disabled)same.focus({preventScroll:true});
+    else if(action==='pick') host.querySelector('.vy-toggle')?.focus({preventScroll:true});
   }
   host.addEventListener('click',ev=>{
     const button=ev.target.closest('button[data-action]');

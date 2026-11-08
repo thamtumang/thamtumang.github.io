@@ -565,3 +565,14 @@ h1, h2, .tut-name, .ch-name, .cf-chapter, #lock-time, .login-card h2, .rank, .bo
   letter-spacing: 0;
 }
 h1, h2 { font-weight: 800; }
+
+/* Ca trực dùng cửa sổ riêng, tránh lớp hướng dẫn desktop che ViệtBook. */
+.ca-truc-visible #tutor { display:none; }
+.desktop-open-hint {
+  display:none; position:absolute; z-index:5; margin-top:2.4rem; padding:.2rem .4rem;
+  color:#1a2939; background:#fff; border:1px solid #c3cddb; border-radius:.25rem;
+  white-space:nowrap; font-size:.72rem; pointer-events:none;
+}
+@media (any-pointer:fine) {
+  .icon:focus .desktop-open-hint { display:block; }
+}

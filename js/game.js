@@ -191,7 +191,7 @@
       this.layout();
       renderTaskbar();
     },
-    closeAll() { Object.keys(this.wins).forEach(a => { this.wins[a].el.remove(); }); this.wins = {}; this.order = []; renderTaskbar(); },
+    closeAll() { Object.keys(this.wins).forEach(a => { this.wins[a].el.remove(); }); this.wins = {}; this.order = []; this.layout(); renderTaskbar(); },
     minimize(app) {
       const w = this.wins[app];
       if (!w) return;
@@ -224,7 +224,16 @@
       return { x: left, y: 10, w: Math.max(320, W - left - 10), h: H - 20 };
     },
     // Xếp các cửa sổ cạnh nhau, không chồng lên nhau
+    caTrucVisible() {
+      const win = this.wins.caTruc;
+      return Boolean(win && !win.el.classList.contains('minimized'));
+    },
     layout() {
+      const showCaTruc = this.caTrucVisible();
+      if (document.body.classList.contains('ca-truc-visible') !== showCaTruc) {
+        document.body.classList.toggle('ca-truc-visible', showCaTruc);
+        Tutorial.highlight();
+      }
       if (isMobile()) return;
       const A = this.area();
       const vis = this.order.filter(a => !this.wins[a].el.classList.contains('minimized'));
@@ -326,7 +335,22 @@
       return '<button class="icon" data-app="' + a + '"><span class="i-img">' + I.appIcon(d.icon, 44) + lock + badge +
         '</span><span class="i-label">' + d.short + '</span></button>';
     }).join('');
-    $$('#icons .icon').forEach(b => (b.onclick = () => WM.open(b.dataset.app)));
+    $$('#icons .icon').forEach(button => {
+      if (button.dataset.app !== 'caTruc') {
+        button.onclick = () => WM.open(button.dataset.app);
+        return;
+      }
+      button.insertAdjacentHTML('beforeend', '<span class="desktop-open-hint" id="ca-open-hint">Nhấp đúp để mở</span>');
+      button.setAttribute('aria-describedby', 'ca-open-hint');
+      button.setAttribute('aria-label', APPS.caTruc.short);
+      let pointerType;
+      button.onpointerdown = event => { pointerType = event.pointerType; };
+      button.onclick = event => {
+        if (event.detail === 0 || pointerType === 'touch' || pointerType === 'pen') WM.open('caTruc');
+        else button.focus();
+      };
+      button.ondblclick = () => WM.open('caTruc');
+    });
   }
 
   function renderTaskbar() {
@@ -1092,9 +1116,9 @@
     let collapsed = false;
     const box = () => $('#tutor');
 
-    function start() {
+    function start(keepCaTruc = false) {
       step = 0; collapsed = false;
-      WM.closeAll();
+      if (!keepCaTruc) WM.closeAll();
       C = null; inboxView = { mode: 'list' };
       WM.refreshAll();
       render();
@@ -1128,10 +1152,11 @@
     function clearHL() { $$('.tut-pulse').forEach(e => e.classList.remove('tut-pulse')); }
     function highlight() {
       clearHL();
-      if (step < 0) return;
+      if (step < 0 || WM.caTrucVisible()) return;
       const st = STEPS[step];
       if (!st.target) { place(null); return; }
       requestAnimationFrame(() => {
+        if (step < 0 || WM.caTrucVisible()) return;
         clearHL();
         const els = $$(st.target).filter(e => e.offsetParent !== null);
         els.slice(0, st.target === '.vb .clue' ? 99 : 1).forEach(e => e.classList.add('tut-pulse'));
@@ -1296,7 +1321,7 @@
     renderTray();
     renderTaskbar();
     const u = me();
-    if (!S.tutorialDone) setTimeout(Tutorial.start, 500);
+    if (!S.tutorialDone) setTimeout(() => Tutorial.start(WM.caTrucVisible()), 500);
     else toast('Chào mừng trở lại, <b>' + esc(u.name) + '</b>!', 'good');
     if (isNew) toast('Đã tạo tài khoản <b>' + esc(u.name) + '</b>.', 'good');
   }
