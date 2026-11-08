@@ -153,17 +153,18 @@
       let w = this.wins[app];
       const isNew = !w;
       if (!w) {
+        const max = Boolean(def.openMaximized);
         const el = document.createElement('div');
-        el.className = 'window';
+        el.className = max ? 'window desktop-maximized' : 'window';
         el.dataset.win = app;
         el.innerHTML =
           '<div class="titlebar"><span class="t-icon">' + I.appIcon(def.icon, 18) + '</span><span class="t-title">' + def.title + '</span>' +
           '<button class="t-btn t-min" title="Thu nhỏ">' + U.min + '</button>' +
-          '<button class="t-btn t-max" title="Phóng to">' + U.max + '</button>' +
+          '<button class="t-btn t-max" title="' + (max ? 'Thu về' : 'Phóng to') + '">' + (max ? U.restore : U.max) + '</button>' +
           '<button class="t-btn t-close" title="Đóng">' + U.close + '</button></div>' +
           '<div class="win-body"></div>';
         $('#windows').appendChild(el);
-        w = this.wins[app] = { el, body: $('.win-body', el), max: false, def };
+        w = this.wins[app] = { el, body: $('.win-body', el), max, def };
         this.order.push(app);
         $('.t-close', el).onclick = e => { e.stopPropagation(); this.close(app); };
         $('.t-min', el).onclick = e => { e.stopPropagation(); this.minimize(app); };
@@ -202,6 +203,7 @@
       const w = this.wins[app];
       if (!w || isMobile()) return;
       w.max = !w.max;
+      if (w.def.openMaximized) w.el.classList.toggle('desktop-maximized', w.max);
       $('.t-max', w.el).innerHTML = w.max ? U.restore : U.max;
       $('.t-max', w.el).title = w.max ? 'Thu về' : 'Phóng to';
       this.layout();
@@ -227,7 +229,9 @@
       const A = this.area();
       const vis = this.order.filter(a => !this.wins[a].el.classList.contains('minimized'));
       const tiled = vis.filter(a => !this.wins[a].max);
-      vis.filter(a => this.wins[a].max).forEach(a => place(this.wins[a].el, A.x, A.y, A.w, A.h));
+      vis.filter(a => this.wins[a].max && !this.wins[a].def.openMaximized).forEach(a => {
+        place(this.wins[a].el, A.x, A.y, A.w, A.h);
+      });
       const n = tiled.length;
       if (!n) return;
       const gap = 10;
@@ -424,7 +428,7 @@
 
   /* ---------------- Các ứng dụng ---------------- */
   const APPS = {
-    caTruc: { title: 'Ca trực an toàn số · Bản thử', short: 'Ca trực', icon: 'caTruc', w: 1120, h: 740, render: renderCaTruc },
+    caTruc: { title: 'Ca trực an toàn số · Bản thử', short: 'Ca trực', icon: 'caTruc', w: 1120, h: 740, openMaximized: true, render: renderCaTruc },
     inbox: { title: 'Hộp thư vụ án', short: 'Hộp thư', icon: 'inbox', w: 640, h: 600, render: renderInbox },
     vietbook: { title: 'ViệtBook', short: 'ViệtBook', icon: 'vietbook', w: 720, h: 660, render: renderVietBook },
     badges: { title: 'Sổ Huy hiệu', short: 'Sổ Huy hiệu', icon: 'badges', w: 700, h: 620, render: renderBadges },
