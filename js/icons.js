@@ -52,6 +52,7 @@
   const APP_ICONS = {
     inbox: ['#ffb84d', '#f27121', G.inbox],
     vietbook: ['#3b82f6', '#1d4ed8', G.vietbook],
+    caTruc: ['#2b9a9e', '#215580', G.shield],
     link: ['#22d3ee', '#0e7490', G.link],
     image: ['#a78bfa', '#6d28d9', G.image],
     account: ['#34d399', '#047857', G.account],

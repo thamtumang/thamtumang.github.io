@@ -311,7 +311,7 @@
   }
 
   /* ---------------- Desktop, taskbar, menu Start ---------------- */
-  const DESKTOP_APPS = ['inbox', 'vietbook', 'link', 'image', 'account', 'profile', 'badges', 'shop', 'leaderboard'];
+  const DESKTOP_APPS = ['inbox', 'vietbook', 'link', 'image', 'account', 'profile', 'badges', 'shop', 'leaderboard', 'caTruc'];
   const PINNED = ['inbox', 'vietbook', 'badges', 'shop', 'leaderboard'];
 
   function renderIcons() {
@@ -374,7 +374,7 @@
   function renderStartMenu(filter) {
     const u = me();
     const r = rank();
-    const all = ['inbox', 'vietbook', 'badges', 'shop', 'leaderboard', 'quiz', 'link', 'image', 'account', 'profile'];
+    const all = ['inbox', 'vietbook', 'badges', 'shop', 'leaderboard', 'quiz', 'link', 'image', 'account', 'profile', 'caTruc'];
     if (bossUnlocked()) all.push('boss');
     const q = (filter || '').toLowerCase();
     const apps = all.filter(a => !q || APPS[a].title.toLowerCase().indexOf(q) >= 0);
@@ -412,8 +412,19 @@
     }));
   }
 
+  function renderCaTruc(body) {
+    // Focusing or restoring an existing window must not reload the active case.
+    if (body.querySelector('iframe')) return;
+    const frame = document.createElement('iframe');
+    frame.title = 'Ca trực an toàn số: Vy sắp chuyển 500k';
+    frame.src = './ca-truc/ban-thu/';
+    frame.style.cssText = 'display:block;flex:1;min-height:0;width:100%;border:0';
+    body.appendChild(frame);
+  }
+
   /* ---------------- Các ứng dụng ---------------- */
   const APPS = {
+    caTruc: { title: 'Ca trực an toàn số · Bản thử', short: 'Ca trực', icon: 'caTruc', w: 1120, h: 740, render: renderCaTruc },
     inbox: { title: 'Hộp thư vụ án', short: 'Hộp thư', icon: 'inbox', w: 640, h: 600, render: renderInbox },
     vietbook: { title: 'ViệtBook', short: 'ViệtBook', icon: 'vietbook', w: 720, h: 660, render: renderVietBook },
     badges: { title: 'Sổ Huy hiệu', short: 'Sổ Huy hiệu', icon: 'badges', w: 700, h: 620, render: renderBadges },
