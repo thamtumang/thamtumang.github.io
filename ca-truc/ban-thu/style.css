@@ -135,3 +135,10 @@ button.amount[aria-pressed=true] { border-color:#aa761e; background:#fff0c9; }
   .vy-active .vy-content { display:block; max-height:none; overflow:visible; }
   .compare .line { scroll-margin-bottom:5rem; }
 }
+
+.case-guide { max-width:36rem; }
+.case-guide ol { padding-inline-start:1.35rem; margin:.8rem 0 1.1rem; }
+.case-guide li + li { margin-top:.35rem; }
+.guide-dialog { width:min(36rem,calc(100% - 2rem)); padding:clamp(1rem,4vw,1.5rem); color:var(--ink); background:var(--paper); border:1px solid var(--line); border-radius:.85rem; }
+.guide-dialog::backdrop { background:#14274780; }
+.post-help { color:var(--muted); font-size:.9rem; margin:.3rem 0 .5rem; }

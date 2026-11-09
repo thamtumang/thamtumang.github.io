@@ -5,17 +5,24 @@
   // browser-wide save has no account owner, so it is deliberately ignored.
   const storage = window.frameElement?.caTrucStorage;
   const qa = new URLSearchParams(location.search).has('kiem-thu');
-  const blank = () => ({transfer:'pending',post:'',chat:'',receiptPick:false,transferPick:false,independent:false,asked:false,reported:'',basis:'',messages:[],finished:false,history:'',stopped:false,bank:false,code:false,receipt:false,chatSaved:false,prepared:false});
+  const blank = () => ({started:false,view:'inbox',postHelpSeen:false,search:'',draftChoices:{},transfer:'pending',post:'',chat:'',receiptPick:false,transferPick:false,independent:false,asked:false,reported:'',basis:'',messages:[],finished:false,history:'',stopped:false,bank:false,code:false,receipt:false,chatSaved:false,prepared:false});
   const saved = storage?.load();
-  let state = {...blank(), ...saved};
+  let state = {...blank(), ...saved, started:Boolean(saved)};
   let offerResume = Boolean(storage?.canResume && saved);
   const views = ['inbox','post','page','compare','receipt','transfer','recruiter','intro','search','school','club','report','confirm','result','recover','bank','call','qa'];
+  if (saved && !location.hash) {
+    // Reopen the case at the last screen. A transfer confirmation is transient.
+    const lastView = saved.view==='confirm' ? 'transfer' :
+      saved.view || (state.transfer==='paid' ? (state.prepared?'result':'recover') : 'inbox');
+    if (views.includes(lastView) && lastView!=='qa' && lastView!=='inbox') {
+      history.replaceState(null,'','#'+lastView);
+    }
+  }
   const current = () => {
     const name = location.hash.slice(1);
     return views.includes(name) && (name!=='qa' || qa) ? name : 'inbox';
   };
   let notice = '';
-  let search = '';
   let wantsTransfer = false;
   let compareHelp = true;
   let chatOpen = state.transfer==='cancelled';
@@ -23,7 +30,6 @@
   const reportStatus = 'Đã gửi báo cáo · Chờ xem xét';
   const openingRequest = 'Cậu xem giúp tớ bài tuyển này với.';
   const openingMessage = 'Họ trả tớ 45k rồi. Giờ họ đòi nạp 500k để làm tiếp. Tớ nhập số tiền rồi, chưa bấm chuyển.';
-  const draftChoices = {};
   const cancelAdvice = 'Tớ nghĩ cậu nên hủy khoản chuyển này.';
   const pauseReply = 'Ừ, tớ chưa bấm chuyển. Cậu xem giúp tớ bài tuyển nha.';
   const pairReply = 'À, bài đăng bảo không cần ứng tiền mà giờ lại đòi nạp 500k. Thôi, tớ hủy đây.';
@@ -71,10 +77,12 @@
     const mark=school?'SM':'VL';
     return '<div class="publisher"><span class="mark '+(school?'school':'')+'">'+mark+'</span><b>'+e(name)+'</b></div>';
   }
-  function postCard() {
+  function postCard(showHelp=false) {
     return '<article class="artifact post"><header>'+go('page','VL · Việc làm thêm Sao Mai','publisher-link')+
       '<small>18:25 · Bài đăng công khai</small></header><img src="assets/bai-tuyen.jpg" alt="Laptop trên bàn làm việc trong bài tuyển mô phỏng" width="960" height="636">'+
-      '<div class="artifact-body"><h3>Tuyển CTV tương tác online</h3>'+pickLines('post')+'</div></article>';
+      '<div class="artifact-body"><h3>Tuyển CTV tương tác online</h3>'+
+      (showHelp?'<p class="post-help">Bấm vào một câu trong bài để đính kèm vào tin nhắn cho Vy.</p>':'')+
+      pickLines('post')+'</div></article>';
   }
   function chatCard() {
     return '<article class="artifact recruiter"><header>'+publisher('Hương Giang · Người tuyển')+
@@ -117,7 +125,7 @@
     return id==='pair'?[first.pair,cancelAdvice]:[first[id],'Cậu xem giúp tớ chi tiết này nha.'];
   }
   function draftText(id) {
-    return draftMessages(id)[draftChoices[id] ?? 0];
+    return draftMessages(id)[state.draftChoices[id] ?? 0];
   }
   function quoteCards(quotes) {
     return '<div class="sent-quotes">'+quotes.map(([source,quote])=>
@@ -129,7 +137,7 @@
   }
   function composer(id, quotes, extra='') {
     return '<div class="vy-compose"><small>Sắp gửi cho Vy</small><label>Câu nhắn<select data-draft="'+id+'">'+
-      draftMessages(id).map((line,i)=>'<option value="'+i+'" '+(i===(draftChoices[id]??0)?'selected':'')+'>'+e(line)+'</option>').join('')+
+      draftMessages(id).map((line,i)=>'<option value="'+i+'" '+(i===(state.draftChoices[id]??0)?'selected':'')+'>'+e(line)+'</option>').join('')+
       '</select></label>'+quoteCards(quotes)+extra+'</div>';
   }
   function postMessageState() {
@@ -157,8 +165,8 @@
     const thread=postMessageState();
     const postActions = '<div class="actions">'+(thread.showSent?'':go('compare','Đặt cạnh đoạn chat','primary'))+
       (state.reported?pill(reportStatus):go('report','Báo cáo bài viết'))+go('inbox','Về hộp thư')+'</div>';
-    return '<h1>Bài tuyển</h1><p>Chọn đoạn muốn gửi Vy.</p><div class="evidence-layout"><div class="evidence-sources">'+
-      postCard()+postActions+'</div>'+vyDock(thread)+'</div>';
+    return '<h1>Bài tuyển</h1><div class="evidence-layout"><div class="evidence-sources">'+
+      postCard(!state.postHelpSeen&&unsettled())+postActions+'</div>'+vyDock(thread)+'</div>';
   }
   function comparison() {
     const post = selected('post'), chat = selected('chat');
@@ -298,8 +306,8 @@
     transfer:()=>'<h1>Ảnh giao dịch Vy gửi</h1>'+transaction(false,true)+'<div class="actions">'+sendBar('Gửi chi tiết giao dịch cho Vy','transfer',state.transferPick)+(unsettled()?B('Khuyên Vy chuyển','choose-transfer','','quiet'):'')+go('inbox','Về hộp thư','primary')+'</div>',
     recruiter:()=>'<h1>Hộp thư · Hương Giang</h1>'+chatCard()+'<div class="actions">'+sendBar('Gửi đoạn đã chọn cho Vy','chat',Boolean(selected('chat')))+(state.asked?go('intro','Mở ảnh tự giới thiệu'):B('Hỏi chị có liên hệ với CLB không','ask'))+go('compare','Đặt cạnh bài tuyển')+go('inbox','Về hộp thư','primary')+'</div>',
     intro:()=>'<h1>Ảnh người tuyển gửi</h1><article class="idcard">'+publisher('Hương Giang')+'<h3>CTV · CLB Truyền thông Sao Mai</h3><p>Ảnh giới thiệu do Hương Giang gửi trong hội thoại.</p></article><div class="actions">'+go('recruiter','Về hội thoại')+go('search','Tìm trang trường')+go('inbox','Về hộp thư','primary')+'</div>',
-    search:()=>'<h1>Tìm trên ViệtBook</h1><form id="search"><label for="query">Tìm trang hoặc tên trường</label><div class="searchrow"><input id="query" name="query" type="search" value="'+e(search)+'" placeholder="Ví dụ: Sao Mai"><button class="primary">Tìm</button></div></form>'+
-      (!search?'<p>Nhập tên hoặc từ khóa để xem các trang.</p>':/sao|mai|clb|trường|truong|thpt|việc|viec/i.test(search)?
+    search:()=>'<h1>Tìm trên ViệtBook</h1><form id="search"><label for="query">Tìm trang hoặc tên trường</label><div class="searchrow"><input id="query" name="query" type="search" value="'+e(state.search)+'" placeholder="Ví dụ: Sao Mai"><button class="primary">Tìm</button></div></form>'+
+      (!state.search?'<p>Nhập tên hoặc từ khóa để xem các trang.</p>':/sao|mai|clb|trường|truong|thpt|việc|viec/i.test(state.search)?
         '<div class="results">'+searchResult('page','Việc làm thêm Sao Mai','Trang tuyển dụng · Liên hệ CLB do trang tự khai')+searchResult('school','THPT Sao Mai','Trang nhà trường · Danh bạ câu lạc bộ')+'</div>':'<p>Chưa tìm thấy trang phù hợp. Thử tên trường hoặc tên CLB.</p>')+go('inbox','Về hộp thư','primary'),
     school:()=>'<div class="cover school-cover"></div>'+publisher('THPT Sao Mai',true)+'<h1>THPT Sao Mai</h1><p>Trang nhà trường trong ViệtBook. Xem danh bạ các câu lạc bộ.</p><div class="actions">'+go('club','Liên hệ · CLB Truyền thông')+go('search','Về tìm kiếm')+go('inbox','Về hộp thư','primary')+'</div>',
     club:()=>'<h1>Liên hệ CLB Truyền thông</h1>'+publisher('Đầu mối từ trang THPT Sao Mai',true)+
@@ -349,29 +357,54 @@
     const followUp = state.transfer==='paid' ? host.querySelector('a[href="#recover"]') : null;
     (followUp || latest).scrollIntoView({block:'nearest'});
   }
+  function guideContents(title) {
+    return '<h1 id="'+title+'">Cách chơi</h1>'+
+      '<p>Bạn là bạn của Vy. Vy đã nhận 45.000đ khi làm nhiệm vụ online và đang chờ chuyển 500.000đ để làm tiếp. Vy nhờ bạn xem giúp.</p>'+
+      '<ol><li>Đọc và trả lời tin nhắn của Vy.</li><li>Mở bài tuyển, ảnh hoặc đoạn chat để kiểm tra.</li><li>Nhắn lại cho Vy và đính kèm chi tiết bạn tìm được nếu có.</li></ol>';
+  }
+  function focusHeading() {
+    const heading=host.querySelector('.surface h1');
+    heading?.setAttribute('tabindex','-1');
+    heading?.focus({preventScroll:true});
+  }
   function render() {
     const view=current();
+    if (state.started && !offerResume && state.view!==view && view!=='qa') {
+      state.view=view;
+      save();
+    }
     host.innerHTML='<header class="top"><a class="brand" href="#inbox">ViệtBook <small>Ca trực an toàn số</small></a><nav>'+
-      (offerResume?'':go('inbox','▤ Hộp thư',view==='inbox'?'active':'')+go('search','⌕ Tìm kiếm',view==='search'?'active':'')+
-      (qa?go('qa','Kiểm thử'):'')+B('Chơi lại','reset','','reset'))+'</nav></header>'+
+      (offerResume||!state.started?'':go('inbox','▤ Hộp thư',view==='inbox'?'active':'')+go('search','⌕ Tìm kiếm',view==='search'?'active':'')+
+      (qa?go('qa','Kiểm thử'):'')+B('Cách chơi','help')+B('Chơi lại','reset','','reset'))+'</nav></header>'+
       '<div class="shell"><div class="case-label">BẢN THỬ · CA 01 <strong>Ca của Vy</strong></div>'+
       '<section class="surface '+view+'" aria-label="Nội dung ca">'+
-      '<div class="notice" role="status">'+e(notice)+'</div>'+(offerResume?savedCase():panels[view]())+'</section>'+
-      '<footer>ViệtBook là mạng xã hội giả lập. Nhân vật và giao dịch đều là mô phỏng.</footer></div>';
+      '<div class="notice" role="status">'+e(notice)+'</div>'+(offerResume?savedCase():!state.started
+        ?'<div class="case-guide">'+guideContents('start-guide')+B('Bắt đầu ca','start','','primary')+'</div>'
+        :panels[view]())+'</section>'+
+      '<footer>ViệtBook là mạng xã hội giả lập. Nhân vật và giao dịch đều là mô phỏng.</footer></div>'+
+      '<dialog class="case-guide guide-dialog" aria-labelledby="help-title">'+guideContents('help-title')+
+      '<form method="dialog"><button class="primary">Đóng hướng dẫn</button></form></dialog>';
   }
   function act(action,id) {
     notice='';
     if(offerResume && action!=='resume' && action!=='reset') return;
+    if(action==='start'&&!state.started) {
+      state.started=true;
+      state.view='inbox';
+      save();
+      navigate('inbox');
+      focusHeading();
+      return;
+    }
+    if(action==='help') {
+      host.querySelector('.guide-dialog').showModal();
+      return;
+    }
     if(action==='resume'&&offerResume) {
       offerResume=false;
-      const alreadyInbox = current()==='inbox';
-      navigate('inbox');
-      if(alreadyInbox) {
-        const latest = host.querySelector('.chat-thread .bubble:last-child, .chat-thread .case-reply:last-child, .case-task');
-        latest?.setAttribute('tabindex','-1');
-        latest?.focus({preventScroll:true});
-        revealLatestInbox();
-      }
+      render();
+      focusHeading();
+      if(current()==='inbox') revealLatestInbox();
       return;
     }
     if (action==='pause'&&state.transfer==='pending') {
@@ -380,8 +413,9 @@
       const [group,value]=id.split('-');
       if(choices[group]?.some(([key])=>key===value)) {
         state[group]=state[group]===value?'':value;
-        delete draftChoices[group];
-        delete draftChoices.pair;
+        if(group==='post') state.postHelpSeen=true;
+        delete state.draftChoices[group];
+        delete state.draftChoices.pair;
         if(state[group]&&['post','compare'].includes(current())) chatOpen=true;
       }
     } else if(action==='compare-help') {
@@ -413,13 +447,14 @@
     } else if(action==='reset'||(action==='seed'&&qa)) {
       if(!window.confirm(offerResume?'Chơi lại từ đầu? Tiến trình ca này sẽ được đặt lại.':'Đặt lại lượt chơi bản thử này?'))return;
       offerResume=false;state=blank();
-      for (const key of Object.keys(draftChoices)) delete draftChoices[key];
-      if(id==='paid')state.transfer='paid';
-      search='';chatOpen=false;compareHelp=true;save();navigate(id==='paid'?'recover':'inbox');return;
+      if(id==='paid') {state.transfer='paid';state.started=true;}
+      chatOpen=false;compareHelp=true;save();navigate(id==='paid'?'recover':'inbox');return;
     }
     save();render();
     const same=[...host.querySelectorAll('[data-action]')].find(b=>b.dataset.action===action&&b.dataset.id===id);
-    if(same&&!same.disabled)same.focus({preventScroll:true});
+    if(action==='pick' && current()==='post' && matchMedia('(max-width:760px)').matches && host.querySelector('[data-draft="post"]')) {
+      host.querySelector('[data-draft="post"]').focus();
+    } else if(same&&!same.disabled)same.focus({preventScroll:true});
     else if(action==='pick') host.querySelector('.vy-toggle')?.focus({preventScroll:true});
     else if(action==='pause'&&current()==='inbox') host.querySelector('.conversation a[href="#post"]')?.focus({preventScroll:true});
   }
@@ -430,16 +465,18 @@
   host.addEventListener('change',ev=>{
     const id=ev.target.dataset.draft;
     if(!id)return;
-    draftChoices[id]=Number(ev.target.value);
+    state.draftChoices[id]=Number(ev.target.value);
+    save();
     if(id==='pair') {
       render();
       host.querySelector('[data-draft="pair"]')?.focus({preventScroll:true});
     }
   });
   host.addEventListener('submit',ev=>{
+    if(ev.target.method==='dialog') return;
     ev.preventDefault();
     if(ev.target.id==='search') {
-      search=new FormData(ev.target).get('query').trim();render();document.getElementById('query')?.focus();
+      state.search=new FormData(ev.target).get('query').trim();save();render();document.getElementById('query')?.focus();
     }
     if(ev.target.id==='report'&&!state.reported) {
       const reason=new FormData(ev.target).get('reason');
@@ -453,8 +490,7 @@
   addEventListener('hashchange',()=>{
     if(current()!=='confirm') wantsTransfer=false;
     notice='';render();window.scrollTo(0,0);
-    const heading=host.querySelector('h1');
-    heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});
+    focusHeading();
     if(!offerResume&&current()==='inbox'&&(state.messages.length||state.transfer==='paid')) revealLatestInbox();
   });
   render();
