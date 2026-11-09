@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" role="img">
+  <rect width="960" height="320" fill="#fcf1d4"/>
+  <circle cx="804" cy="118" r="84" fill="#f8cb69"/>
+  <path d="M544 285h416v35H544z" fill="#92bd9d"/>
+  <path d="M660 105h222v180H660z" fill="#f5d5a3"/>
+  <path d="m638 112 132-67 133 67z" fill="#2b6b65"/>
+  <path d="M754 205h42v80h-42zm-56-57h26v35h-26zm123 0h26v35h-26z" fill="#42716c"/>
+  <path d="M570 246h106v39H570zm274 0h90v39h-90z" fill="#d19d67"/>
+  <path d="m555 246 17-40h102l17 40zm276 0 15-40h85l16 40z" fill="#c7684b"/>
+  <path d="M0 21Q318 105 638 24" stroke="#55736c" stroke-width="3" fill="none"/>
+  <path d="m58 36 35 8-23 28z m115 24 35 5-20 28z m105 10 34 2-17 29z m109-1 34-2-16 31z m108-11 32-6-11 33z" fill="#c7684b"/>
+  <text x="64" y="174" font-family="system-ui,sans-serif" font-size="33" font-weight="700" fill="#2b6b65">NGÀY HỘI</text>
+  <text x="59" y="251" font-family="system-ui,sans-serif" font-size="72" font-weight="900" fill="#193e3d">SAO MAI</text>
+</svg>

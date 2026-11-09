@@ -48,6 +48,27 @@ function fixture(online = false) {
   assert.equal((await store.loadSave()).hp, 72);
   await assert.rejects(store.register('admin_test', 'Anything123', 'Other', 0));
 
+  const previousCase = { transfer: 'cancelled', messages: [{ text: 'Tin nhắn kịch bản cũ' }] };
+  const saoMaiCase = { transfer: 'waiting', view: 'club' };
+  const version = 'sao-mai-v2';
+  store.caTrucStorage().save(previousCase);
+  assert.equal(store.caTrucStorage(version).load(), null);
+  store.caTrucStorage(version).save(saoMaiCase);
+  await store.logout();
+  store.guest();
+  assert.equal(store.caTrucStorage(version).load(), null);
+  store.caTrucStorage(version).save({ transfer: 'paid' });
+  assert.equal(store.caTrucStorage(version).load().transfer, 'paid');
+  await store.logout();
+  store.guest();
+  assert.equal(store.caTrucStorage(version).load(), null);
+  await store.login('student_demo', 'Student123');
+  assert.deepEqual(JSON.parse(JSON.stringify(store.caTrucStorage(version).load())), saoMaiCase);
+  store.caTrucStorage(version).save(null);
+  assert.deepEqual(JSON.parse(JSON.stringify(store.caTrucStorage().load())), previousCase);
+  assert.equal((await store.loadSave()).hp, 72);
+  console.log('PASS: versioned Ca Vy saves, old save retention, guest restart and account isolation.');
+
   const cloud = fixture(true);
   await cloud.store.init();
   assert.equal(cloud.store.mode, 'online');

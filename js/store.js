@@ -161,7 +161,7 @@
     },
 
     guest() {
-      guestCase = { save: null };
+      guestCase = Object.create(null);
       user = { id: GUEST, username: GUEST, name: 'Khách', avatar: 0, guest: true };
       return user;
     },
@@ -175,16 +175,16 @@
       user = null;
     },
 
-    caTrucStorage() {
+    caTrucStorage(version = '') {
       if (!user || (user.guest && !user.test)) {
         const session = guestCase;
         return {
           canResume: false,
-          load: () => session?.save || null,
-          save: state => { if (session) session.save = state; }
+          load: () => session?.[version] || null,
+          save: state => { if (session) session[version] = state; }
         };
       }
-      const key = 'ttm_ca_truc_vy_' + (user.test ? 'demo' : mode + '_' + user.id);
+      const key = 'ttm_ca_truc_vy_' + (user.test ? 'demo' : mode + '_' + user.id) + (version ? '_' + version : '');
       return {
         canResume: true,
         load: () => ls.get(key, null),
