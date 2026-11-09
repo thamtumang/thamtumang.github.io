@@ -30,7 +30,9 @@
   const reportStatus = 'Đã gửi báo cáo · Chờ xem xét';
   const openingRequest = 'Cậu xem giúp tớ bài tuyển này với.';
   const openingMessage = 'Họ trả tớ 45k rồi. Giờ họ đòi nạp 500k để làm tiếp. Tớ nhập số tiền rồi, chưa bấm chuyển.';
-  const cancelAdvice = 'Tớ nghĩ cậu nên hủy khoản chuyển này.';
+  const pairText = 'Cậu xem hai đoạn này cạnh nhau thử nha.';
+  const pairQuestion = 'Ừ, hai chỗ nói khác nhau thật. Vậy cậu nghĩ tớ nên làm gì?';
+  const pairAnswers = {cancel:'Thôi, cậu hủy khoản này đi',wait:'Cậu cứ chờ, tớ hỏi bên trường thêm'};
   const pauseReply = 'Ừ, tớ chưa bấm chuyển. Cậu xem giúp tớ bài tuyển nha.';
   const pairReply = 'À, bài đăng bảo không cần ứng tiền mà giờ lại đòi nạp 500k. Thôi, tớ hủy đây.';
   for (const message of state.messages) {
@@ -106,7 +108,7 @@
       message.who==='player' && message.quotes?.length===sources.length &&
       sources.every((source,i)=>message.quotes[i][0]===source));
     if(index<0) return null;
-    return {...state.messages[index], reply:state.messages[index+1]?.text};
+    return {...state.messages[index], index, reply:state.messages[index+1]?.text};
   }
   function postReply() {
     return state.post==='advance'
@@ -117,12 +119,11 @@
     const first = {
       post:state.post==='advance'?'Tớ thấy bài này ghi không cần ứng tiền.':'Tớ gửi cậu đoạn này xem thử.',
       receipt:'Đây là khoản 45k cậu nhận đúng không?',
-      pair:'Cậu xem hai đoạn này cạnh nhau thử nha.',
       transfer:'Tớ đang xem khoản 500k cậu định chuyển.',
       chat:'Tớ để ý đoạn người tuyển nhắn cậu.',
       club:'Tớ hỏi CLB qua trang trường rồi.'
     };
-    return id==='pair'?[first.pair,cancelAdvice]:[first[id],'Cậu xem giúp tớ chi tiết này nha.'];
+    return [first[id],'Cậu xem giúp tớ chi tiết này nha.'];
   }
   function draftText(id) {
     return draftMessages(id)[state.draftChoices[id] ?? 0];
@@ -168,16 +169,24 @@
     return '<h1>Bài tuyển</h1><div class="evidence-layout"><div class="evidence-sources">'+
       postCard(!state.postHelpSeen&&unsettled())+postActions+'</div>'+vyDock(thread)+'</div>';
   }
+  function pairFollowUp(sent) {
+    return sent?.reply===pairQuestion
+      ? state.messages.slice(sent.index+2).find(message=>message.pairAnswer)
+      : null;
+  }
+  function canAnswerPair(sent) {
+    return unsettled() && sent?.reply===pairQuestion && !pairFollowUp(sent);
+  }
   function comparison() {
     const post = selected('post'), chat = selected('chat');
     const count = Number(Boolean(post)) + Number(Boolean(chat));
     const missing = post ? 'Còn thiếu đoạn từ tin nhắn người tuyển.' : 'Còn thiếu đoạn từ bài tuyển.';
     const sent = lastEvidence('Bài tuyển','Đoạn chat');
-    const alreadySent = sent && sent.quotes[0][1]===post && sent.quotes[1][1]===chat && sent.text===draftText('pair');
-    const composing = unsettled() && count===2;
-    const reply = state.transfer==='cancelled'
-      ? state.messages.findLast(message=>message.who==='vy')?.text
-      : sent?.reply;
+    const alreadySent = sent && sent.quotes[0][1]===post && sent.quotes[1][1]===chat;
+    const answer = pairFollowUp(sent);
+    const canAnswer = canAnswerPair(sent);
+    const composing = unsettled() && count===2 && !alreadySent && !canAnswer;
+    const reply = sent?.reply;
     return '<h1>Đối chiếu hai nguồn</h1><div class="compare-help">'+
       (compareHelp?'<p id="compare-instructions">Bài tuyển và tin nhắn nói gì về khoản nạp trước? Chọn một đoạn ở mỗi bên để gửi Vy.</p>':'')+
       B(compareHelp?'Ẩn chỉ dẫn':'Xem chỉ dẫn','compare-help','','','aria-expanded="'+compareHelp+'"')+'</div>'+
@@ -186,12 +195,20 @@
       '<div class="compare-send-head"><div><strong>Đã chọn '+count+'/2 đoạn</strong>'+
       (unsettled()&&count===1?'<small>'+missing+'</small>':'')+'</div></div>'+
       (sent?sentBubble(sent):'')+
-      (reply?'<p class="vy-reply"><strong>Vy</strong> · '+e(reply)+'</p>':'')+
+      (reply?vyPairBubble(reply):'')+
+      (canAnswer?'<div class="actions">'+B(pairAnswers.cancel,'answer-pair','cancel','primary')+
+        B(pairAnswers.wait,'answer-pair','wait')+'</div>':'')+
+      (answer?sentBubble(answer)+vyPairBubble(answer.pairAnswer==='cancel'?pairReply:'Ừ, tớ chờ cậu hỏi. Tớ chưa chuyển đâu.'):'')+
       '<small class="compare-status">500.000đ · '+e(status())+'</small>'+
-      (composing?composer('pair',[['Bài tuyển',post],['Đoạn chat',chat]])+sendBar('Gửi Vy','pair',!alreadySent):'')+
-      (unsettled()&&alreadySent?'<small>Đã gửi tin này. Đổi câu nhắn hoặc đoạn trích để gửi tiếp.</small>':'')+
+      (composing?'<div class="vy-compose"><small>Sắp gửi cho Vy</small><p>'+e(pairText)+'</p>'+
+        quoteCards([['Bài tuyển',post],['Đoạn chat',chat]])+'</div>'+sendBar('Gửi Vy','pair'):'')+
+      (unsettled()&&alreadySent&&!canAnswer&&!answer?'<small>Đổi một đoạn để thử lại.</small>':'')+
+      (unsettled()&&answer?.pairAnswer==='wait'?'<div class="actions">'+go('search','Tìm trang trường','primary')+'</div>':'')+
       (state.transfer==='cancelled'?resultActions(true):'')+'</aside>'+
       '<div class="actions">'+go('post','Bài gốc')+go('recruiter','Đoạn chat')+go('inbox','Về hộp thư')+'</div>';
+  }
+  function vyPairBubble(reply) {
+    return '<p class="vy-reply"><strong>Vy</strong> · '+e(reply)+'</p>';
   }
   function selected(group) {
     return choices[group].find(([id])=>id===state[group])?.[1];
@@ -261,20 +278,17 @@
     if(!quotes||!unsettled())return;
     if(id==='post'||id==='pair') {
       const sent = lastEvidence(...quotes.map(([source])=>source));
-      if(sent && quotes.every(([,quote],i)=>sent.quotes[i][1]===quote) && (id==='post'||sent.text===draftText(id)))return;
+      if ((id==='pair' && canAnswerPair(sent)) || (sent && quotes.every(([,quote],i)=>sent.quotes[i][1]===quote))) return;
     }
-    message('player',draftText(id),quotes);
-    if(id==='pair'&&draftText(id)===cancelAdvice&&state.post==='advance'&&state.chat==='deposit') {
-      state.transfer='cancelled';state.basis='pair';
-      message('vy',pairReply);
-    } else if(id==='club') {
+    message('player',id==='pair'?pairText:draftText(id),quotes);
+    if(id==='club') {
       state.transfer='cancelled';state.basis='club';
       message('vy','CLB không đăng bài đó à? Ừ, tớ hủy khoản này.');
     } else {
       state.transfer='waiting';
       message('vy',id==='post'?postReply():id==='receipt'?'Ừ, 45k thì tớ nhận rồi. Mà 500k có nên chuyển không?':
         id==='pair'?(state.post==='advance'&&state.chat==='deposit'
-          ? 'Ừ, hai chỗ nói khác nhau thật. Vậy cậu nghĩ tớ nên làm gì?'
+          ? pairQuestion
           : 'Tớ vẫn chưa rõ vì sao họ bắt nạp 500k. Tớ cứ chờ nhé.'):
         'Tớ khoan chuyển. Mình còn kiểm tra được gì nữa?');
     }
@@ -283,7 +297,7 @@
     if (id==='post'||id==='pair') {
       chatOpen = true;
       render();
-      const reply = host.querySelector('.vy-reply');
+      const reply = [...host.querySelectorAll('.vy-reply')].at(-1);
       reply?.setAttribute('tabindex','-1');
       reply?.focus({preventScroll:true});
       reply?.scrollIntoView({block:'nearest'});
@@ -415,9 +429,20 @@
         state[group]=state[group]===value?'':value;
         if(group==='post') state.postHelpSeen=true;
         delete state.draftChoices[group];
-        delete state.draftChoices.pair;
         if(state[group]&&['post','compare'].includes(current())) chatOpen=true;
       }
+    } else if(action==='answer-pair' && Object.hasOwn(pairAnswers,id)) {
+      if (!canAnswerPair(lastEvidence('Bài tuyển','Đoạn chat'))) return;
+      state.messages.push({who:'player',text:pairAnswers[id],pairAnswer:id});
+      state.transfer=id==='cancel'?'cancelled':'waiting';
+      if(id==='cancel') state.basis='pair';
+      state.finished=false;
+      message('vy',id==='cancel'?pairReply:'Ừ, tớ chờ cậu hỏi. Tớ chưa chuyển đâu.');
+      save();render();
+      const reply=[...host.querySelectorAll('.compare-send .vy-reply')].at(-1);
+      reply?.setAttribute('tabindex','-1');
+      reply?.focus();
+      return;
     } else if(action==='compare-help') {
       compareHelp=!compareHelp;
     } else if(action==='toggle-vy') {
@@ -467,10 +492,6 @@
     if(!id)return;
     state.draftChoices[id]=Number(ev.target.value);
     save();
-    if(id==='pair') {
-      render();
-      host.querySelector('[data-draft="pair"]')?.focus({preventScroll:true});
-    }
   });
   host.addEventListener('submit',ev=>{
     if(ev.target.method==='dialog') return;
