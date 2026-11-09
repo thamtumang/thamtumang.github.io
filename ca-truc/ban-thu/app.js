@@ -3,7 +3,7 @@
   const host = document.getElementById('app');
   const storage = window.frameElement?.caTrucStorage;
   const fresh = () => ({view:'inbox', transfer:'pending', messages:[], shared:[], seen:[], guide:true,
-    asked:false, verified:false, reported:false, registered:false, finished:false, history:'',
+    giangContacted:false, verified:false, policyAsked:false, clubWait:false, reported:false, vyRegistered:false, finished:false, history:'',
     stopped:false, bank:false, code:false, receipt:false, chatSaved:false, prepared:false});
   const saved = storage?.load();
   let state = {...fresh(), ...saved};
@@ -13,10 +13,13 @@
   const clb = 'CLB Truyền thông Sao Mai';
   const event = 'Tuyển cộng tác viên · Ngày hội Sao Mai';
   const publicComment = 'Em làm ca chiều được không ạ?';
-  const giangAnswer = 'Form đó để đăng ký chung thôi em. Ca chiều chị giữ riêng. Em chuyển xong gửi chị biên lai nha.';
+  const giangQuestion = 'Bạn em là Vy, chị có phụ trách ca chiều không ạ?';
+  const giangAnswer = 'Ừ, chị phụ trách ca chiều. Em nhắn Vy là chị vẫn giữ chỗ cho bạn ấy nhé.';
+  const holdAdvice = 'Cậu cứ khoan chuyển nha';
+  const cancelAdvice = 'Hủy khoản 500k đi. Nếu vẫn muốn làm ca chiều thì đăng ký qua bài CLB nha';
   const clbAnswer = 'Bài tuyển này của tụi mình. Ca chiều đăng ký qua form trong bài nha. Bên mình không thu tiền giữ chỗ.';
   const reportStatus = 'Đã gửi báo cáo · Chờ xem xét';
-  const clubQuestion = 'Cho em hỏi người này có phụ trách ca chiều không ạ? Bạn em được yêu cầu chuyển 500k để giữ chỗ.';
+  const clubQuestion = 'Bạn em được nhắn yêu cầu chuyển 500k để giữ ca chiều. CLB có thu khoản này không, và đăng ký ở đâu ạ?';
   const guide = 'Bạn là bạn của Vy. Mở nội dung Vy gửi, kiểm tra người đứng sau lời mời rồi nhắn lại cho Vy.';
   const e = text => String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const B = (label, action, id='', cls='', extra='') =>
@@ -46,9 +49,10 @@
     const content='<span class="mark '+(initials==='SM'?'school':'')+'">'+initials+'</span><span><b>'+e(name)+'</b><small>'+e(caption)+'</small></span>';
     return view?'<a class="publisher source" href="#'+view+'">'+content+'</a>':'<div class="publisher source">'+content+'</div>';
   }
-  function bubble(name,text,attachment=null,sent=false) {
+  function bubble(name,text,attachment=null,sent=false,postLink=false) {
     return '<article class="bubble'+(sent?' sent':'')+'"><small class="speaker">'+e(name)+'</small><p>'+e(text)+'</p>'+
-      (attachment?'<blockquote><small>'+e(attachment.source)+'</small>'+e(attachment.quote)+'</blockquote>':'')+'</article>';
+      (attachment?'<blockquote><small>'+e(attachment.source)+'</small>'+e(attachment.quote)+'</blockquote>':'')+
+      (postLink?postPreview():'')+'</article>';
   }
   function card(view,title,caption,img='') {
     return '<a class="share-card" href="#'+view+'">'+(img?'<img src="'+img+'" alt="">':'')+
@@ -59,8 +63,7 @@
     post:{source:clb,quote:event,text:'Tớ gửi lại bài tuyển để mình xem cùng nha.',reply:'Ừ, đúng bài tớ đã bình luận nè.'},
     comment:{source:'Bình luận công khai · Vy',quote:publicComment,text:'Tớ thấy câu hỏi của cậu ngay dưới bài.',reply:'À, tớ có hỏi ca chiều ngay dưới bài. Ai mở bài cũng đọc được ha.'},
     receipt:{source:'Biên lai · Ví học đường',quote:'+45.000đ · Đã nhận',text:'Đây là khoản 45k cậu nhận nè.',reply:'Ừ, tiền đó tớ nhận rồi. Mà cậu có biết chị ấy có làm bên CLB thật không?'},
-    invite:{source:'Tin nhắn riêng · Hương Giang',quote:'Chị phụ trách ca chiều. Em chuyển 500.000đ để giữ ca nhé.',text:'Tớ đang xem lời mời của chị Giang.',reply:'Ừ, chị ấy cũng nói vậy với tớ. Bên CLB có ai xác nhận chưa cậu?'},
-    giang:{source:'Tin nhắn riêng · Hương Giang',quote:giangAnswer,text:'Tớ hỏi chị Giang về cách đăng ký rồi.',reply:'Vậy là chị ấy vẫn bảo chuyển trước ha. Bên CLB có ai xác nhận chưa cậu?'},
+    giang:{source:'Hội thoại của bạn · Lời Hương Giang',quote:giangAnswer,text:'Tớ hỏi chị Giang từ tài khoản của tớ. Chị ấy nói chị ấy phụ trách ca chiều.',reply:'Ừ, chị ấy cũng nói vậy với tớ. Bên CLB có ai xác nhận chưa cậu?'},
     club:{source:'Hộp thư trang CLB Truyền thông Sao Mai',quote:clbAnswer,text:'Tớ hỏi qua hộp thư của CLB rồi. Đây là tin họ trả lời.',reply:'Vậy vẫn có ca chiều, mà đăng ký trong bài là được hả?'}
   };
   function share(id,label='Gửi chi tiết cho Vy') {
@@ -70,7 +73,8 @@
     state.messages.push({name:'Bạn · Đã gửi',text,attachment,sent:true},{name:'Vy',text:reply});
   }
   function inbox() {
-    const conversation = state.messages.map(m=>bubble(m.name,m.text,m.attachment,m.sent)).join('');
+    const conversation = state.messages.map(m=>bubble(m.name,m.text,m.attachment,m.sent,m.postLink)).join('');
+    const clubShared = state.shared.includes('club');
     return '<div class="inbox-layout"><aside class="portrait">'+portrait()+'</aside>'+
       '<section class="conversation"><div class="contact-title"><h1>Hộp thư · Thảo Vy</h1>'+pill('500.000đ · '+status())+'</div>'+
       '<details class="first-guide" '+(state.guide?'open':'')+'><summary>Cách chơi</summary><p>'+e(guide)+'</p></details>'+
@@ -79,14 +83,15 @@
       postPreview('Mở bài tuyển Vy gửi')+
       '<div class="chat-thread">'+conversation+'</div>'+
       (unsettled()?actions(
-        state.transfer==='pending'?B('Khoan bấm nha, để tớ xem','pause','','primary'):'',
-        state.shared.includes('club')?B('Đăng ký qua bài gốc nha','register-advice','','primary'):'',
-        B('Thôi, cậu hủy khoản này đi','cancel'),
+        clubShared
+          ? (state.clubWait?'':B(holdAdvice,'club-wait'))+B(cancelAdvice,'register-advice','','primary')
+          : (state.transfer==='pending'?B('Khoan bấm nha, để tớ xem','pause','','primary'):'')+
+            B('Thôi, cậu hủy khoản này đi','cancel'),
         state.transfer==='waiting'?B('Kết thúc tại đây · Chưa chuyển','finish-wait'):''):
         actions(state.transfer==='paid'&&!state.prepared?go('recover','Mở hồ sơ hỗ trợ','primary'):'',
-          state.registered?pill('Đã gửi đăng ký'):state.shared.includes('club')&&state.transfer==='cancelled'?go('register','Mở biểu mẫu đăng ký','primary'):'',
+          state.vyRegistered?pill('Đã gửi đăng ký'):clubShared&&state.transfer==='cancelled'?B('Gửi đường dẫn bài gốc cho Vy','send-registration-link','','primary'):'',
           resultReady()?resultLink():''))+
-      '<div class="shared-list">'+card('recruiter','Chat với Hương Giang','Lời mời Vy chia sẻ')+
+      '<div class="shared-list">'+card('recruiter','Đoạn chat Vy chia sẻ','Vy và Hương Giang · Bản xem lại')+
       card('receipt','Biên lai +45.000đ','Tiền đến · Đã nhận')+
       card('transfer','Giao dịch 500.000đ',status())+'</div></section></div>';
   }
@@ -104,20 +109,25 @@
       actions(go('page','Ghé trang CLB'),go('recruiter','Xem chat Hương Giang'),inboxLink());
   }
   function recruiter() {
-    return '<h1>Chat · Hương Giang</h1><section class="conversation source-chat">'+
-      publisher('Hương Giang','HG','Tài khoản nhắn riêng · Chat Vy chia sẻ')+
+    return '<h1>Đoạn chat Vy chia sẻ</h1><section class="conversation source-chat">'+
+      publisher('Vy và Hương Giang','HG','Bản xem lại · Chỉ đọc')+
       bubble('Hương Giang','Chị phụ trách ca chiều. Thấy em muốn làm ca đó, em thử rà danh sách khách mời giúp chị nhé.')+
       bubble('Hương Giang','Chị gửi em 45.000đ tiền làm thử rồi. Em chuyển 500.000đ để giữ ca, hết ca chị trả lại nha.')+
-      actions(share('invite','Gửi lời mời riêng cho Vy'))+
-      (state.asked?bubble('Bạn · Đã gửi','Em đăng ký qua bài của CLB được không chị?',null,true)+
+      '</section>'+actions(go('giang','Mở hội thoại riêng với Hương Giang','primary'),
+        state.reported?pill(reportStatus):go('report','Báo cáo tài khoản Hương Giang'),go('post','Mở bài gốc'),inboxLink());
+  }
+  function giang() {
+    return '<h1>Hội thoại riêng · Hương Giang</h1><section class="conversation source-chat">'+
+      publisher('Hương Giang','HG','Hội thoại từ tài khoản của bạn')+
+      (state.giangContacted?bubble('Bạn · Đã gửi',giangQuestion,null,true)+
         bubble('Hương Giang',giangAnswer)+actions(share('giang','Chuyển lời Hương Giang cho Vy')):
-        actions(B('Em đăng ký qua bài của CLB được không chị?','ask-giang','','primary')))+
-      '</section>'+actions(state.reported?pill(reportStatus):go('report','Báo cáo tài khoản Hương Giang'),go('post','Mở bài gốc'),inboxLink());
+        actions(B(giangQuestion,'ask-giang','','primary')))+
+      '</section>'+actions(go('recruiter','Xem đoạn chat Vy chia sẻ'),inboxLink());
   }
   function club() {
     return '<h1>Hộp thư trang CLB</h1><section class="conversation source-chat">'+publisher(clb,'SM','Hộp thư mở từ trang đăng bài gốc')+
       '<div class="shared-list">'+postPreview()+card('recruiter','Lời mời riêng của Hương Giang','Yêu cầu chuyển 500.000đ để giữ ca')+'</div>'+
-      (state.verified?bubble('Bạn · Đã gửi',clubQuestion,null,true)+
+      (state.policyAsked?bubble('Bạn · Đã gửi',clubQuestion,null,true)+
         bubble(clb,clbAnswer)+actions(share('club','Chuyển phản hồi của CLB cho Vy')):
         '<div class="question-preview"><small>Câu hỏi gửi kèm hai nội dung trên</small><p>'+e(clubQuestion)+'</p></div>'+actions(B('Hỏi CLB kèm bài và lời mời riêng','ask-club','','primary')))+
       '</section>'+actions(go('page','Về trang CLB'),inboxLink());
@@ -133,22 +143,22 @@
     if(state.seen.includes('comments')) checked.push('Câu hỏi của Vy về ca chiều nằm trong bình luận công khai.');
     if(state.seen.includes('receipt')) checked.push('Biên lai ghi nhận khoản 45.000đ đã vào ví Vy.');
     if(state.seen.includes('recruiter')) checked.push('Đã đọc lời mời riêng yêu cầu chuyển 500.000đ để giữ ca.');
-    if(state.asked) checked.push('Hương Giang nói mình giữ ca riêng và vẫn yêu cầu chuyển tiền.');
-    if(state.verified) checked.push('CLB xác nhận bài tuyển là thật, ca chiều đăng ký qua biểu mẫu và không thu tiền giữ ca.');
+    if(state.giangContacted) checked.push('Trong hội thoại riêng, Hương Giang tự nhận phụ trách ca chiều.');
+    if(state.verified) checked.push('CLB xác nhận ca chiều đăng ký qua biểu mẫu trong bài gốc và CLB không thu tiền giữ chỗ.');
     if(!resultReady()) return '<h1>Ca đang diễn ra</h1>'+actions(inboxLink());
     const outcome = state.prepared?'Vy đã chuyển 500.000đ, dừng nạp thêm và gửi hồ sơ hỗ trợ. Khoản tiền đang chờ xử lý.':
       state.transfer==='cancelled'?'Vy đã hủy khoản chuyển 500.000đ.':
       'Vy chưa chuyển 500.000đ. Tạm dừng là cách xử lý an toàn khi lời mời riêng còn cần kiểm tra.';
     return '<h1>Tóm tắt ca Vy</h1><div class="outcome">'+e(outcome)+'</div><dl class="result"><dt>Đã kiểm tra</dt><dd>'+
       (checked.length?'<ul>'+checked.map(x=>'<li>'+e(x)+'</li>').join('')+'</ul>':'Chưa kiểm tra nguồn nào.')+
-      '</dd><dt>Chưa biết</dt><dd>Danh tính thật của người nhắn riêng vẫn chưa rõ.'+
-      (!state.verified?' Vai trò người nhắn và điều kiện đăng ký vẫn cần được kiểm tra với CLB.':'')+
-      '</dd><dt>Đăng ký qua bài gốc</dt><dd>'+(state.registered?'Đã gửi đăng ký. CLB chưa xác nhận kết quả.':'Chưa gửi đăng ký.')+
+      '</dd><dt>Chưa biết</dt><dd>Danh tính và vai trò thật của Hương Giang vẫn chưa rõ.'+
+      (!state.verified?' Cách đăng ký và yêu cầu thu tiền vẫn cần được kiểm tra với CLB.':'')+
+      '</dd><dt>Đăng ký qua bài gốc</dt><dd>'+(state.vyRegistered?'Vy đã gửi đăng ký ca chiều. CLB chưa xác nhận kết quả.':'Chưa gửi đăng ký.')+
       '</dd><dt>Báo cáo tài khoản nhắn riêng</dt><dd>'+(state.reported?reportStatus:'Chưa báo cáo.')+'</dd></dl>'+
       actions(go('inbox',unsettled()?'Quay lại kiểm tra tiếp':'Về hộp thư Vy','primary'),go('post','Mở bài gốc'));
   }
   const panels = {
-    inbox,post,recruiter,club,
+    inbox,post,recruiter,giang,club,
     page:()=>'<h1>Trang CLB</h1>'+publisher(clb,'SM','Trang câu lạc bộ · THPT Sao Mai')+
       '<p>Kênh của CLB Truyền thông, nơi đăng thông tin và lịch hoạt động của trường.</p>'+
       actions(go('club','Mở hộp thư trang CLB','primary'),go('post','Xem bài tuyển'),inboxLink()),
@@ -159,9 +169,8 @@
     confirm:()=>'<h1>Xác nhận lời khuyên</h1>'+transaction()+'<p>Trong mô phỏng, Vy sẽ chuyển 500.000đ nếu bạn xác nhận.</p>'+
       actions(unsettled()&&confirmTransfer?B('Xác nhận khuyên chuyển','confirm','','danger'):'',go('transfer','Quay lại, chưa chuyển','primary')),
     register:()=>'<h1>Biểu mẫu đăng ký · Ngày hội Sao Mai</h1><p>Biểu mẫu mô phỏng do '+e(clb)+' đăng trong bài gốc.</p>'+
-      (state.registered?'<p role="status" class="outcome">Đã gửi đăng ký · '+(state.registered==='afternoon'?'Ca chiều':'Ca sáng')+' · Chờ CLB phản hồi</p>':
-        '<form id="register-form"><fieldset><legend>Ca của Thảo Vy</legend><label><input type="radio" name="shift" value="morning" required> Ca sáng · 07:30–11:00</label>'+
-        '<label><input type="radio" name="shift" value="afternoon" required> Ca chiều · 13:00–16:30</label></fieldset><button class="primary">Gửi đăng ký</button></form>')+
+      '<article class="idcard"><h3>Thông tin trong biểu mẫu</h3><p>Họ tên, lớp và ca muốn tham gia.</p>'+
+      '<ul><li>Ca sáng · 07:30–11:00</li><li>Ca chiều · 13:00–16:30</li></ul><p>Bản xem trước. Vy tự điền khi muốn đăng ký.</p></article>'+
       actions(go('post','Về bài gốc'),inboxLink(),resultReady()?resultLink():''),
     report:()=>'<h1>Báo cáo tài khoản nhắn riêng</h1>'+publisher('Hương Giang','HG','Tài khoản nhắn riêng')+
       (state.reported?'<p class="outcome" role="status">'+reportStatus+'</p>':
@@ -229,7 +238,7 @@
       state=fresh();resume=false;confirmTransfer=false;navigate('inbox');return;
     }
     if(action==='share' && Object.hasOwn(details,id) && !state.shared.includes(id)) {
-      if((id==='club'&&!state.verified)||(id==='giang'&&!state.asked)) return;
+      if((id==='club'&&!state.policyAsked)||(id==='giang'&&!state.giangContacted)) return;
       const {source,quote,text,reply}=details[id];
       state.shared.push(id);
       chat(text,reply,{source,quote});
@@ -238,14 +247,23 @@
     if(action==='pause'&&state.transfer==='pending') {
       state.transfer='waiting';
       chat('Khoan bấm nha, để tớ xem','Ừ, tớ để đó. Mà nếu chị ấy không phụ trách thật thì tớ đăng ký ca chiều ở đâu ta?');
-    } else if(action==='ask-giang'&&!state.asked) state.asked=true;
-    else if(action==='ask-club'&&!state.verified) state.verified=true;
+    } else if(action==='ask-giang'&&current()==='giang'&&!state.giangContacted) state.giangContacted=true;
+    else if(action==='ask-club'&&!state.policyAsked) {
+      state.policyAsked=true;state.verified=true;
+    } else if(action==='club-wait'&&unsettled()&&state.shared.includes('club')&&!state.clubWait) {
+      state.transfer='waiting';state.clubWait=true;
+      chat(holdAdvice,'Ừ, tớ chưa chuyển. Tớ để đó nha.');
+    }
     else if(action==='cancel'&&unsettled()) {
       state.transfer='cancelled';state.finished=true;
       chat('Thôi, cậu hủy khoản này đi','Ừ, tớ hủy khoản 500k nha.');
     } else if(action==='register-advice'&&unsettled()&&state.shared.includes('club')) {
       state.transfer='cancelled';state.finished=true;
-      chat('Đăng ký qua bài gốc nha','Ừ, tớ hủy khoản 500k. Mở lại bài để tớ đăng ký ca chiều nha.');
+      chat(cancelAdvice,'Ừ, tớ hủy khoản 500k rồi. Cậu gửi lại đường dẫn bài cho tớ nha.');
+    } else if(action==='send-registration-link'&&state.transfer==='cancelled'&&state.shared.includes('club')&&!state.vyRegistered) {
+      state.messages.push({name:'Bạn · Đã gửi',text:'Đây, đường dẫn bài gốc của CLB nè.',sent:true,postLink:true},
+        {name:'Vy',text:'Tớ gửi đăng ký ca chiều rồi'});
+      state.vyRegistered=true;
     } else if(action==='finish-wait'&&state.transfer==='waiting') {
       state.finished=true;save();navigate('result');return;
     } else if(action==='choose-transfer'&&unsettled()) {
@@ -271,18 +289,13 @@
     } else return;
     render();
     const feedback={pause:'.chat-thread .bubble:last-child',cancel:'.chat-thread .bubble:last-child','register-advice':'.chat-thread .bubble:last-child',
+      'club-wait':'.chat-thread .bubble:last-child','send-registration-link':'.chat-thread .bubble:last-child',
       'ask-giang':'.source-chat .bubble:last-of-type','ask-club':'.source-chat .bubble:last-of-type',report:'.outcome',history:'.notice',bank:'.bank .actions'};
     focusLatest(feedback[action] || (notice?'.notice':'.surface h1'));
   }
   host.addEventListener('click',event=>{
     const button=event.target.closest('button[data-action]');
     if(button) act(button.dataset.action,button.dataset.id);
-  });
-  host.addEventListener('submit',event=>{
-    if(event.target.id!=='register-form') return;
-    event.preventDefault();
-    if(state.registered || !new FormData(event.target).get('shift')) return;
-    state.registered=new FormData(event.target).get('shift');render();focusLatest('.outcome');
   });
   addEventListener('hashchange',()=>{
     if(current()!=='confirm') confirmTransfer=false;
