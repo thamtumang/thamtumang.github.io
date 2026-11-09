@@ -21,7 +21,10 @@
   let chatOpen = state.transfer==='cancelled';
   const clubReply = 'CLB mình không đăng bài này và không tổ chức nhiệm vụ đó.';
   const reportStatus = 'Đã gửi báo cáo · Chờ xem xét';
-  const openingMessage = 'Tớ làm mấy nhiệm vụ, họ trả 45k thật. Giờ họ bảo nạp 500k mới được làm tiếp. Tớ nhập số tiền rồi, cậu xem giúp tớ với.';
+  const openingRequest = 'Cậu xem giúp tớ bài tuyển này với.';
+  const openingMessage = 'Họ trả tớ 45k rồi. Giờ họ đòi nạp 500k để làm tiếp. Tớ nhập số tiền rồi, chưa bấm chuyển.';
+  const draftChoices = {};
+  const cancelAdvice = 'Tớ nghĩ cậu nên hủy khoản chuyển này.';
   const pauseReply = 'Ừ, tớ chưa bấm chuyển. Cậu xem giúp tớ bài tuyển nha.';
   const pairReply = 'À, bài đăng bảo không cần ứng tiền mà giờ lại đòi nạp 500k. Thôi, tớ hủy đây.';
   for (const message of state.messages) {
@@ -95,49 +98,75 @@
       message.who==='player' && message.quotes?.length===sources.length &&
       sources.every((source,i)=>message.quotes[i][0]===source));
     if(index<0) return null;
-    return { quotes:state.messages[index].quotes, reply:state.messages[index+1]?.text };
+    return {...state.messages[index], reply:state.messages[index+1]?.text};
   }
-  function postReply(quote) {
-    return quote===choices.post.find(([id])=>id==='advance')[1]
-      ? 'Bài đăng nói vậy. Cậu xem giúp tớ trong tin nhắn họ nói gì về khoản 500k nha.'
-      : 'Cậu xem thêm tin nhắn của người tuyển giúp tớ nha.';
+  function postReply() {
+    return state.post==='advance'
+      ? 'Ủa, bài đăng ghi không cần ứng tiền hả? Cậu xem lại đoạn chị ấy nhắn tớ với.'
+      : 'Ừ, tớ thấy đoạn đó. Mà nó có nói gì về khoản phải nạp không?';
   }
-  function vyDock() {
-    const sent = lastEvidence('Bài tuyển');
-    const sentQuote = sent?.quotes[0][1];
-    const quote = selected('post');
-    const draft = quote && quote!==sentQuote;
-    const showSent = unsettled() && sent && !draft;
-    const latest = showSent ? postReply(sentQuote) :
-      state.stopped ? 'Tớ dừng nạp thêm rồi.' : state.transfer==='paid'
-        ? 'Tớ chuyển rồi. Họ lại đòi nạp thêm để hoàn tiền.'
-        : state.messages.findLast(message=>message.who==='vy')?.text || openingMessage;
-    const excerpt = draft
-      ? '<div class="vy-compose"><small>Sắp gửi cho Vy</small><div class="vy-draft"><blockquote>'+e(quote)+'</blockquote>'+
-        B('Bỏ chọn','pick','post-'+state.post,'draft-remove','aria-label="Bỏ chọn đoạn từ bài tuyển"')+'</div></div>'
-      : showSent
-        ? '<div class="vy-compose"><small>Đã gửi cho Vy</small><div class="vy-draft"><blockquote>'+e(sentQuote)+'</blockquote></div></div>'
-        : '';
-    return '<aside class="vy-dock'+(chatOpen?' expanded':'')+'" aria-label="Chat với Vy">'+
+  function draftMessages(id) {
+    const first = {
+      post:state.post==='advance'?'Tớ thấy bài này ghi không cần ứng tiền.':'Tớ gửi cậu đoạn này xem thử.',
+      receipt:'Đây là khoản 45k cậu nhận đúng không?',
+      pair:'Cậu xem hai đoạn này cạnh nhau thử nha.',
+      transfer:'Tớ đang xem khoản 500k cậu định chuyển.',
+      chat:'Tớ để ý đoạn người tuyển nhắn cậu.',
+      club:'Tớ hỏi CLB qua trang trường rồi.'
+    };
+    return id==='pair'?[first.pair,cancelAdvice]:[first[id],'Cậu xem giúp tớ chi tiết này nha.'];
+  }
+  function draftText(id) {
+    return draftMessages(id)[draftChoices[id] ?? 0];
+  }
+  function quoteCards(quotes) {
+    return '<div class="sent-quotes">'+quotes.map(([source,quote])=>
+      '<blockquote><small>'+e(source)+'</small>'+e(quote)+'</blockquote>').join('')+'</div>';
+  }
+  function sentBubble(message, extra='') {
+    return '<div class="bubble sent'+extra+'"><span class="speaker">'+(message.quotes?'Bạn · Đã gửi':'Bạn')+'</span>'+e(message.text)+
+      (message.quotes?quoteCards(message.quotes):'')+'</div>';
+  }
+  function composer(id, quotes, extra='') {
+    return '<div class="vy-compose"><small>Sắp gửi cho Vy</small><label>Câu nhắn<select data-draft="'+id+'">'+
+      draftMessages(id).map((line,i)=>'<option value="'+i+'" '+(i===(draftChoices[id]??0)?'selected':'')+'>'+e(line)+'</option>').join('')+
+      '</select></label>'+quoteCards(quotes)+extra+'</div>';
+  }
+  function postMessageState() {
+    const sent=lastEvidence('Bài tuyển');
+    const quote=selected('post');
+    const draft=unsettled() && quote && quote!==sent?.quotes[0][1];
+    return {sent,quote,draft,showSent:unsettled() && sent && !draft};
+  }
+  function compareLink() {
+    return go('compare','So với tin nhắn người tuyển','primary');
+  }
+  function vyDock({sent,quote,draft,showSent}) {
+    const latest = state.stopped ? 'Tớ dừng nạp thêm rồi.' : state.transfer==='paid'
+      ? 'Tớ chuyển rồi. Họ lại đòi nạp thêm để hoàn tiền.'
+      : state.messages.findLast(message=>message.who==='vy')?.text || openingMessage;
+    return '<aside class="vy-dock'+(chatOpen?' expanded':'')+(showSent||draft?' vy-active':'')+'" aria-label="Chat với Vy">'+
       '<div class="vy-head"><span class="vy-avatar '+art()+'" aria-hidden="true"></span><div><b>Thảo Vy</b><small>500.000đ · '+e(status())+'</small></div>'+
-      B(chatOpen?'Thu gọn':'Mở chat','toggle-vy','','vy-toggle','aria-controls="vy-chat" aria-expanded="'+chatOpen+'"')+'</div>'+
-      '<div class="vy-content" id="vy-chat">'+(unsettled()?excerpt:'')+'<p class="vy-reply">'+e(latest)+'</p>'+
-      '</div>'+
-      (showSent?go('compare','So với tin nhắn người tuyển','primary'):'')+
-      (state.transfer==='cancelled'?resultActions(true):sendBar('Gửi Vy','post',Boolean(draft)))+'</aside>';
+      (showSent||draft?'':B(chatOpen?'Thu gọn':'Mở chat','toggle-vy','','vy-toggle','aria-controls="vy-chat" aria-expanded="'+chatOpen+'"'))+'</div>'+
+      '<div class="vy-content" id="vy-chat">'+(showSent?sentBubble(sent):'')+
+      '<div class="case-reply"><p class="vy-reply">'+e(showSent?sent.reply:latest)+'</p>'+(showSent?compareLink():'')+'</div>'+
+      (draft?composer('post',[['Bài tuyển',quote]],B('Bỏ chọn','pick','post-'+state.post,'draft-remove','aria-label="Bỏ chọn đoạn từ bài tuyển"')):'')+'</div>'+
+      (state.transfer==='cancelled'?resultActions(true):draft?sendBar('Gửi Vy','post'):'')+'</aside>';
   }
   function recruitment() {
-    const postActions = '<div class="actions">'+go('compare','Đặt cạnh đoạn chat','primary')+
+    const thread=postMessageState();
+    const postActions = '<div class="actions">'+(thread.showSent?'':go('compare','Đặt cạnh đoạn chat','primary'))+
       (state.reported?pill(reportStatus):go('report','Báo cáo bài viết'))+go('inbox','Về hộp thư')+'</div>';
     return '<h1>Bài tuyển</h1><p>Chọn đoạn muốn gửi Vy.</p><div class="evidence-layout"><div class="evidence-sources">'+
-      postCard()+postActions+'</div>'+vyDock()+'</div>';
+      postCard()+postActions+'</div>'+vyDock(thread)+'</div>';
   }
   function comparison() {
     const post = selected('post'), chat = selected('chat');
     const count = Number(Boolean(post)) + Number(Boolean(chat));
     const missing = post ? 'Còn thiếu đoạn từ tin nhắn người tuyển.' : 'Còn thiếu đoạn từ bài tuyển.';
     const sent = lastEvidence('Bài tuyển','Đoạn chat');
-    const alreadySent = Boolean(sent && sent.quotes[0][1]===post && sent.quotes[1][1]===chat);
+    const alreadySent = sent && sent.quotes[0][1]===post && sent.quotes[1][1]===chat && sent.text===draftText('pair');
+    const composing = unsettled() && count===2;
     const reply = state.transfer==='cancelled'
       ? state.messages.findLast(message=>message.who==='vy')?.text
       : sent?.reply;
@@ -145,13 +174,14 @@
       (compareHelp?'<p id="compare-instructions">Bài tuyển và tin nhắn nói gì về khoản nạp trước? Chọn một đoạn ở mỗi bên để gửi Vy.</p>':'')+
       B(compareHelp?'Ẩn chỉ dẫn':'Xem chỉ dẫn','compare-help','','','aria-expanded="'+compareHelp+'"')+'</div>'+
       '<div class="comparison evidence-sources">'+postCard()+chatCard()+'</div>'+
-      '<aside class="compare-send" aria-label="Gửi đoạn đối chiếu cho Vy">'+
+      '<aside class="compare-send'+(composing||sent?' compare-expanded':'')+'" aria-label="Gửi đoạn đối chiếu cho Vy">'+
       '<div class="compare-send-head"><div><strong>Đã chọn '+count+'/2 đoạn</strong>'+
-      (unsettled()&&count===1?'<small>'+missing+'</small>':'')+'</div>'+
-      sendBar('Gửi Vy','pair',count===2&&!alreadySent)+'</div>'+
+      (unsettled()&&count===1?'<small>'+missing+'</small>':'')+'</div></div>'+
+      (sent?sentBubble(sent):'')+
       (reply?'<p class="vy-reply"><strong>Vy</strong> · '+e(reply)+'</p>':'')+
-      (unsettled()&&alreadySent?'<small>Đã gửi cặp này. Đổi một đoạn để thử lại.</small>':'')+
       '<small class="compare-status">500.000đ · '+e(status())+'</small>'+
+      (composing?composer('pair',[['Bài tuyển',post],['Đoạn chat',chat]])+sendBar('Gửi Vy','pair',!alreadySent):'')+
+      (unsettled()&&alreadySent?'<small>Đã gửi tin này. Đổi câu nhắn hoặc đoạn trích để gửi tiếp.</small>':'')+
       (state.transfer==='cancelled'?resultActions(true):'')+'</aside>'+
       '<div class="actions">'+go('post','Bài gốc')+go('recruiter','Đoạn chat')+go('inbox','Về hộp thư')+'</div>';
   }
@@ -181,20 +211,21 @@
       if(message.who==='vy') {
         const bubble = '<p class="bubble'+latest+'"><span class="speaker">Vy</span>'+e(message.text)+'</p>';
         if(latest&&justPaused) return '<div class="case-reply">'+bubble+'<div class="actions">'+go('post','Mở bài tuyển','primary')+'</div></div>';
+        if(latest&&unsettled()&&state.messages[index-1]?.quotes?.[0]?.[0]==='Bài tuyển'&&state.messages[index-1].quotes.length===1) {
+          return '<div class="case-reply">'+bubble+compareLink()+'</div>';
+        }
         return latest&&state.transfer==='cancelled'?'<div class="case-reply">'+bubble+resultActions(true)+'</div>':bubble;
       }
-      return '<div class="bubble sent'+latest+'"><span class="speaker">Bạn</span>'+e(message.text)+
-        (message.quotes?'<div class="sent-quotes">'+message.quotes.map(([source,quote])=>
-          '<blockquote><small>'+e(source)+'</small>'+e(quote)+'</blockquote>').join('')+'</div>':'')+'</div>';
+      return sentBubble(message,latest);
     }).join('');
     return '<div class="inbox-layout"><aside class="portrait">'+portrait()+
       '<div class="actions">'+go('call','Gọi Vy')+'</div></aside>'+
       '<section class="conversation"><h1 class="case-task">Tin nhắn từ Vy</h1>'+
       (state.transfer==='pending'?'<p class="case-task">Vy sắp chuyển 500.000đ. Hãy giúp Vy kiểm tra trước khi quyết định.</p>':'')+
       '<div class="opening-message"><div class="contact-title"><b>Thảo Vy</b>'+pill('500.000đ · '+status())+'</div>'+
-      '<p class="bubble">'+e(openingMessage)+'</p></div>'+
-      '<div class="inbox-quick">'+(state.transfer==='pending'?B('Bảo Vy khoan chuyển','pause','','primary'):'')+
-      (state.transfer==='pending'?go('post','Mở bài tuyển Vy gửi'):'')+'</div>'+
+      '<p class="bubble">'+e(openingRequest)+'</p><p class="bubble">'+e(openingMessage)+'</p>'+
+      '<div class="inbox-quick">'+(state.transfer==='pending'?B('Bảo Vy khoan chuyển','pause','','primary'):'')+'</div>'+
+      '<div class="attachments">'+attachment('post','Mở bài tuyển Vy gửi','Việc làm thêm Sao Mai','<img src="assets/bai-tuyen.jpg" alt="">','shared-post')+'</div></div>'+
       '<div class="chat-thread" aria-label="Tin nhắn mới">'+chat+
       (state.transfer==='paid'?'<p class="bubble"><span class="speaker">Vy</span>Tớ chuyển rồi. Họ lại đòi nạp thêm để hoàn tiền.</p>':'')+
       (state.stopped?'<p class="bubble"><span class="speaker">Vy</span>Tớ dừng nạp thêm rồi.</p>':'')+'</div>'+
@@ -222,10 +253,10 @@
     if(!quotes||!unsettled())return;
     if(id==='post'||id==='pair') {
       const sent = lastEvidence(...quotes.map(([source])=>source));
-      if(sent && quotes.every(([,quote],i)=>sent.quotes[i][1]===quote))return;
+      if(sent && quotes.every(([,quote],i)=>sent.quotes[i][1]===quote) && (id==='post'||sent.text===draftText(id)))return;
     }
-    message('player','',quotes);
-    if(id==='pair'&&state.post==='advance'&&state.chat==='deposit') {
+    message('player',draftText(id),quotes);
+    if(id==='pair'&&draftText(id)===cancelAdvice&&state.post==='advance'&&state.chat==='deposit') {
       state.transfer='cancelled';state.basis='pair';
       message('vy',pairReply);
     } else if(id==='club') {
@@ -233,7 +264,10 @@
       message('vy','CLB không đăng bài đó à? Ừ, tớ hủy khoản này.');
     } else {
       state.transfer='waiting';
-      message('vy',id==='post'?postReply(post):id==='receipt'?'Ừ, tiền về thật mà. Còn khoản 500k thì sao?':
+      message('vy',id==='post'?postReply():id==='receipt'?'Ừ, 45k thì tớ nhận rồi. Mà 500k có nên chuyển không?':
+        id==='pair'?(state.post==='advance'&&state.chat==='deposit'
+          ? 'Ừ, hai chỗ nói khác nhau thật. Vậy cậu nghĩ tớ nên làm gì?'
+          : 'Tớ vẫn chưa rõ vì sao họ bắt nạp 500k. Tớ cứ chờ nhé.'):
         'Tớ khoan chuyển. Mình còn kiểm tra được gì nữa?');
     }
     state.finished=false;
@@ -249,12 +283,18 @@
     }
     navigate('inbox');
   }
+  function receiptPanel() {
+    const draft=unsettled() && state.receiptPick;
+    return '<h1>Biên lai Vy gửi</h1>'+transaction(true,true)+
+      (draft?composer('receipt',[['Biên lai','+45.000đ · Đã nhận']]):'')+
+      '<div class="actions">'+(draft?sendBar('Gửi Vy','receipt'):'')+go('inbox','Về hộp thư','primary')+'</div>';
+  }
   const panels = {
     inbox,
     post:()=>recruitment(),
     page:()=>'<div class="cover"></div>'+publisher()+'<h1>Việc làm thêm Sao Mai</h1><p>Trang giới thiệu việc cộng tác online. Trang tự giới thiệu có liên hệ với CLB Truyền thông Sao Mai.</p><small>Thông tin do trang tự khai.</small><div class="actions">'+go('post','Mở bài tuyển gốc')+go('recruiter','Hỏi người tuyển')+go('search','Tìm trên ViệtBook')+go('inbox','Về hộp thư','primary')+'</div>',
     compare:comparison,
-    receipt:()=>'<h1>Biên lai Vy gửi</h1>'+transaction(true,true)+'<div class="actions">'+sendBar('Gửi +45.000đ cho Vy','receipt',state.receiptPick)+go('inbox','Về hộp thư','primary')+'</div>',
+    receipt:receiptPanel,
     transfer:()=>'<h1>Ảnh giao dịch Vy gửi</h1>'+transaction(false,true)+'<div class="actions">'+sendBar('Gửi chi tiết giao dịch cho Vy','transfer',state.transferPick)+(unsettled()?B('Khuyên Vy chuyển','choose-transfer','','quiet'):'')+go('inbox','Về hộp thư','primary')+'</div>',
     recruiter:()=>'<h1>Hộp thư · Hương Giang</h1>'+chatCard()+'<div class="actions">'+sendBar('Gửi đoạn đã chọn cho Vy','chat',Boolean(selected('chat')))+(state.asked?go('intro','Mở ảnh tự giới thiệu'):B('Hỏi chị có liên hệ với CLB không','ask'))+go('compare','Đặt cạnh bài tuyển')+go('inbox','Về hộp thư','primary')+'</div>',
     intro:()=>'<h1>Ảnh người tuyển gửi</h1><article class="idcard">'+publisher('Hương Giang')+'<h3>CTV · CLB Truyền thông Sao Mai</h3><p>Ảnh giới thiệu do Hương Giang gửi trong hội thoại.</p></article><div class="actions">'+go('recruiter','Về hội thoại')+go('search','Tìm trang trường')+go('inbox','Về hộp thư','primary')+'</div>',
@@ -340,6 +380,8 @@
       const [group,value]=id.split('-');
       if(choices[group]?.some(([key])=>key===value)) {
         state[group]=state[group]===value?'':value;
+        delete draftChoices[group];
+        delete draftChoices.pair;
         if(state[group]&&['post','compare'].includes(current())) chatOpen=true;
       }
     } else if(action==='compare-help') {
@@ -371,6 +413,7 @@
     } else if(action==='reset'||(action==='seed'&&qa)) {
       if(!window.confirm(offerResume?'Chơi lại từ đầu? Tiến trình ca này sẽ được đặt lại.':'Đặt lại lượt chơi bản thử này?'))return;
       offerResume=false;state=blank();
+      for (const key of Object.keys(draftChoices)) delete draftChoices[key];
       if(id==='paid')state.transfer='paid';
       search='';chatOpen=false;compareHelp=true;save();navigate(id==='paid'?'recover':'inbox');return;
     }
@@ -383,6 +426,15 @@
   host.addEventListener('click',ev=>{
     const button=ev.target.closest('button[data-action]');
     if(button)act(button.dataset.action,button.dataset.id);
+  });
+  host.addEventListener('change',ev=>{
+    const id=ev.target.dataset.draft;
+    if(!id)return;
+    draftChoices[id]=Number(ev.target.value);
+    if(id==='pair') {
+      render();
+      host.querySelector('[data-draft="pair"]')?.focus({preventScroll:true});
+    }
   });
   host.addEventListener('submit',ev=>{
     ev.preventDefault();
