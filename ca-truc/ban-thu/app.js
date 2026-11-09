@@ -14,6 +14,7 @@
   let notice = '';
   let search = '';
   let wantsTransfer = false;
+  let compareHelp = true;
   let chatOpen = state.transfer==='cancelled';
   const clubReply = 'CLB mình không đăng bài này và không tổ chức nhiệm vụ đó.';
   const reportStatus = 'Đã gửi báo cáo · Chờ xem xét';
@@ -22,7 +23,7 @@
   const B = (label, action, id='', cls='', extra='') => '<button type="button" class="'+cls+'" data-action="'+action+'" data-id="'+id+'" '+extra+'>'+e(label)+'</button>';
   const go = (name,label,cls='') => '<a class="button '+cls+'" href="#'+name+'">'+e(label)+'</a>';
   const pill = label => '<span class="pill">'+e(label)+'</span>';
-  const status = () => ({pending:'Chờ xác nhận',waiting:'Đang chờ · Chưa chuyển',cancelled:'Đã hủy',paid:'Đã chuyển'})[state.transfer];
+  const status = () => ({pending:'Chưa chuyển',waiting:'Đang chờ · Chưa chuyển',cancelled:'Đã hủy',paid:'Đã chuyển'})[state.transfer];
   const unsettled = () => state.transfer==='pending'||state.transfer==='waiting';
   const hasResult = () => state.transfer==='cancelled'||state.finished||state.prepared;
   const art = () => state.transfer==='pending'?'lo-lang':unsettled()||state.transfer==='paid'&&!state.prepared?'dang-nghe':'nhe-nhom';
@@ -76,8 +77,8 @@
   function searchResult(view, title, source) {
     return '<a class="button search-result" href="#'+view+'"><b>'+e(title)+'</b><small>'+e(source)+'</small></a>';
   }
-  function vyDock(pair = false) {
-    const groups = pair ? ['post','chat'] : ['post'];
+  function vyDock() {
+    const groups = ['post'];
     const drafts = groups.flatMap(group => {
       const quote = selected(group);
       if (!quote) return [];
@@ -93,22 +94,32 @@
       B(chatOpen?'Thu gọn':'Mở chat','toggle-vy','','vy-toggle','aria-controls="vy-chat" aria-expanded="'+chatOpen+'"')+'</div>'+
       '<div class="vy-content" id="vy-chat"><p class="vy-reply">'+e(latest)+'</p>'+
       (unsettled()?'<div class="vy-compose"><small>Sắp gửi cho Vy</small>'+
-        (drafts.length?drafts.join(''):'<p>Chưa chọn đoạn nào.</p>')+
-        (pair&&drafts.length===1?'<small>Chọn thêm một đoạn ở nguồn còn lại.</small>':'')+'</div>':'')+'</div>'+
-      (state.transfer==='cancelled'?resultActions(true):sendBar('Gửi Vy',pair?'pair':'post',drafts.length===groups.length))+'</aside>';
+        (drafts.length?drafts.join(''):'<p>Chưa chọn đoạn nào.</p>')+'</div>':'')+'</div>'+
+      (state.transfer==='cancelled'?resultActions(true):sendBar('Gửi Vy','post',drafts.length===1))+'</aside>';
   }
-  function recruitment(pair = false) {
-    const title = pair ? 'Đối chiếu hai nguồn' : 'Bài tuyển';
-    const hint = pair ? 'Chọn một đoạn ở mỗi nguồn để gửi Vy.' : 'Chọn đoạn muốn gửi Vy.';
+  function recruitment() {
     const postActions = '<div class="actions">'+go('compare','Đặt cạnh đoạn chat','primary')+
-      (state.reported?pill(reportStatus):go('report','Báo cáo bài viết'))+
-      go('inbox','Về hộp thư')+'</div>';
-    return '<h1>'+title+'</h1><p>'+hint+'</p><div class="evidence-layout"><div class="evidence-sources">'+
-      (pair?'<div class="comparison">'+postCard()+chatCard()+'</div>'+sourceLinks():postCard()+postActions)+
-      '</div>'+vyDock(pair)+'</div>';
+      (state.reported?pill(reportStatus):go('report','Báo cáo bài viết'))+go('inbox','Về hộp thư')+'</div>';
+    return '<h1>Bài tuyển</h1><p>Chọn đoạn muốn gửi Vy.</p><div class="evidence-layout"><div class="evidence-sources">'+
+      postCard()+postActions+'</div>'+vyDock()+'</div>';
   }
-  function sourceLinks() {
-    return '<div class="actions">'+go('post','Bài gốc')+go('recruiter','Đoạn chat')+go('inbox','Về hộp thư','primary')+'</div>';
+  function comparison() {
+    const post = selected('post'), chat = selected('chat');
+    const count = Number(Boolean(post)) + Number(Boolean(chat));
+    const missing = post ? 'Còn thiếu đoạn từ tin nhắn người tuyển.' : 'Còn thiếu đoạn từ bài tuyển.';
+    const reply = [...state.messages].reverse().find(message=>message.who==='vy')?.text;
+    return '<h1>Đối chiếu hai nguồn</h1><div class="compare-help">'+
+      (compareHelp?'<p id="compare-instructions">Chọn một đoạn ở mỗi bên, rồi gửi cho Vy.</p>':'')+
+      B(compareHelp?'Ẩn chỉ dẫn':'Xem chỉ dẫn','compare-help','','','aria-expanded="'+compareHelp+'"')+'</div>'+
+      '<div class="comparison evidence-sources">'+postCard()+chatCard()+'</div>'+
+      '<aside class="compare-send" aria-label="Gửi đoạn đối chiếu cho Vy">'+
+      '<div class="compare-send-head"><div><strong>Đã chọn '+count+'/2 đoạn</strong>'+
+      (unsettled()&&count===1?'<small>'+missing+'</small>':'')+'</div>'+
+      sendBar('Gửi Vy','pair',count===2)+'</div>'+
+      (reply?'<p class="vy-reply"><strong>Vy</strong> · '+e(reply)+'</p>':'')+
+      '<small class="compare-status">500.000đ · '+e(status())+'</small>'+
+      (state.transfer==='cancelled'?resultActions(true):'')+'</aside>'+
+      '<div class="actions">'+go('post','Bài gốc')+go('recruiter','Đoạn chat')+go('inbox','Về hộp thư')+'</div>';
   }
   function selected(group) {
     return choices[group].find(([id])=>id===state[group])?.[1];
@@ -123,8 +134,7 @@
       return '<div class="actions">'+go(needsHelp?'recover':'result',needsHelp?'Mở hồ sơ hỗ trợ':'Xem kết quả','primary')+'</div>';
     }
     return '<div class="actions inbox-actions">'+
-      (state.transfer==='waiting'?B('Tạm dừng và kiểm tra thêm','finish-wait'):'')+
-      B('Khuyên Vy chuyển','choose-transfer','','quiet')+'</div>';
+      (state.transfer==='waiting'?B('Tạm dừng và kiểm tra thêm','finish-wait'):'')+'</div>';
   }
   function attachment(view, label, caption, symbol, type) {
     return '<a class="attachment '+type+'" href="#'+view+'"><span class="attachment-icon" aria-hidden="true">'+symbol+
@@ -141,19 +151,21 @@
         (message.quotes?'<div class="sent-quotes">'+message.quotes.map(([source,quote])=>
           '<blockquote><small>'+e(source)+'</small>'+e(quote)+'</blockquote>').join('')+'</div>':'')+'</div>';
     }).join('');
-    return '<div class="inbox-layout"><aside class="portrait">'+portrait()+'<div class="actions">'+go('call','▣ Gọi Vy')+'</div></aside>'+
-      '<section class="conversation"><div class="contact-title"><span class="mark vy">V</span><div><h1>Thảo Vy</h1><small>Hộp thư · Bạn cùng trường</small></div>'+pill(status())+'</div>'+
-      '<p class="bubble">Tớ nhận 45k thật rồi. Giờ họ bảo nạp 500k. Cậu coi giúp tớ với.</p>'+
-      '<div class="inbox-quick">'+(state.transfer==='pending'?B('Khoan chuyển','pause','','primary'):'')+
-      go('recruiter','Đoạn chat người tuyển')+'</div>'+
-      '<div class="attachments">'+attachment('receipt','+45.000đ','Đã nhận','↙','incoming')+
-      attachment('transfer','500.000đ',status(),'↗','outgoing')+
-      '<a class="attachment shared-post" href="#post"><img src="assets/bai-tuyen.jpg" width="960" height="636" alt="">'+
-      '<span><strong>Mở bài đăng</strong><small>Việc làm thêm Sao Mai · Vy chia sẻ</small></span><span class="attachment-open" aria-hidden="true">›</span></a></div>'+
+    return '<div class="inbox-layout"><aside class="portrait">'+portrait()+
+      '<div class="actions">'+go('call','Gọi Vy')+'</div></aside>'+
+      '<section class="conversation"><h1 class="case-task">Vy sắp chuyển 500.000đ. Hãy giúp Vy kiểm tra trước khi quyết định.</h1>'+
+      '<div class="opening-message"><div class="contact-title"><b>Thảo Vy</b>'+pill('500.000đ · '+status())+'</div>'+
+      '<p class="bubble">'+e(openingMessage)+'</p></div>'+
+      '<div class="inbox-quick">'+(state.transfer==='pending'?B('Bảo Vy khoan chuyển','pause','','primary'):'')+
+      (state.transfer==='pending'?go('post','Mở bài tuyển Vy gửi'):'')+'</div>'+
       '<div class="chat-thread" aria-label="Tin nhắn mới">'+chat+
       (state.transfer==='paid'?'<p class="bubble"><span class="speaker">Vy</span>Tớ chuyển rồi. Họ lại đòi nạp thêm để hoàn tiền.</p>':'')+
       (state.stopped?'<p class="bubble"><span class="speaker">Vy</span>Tớ dừng nạp thêm rồi.</p>':'')+'</div>'+
-      advice()+'</section></div>';
+      (state.transfer!=='pending'?'<div class="inbox-quick">'+go('post','Mở bài tuyển Vy gửi',unsettled()?'primary':'')+'</div>':'')+
+      '<section class="vy-shared"><h2>Vy đã gửi</h2><div class="attachments">'+
+      attachment('receipt','Biên lai +45.000đ','Đã nhận','↙','incoming')+
+      attachment('recruiter','Đoạn chat người tuyển','Tin nhắn','↗','recruiter-link')+'</div></section>'+
+      go('transfer','Xem giao dịch 500.000đ')+advice()+'</section></div>';
   }
   function message(who,text,quotes) {
     state.messages.push({who,text,quotes});
@@ -189,6 +201,7 @@
       const reply = host.querySelector('.vy-reply');
       reply?.setAttribute('tabindex','-1');
       reply?.focus({preventScroll:true});
+      if(id==='pair') reply?.scrollIntoView({block:'nearest'});
       return;
     }
     navigate('inbox');
@@ -197,9 +210,9 @@
     inbox,
     post:()=>recruitment(),
     page:()=>'<div class="cover"></div>'+publisher()+'<h1>Việc làm thêm Sao Mai</h1><p>Trang giới thiệu việc cộng tác online. Trang tự giới thiệu có liên hệ với CLB Truyền thông Sao Mai.</p><small>Thông tin do trang tự khai.</small><div class="actions">'+go('post','Mở bài tuyển gốc')+go('recruiter','Hỏi người tuyển')+go('search','Tìm trên ViệtBook')+go('inbox','Về hộp thư','primary')+'</div>',
-    compare:()=>recruitment(true),
+    compare:comparison,
     receipt:()=>'<h1>Biên lai Vy gửi</h1>'+transaction(true,true)+'<div class="actions">'+sendBar('Gửi +45.000đ cho Vy','receipt',state.receiptPick)+go('inbox','Về hộp thư','primary')+'</div>',
-    transfer:()=>'<h1>Ảnh giao dịch Vy gửi</h1>'+transaction(false,true)+'<div class="actions">'+sendBar('Gửi chi tiết giao dịch cho Vy','transfer',state.transferPick)+go('inbox','Về hộp thư','primary')+'</div>',
+    transfer:()=>'<h1>Ảnh giao dịch Vy gửi</h1>'+transaction(false,true)+'<div class="actions">'+sendBar('Gửi chi tiết giao dịch cho Vy','transfer',state.transferPick)+(unsettled()?B('Khuyên Vy chuyển','choose-transfer','','quiet'):'')+go('inbox','Về hộp thư','primary')+'</div>',
     recruiter:()=>'<h1>Hộp thư · Hương Giang</h1>'+chatCard()+'<div class="actions">'+sendBar('Gửi đoạn đã chọn cho Vy','chat',Boolean(selected('chat')))+(state.asked?go('intro','Mở ảnh tự giới thiệu'):B('Hỏi chị có liên hệ với CLB không','ask'))+go('compare','Đặt cạnh bài tuyển')+go('inbox','Về hộp thư','primary')+'</div>',
     intro:()=>'<h1>Ảnh người tuyển gửi</h1><article class="idcard">'+publisher('Hương Giang')+'<h3>CTV · CLB Truyền thông Sao Mai</h3><p>Ảnh giới thiệu do Hương Giang gửi trong hội thoại.</p></article><div class="actions">'+go('recruiter','Về hội thoại')+go('search','Tìm trang trường')+go('inbox','Về hộp thư','primary')+'</div>',
     search:()=>'<h1>Tìm trên ViệtBook</h1><form id="search"><label for="query">Tìm trang hoặc tên trường</label><div class="searchrow"><input id="query" name="query" type="search" value="'+e(search)+'" placeholder="Ví dụ: Sao Mai"><button class="primary">Tìm</button></div></form>'+
@@ -249,13 +262,15 @@
   function act(action,id) {
     notice='';
     if (action==='pause'&&state.transfer==='pending') {
-      state.transfer='waiting'; message('player','Khoan chuyển.'); message('vy','Ừ, tớ để đây.');
+      state.transfer='waiting'; message('player','Khoan chuyển.'); message('vy','Ừ, tớ chờ');
     } else if(action==='pick') {
       const [group,value]=id.split('-');
       if(choices[group]?.some(([key])=>key===value)) {
         state[group]=state[group]===value?'':value;
         if(state[group]&&['post','compare'].includes(current())) chatOpen=true;
       }
+    } else if(action==='compare-help') {
+      compareHelp=!compareHelp;
     } else if(action==='toggle-vy') {
       chatOpen=!chatOpen;
     } else if(action==='pick-amount'&&['receiptPick','transferPick'].includes(id)) {
@@ -284,12 +299,13 @@
       if(!window.confirm('Đặt lại lượt chơi bản thử này?'))return;
       state=blank();
       if(id==='paid')state.transfer='paid';
-      search='';chatOpen=false;save();navigate(id==='paid'?'recover':'inbox');return;
+      search='';chatOpen=false;compareHelp=true;save();navigate(id==='paid'?'recover':'inbox');return;
     }
     save();render();
     const same=[...host.querySelectorAll('[data-action]')].find(b=>b.dataset.action===action&&b.dataset.id===id);
     if(same&&!same.disabled)same.focus({preventScroll:true});
     else if(action==='pick') host.querySelector('.vy-toggle')?.focus({preventScroll:true});
+    else if(action==='pause'&&current()==='inbox') host.querySelector('.conversation a[href="#post"]')?.focus({preventScroll:true});
   }
   host.addEventListener('click',ev=>{
     const button=ev.target.closest('button[data-action]');

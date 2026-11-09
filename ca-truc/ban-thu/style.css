@@ -93,3 +93,33 @@ button.amount[aria-pressed=true] { border-color:#aa761e; background:#fff0c9; }
 .vy-dock .case-end { margin-bottom:0; }
 .vy-dock .case-end > a { font-size:.88rem; }
 .report-confirmation { margin:.45rem 0; }
+
+.inbox-layout { grid-template-columns:minmax(9rem,13rem) minmax(0,1fr); }
+.case-task { font-size:clamp(1.15rem,2.3vw,1.45rem); line-height:1.35; margin:0 0 .75rem; }
+.opening-message .contact-title { margin-bottom:0; padding-bottom:0; border:0; }
+.opening-message .bubble { margin:.45rem 0; }
+.vy-shared { margin-top:.85rem; }
+.vy-shared h2 { font-size:.9rem; }
+.vy-shared .attachments { margin:.35rem 0 .6rem; }
+.compare-help { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.35rem .75rem; margin-bottom:.65rem; }
+.compare-help button { font-size:.82rem; }
+.compare .comparison { align-items:start; }
+.compare .artifact img { height:clamp(3.5rem,10vh,5.5rem); }
+.compare .comparison .line { border-radius:.55rem; }
+.compare-send { background:#ecf1fa; border:1px solid #cbd5e6; border-radius:.75rem; padding:.65rem .75rem; }
+.compare-send-head { display:flex; justify-content:space-between; align-items:center; gap:.45rem; }
+.compare-send-head small, .compare-status { display:block; }
+.compare-send-head > button { flex:none; }
+.compare-send .vy-reply { max-width:68ch; }
+.compare-status { margin-top:.3rem; }
+@media(max-width:760px) {
+  .compare-send { position:sticky; bottom:0; z-index:2; }
+  .compare .line { scroll-margin-bottom:8rem; }
+  .compare-send .case-end > a { font-size:.85rem; }
+}
+@media(max-width:700px) {
+  .inbox-layout .portrait { display:flex; align-items:center; gap:.55rem; }
+  .inbox-layout .portrait .scene { width:4rem; }
+  .inbox-layout .portrait .scene-caption { display:none; }
+  .inbox-layout .portrait .actions { margin:0; }
+}
