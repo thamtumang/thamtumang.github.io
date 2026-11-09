@@ -1,11 +1,14 @@
 (() => {
   'use strict';
   const host = document.getElementById('app');
-  const key = 'vietbook.preview.vy.v2';
+  // The desktop owns guest progress across window close/reopen. The legacy
+  // browser-wide save has no account owner, so it is deliberately ignored.
+  const storage = window.frameElement?.caTrucStorage;
   const qa = new URLSearchParams(location.search).has('kiem-thu');
   const blank = () => ({transfer:'pending',post:'',chat:'',receiptPick:false,transferPick:false,independent:false,asked:false,reported:'',basis:'',messages:[],finished:false,history:'',stopped:false,bank:false,code:false,receipt:false,chatSaved:false,prepared:false});
-  let state = blank();
-  try { state = {...state,...JSON.parse(localStorage.getItem(key) || '{}')}; } catch {}
+  const saved = storage?.load();
+  let state = {...blank(), ...saved};
+  let offerResume = Boolean(storage?.canResume && saved);
   const views = ['inbox','post','page','compare','receipt','transfer','recruiter','intro','search','school','club','report','confirm','result','recover','bank','call','qa'];
   const current = () => {
     const name = location.hash.slice(1);
@@ -34,7 +37,10 @@
   const unsettled = () => state.transfer==='pending'||state.transfer==='waiting';
   const hasResult = () => state.transfer==='cancelled'||state.finished||state.prepared;
   const art = () => state.transfer==='pending'?'lo-lang':unsettled()||state.transfer==='paid'&&!state.prepared?'dang-nghe':'nhe-nhom';
-  function save() { try { localStorage.setItem(key,JSON.stringify(state)); } catch {} }
+  function save() {
+    const serialized = JSON.stringify(state);
+    storage?.save(serialized===JSON.stringify(blank()) ? null : JSON.parse(serialized));
+  }
   function navigate(view) {
     if (current()===view) render();
     else location.hash=view;
@@ -159,7 +165,7 @@
     if (state.transfer==='cancelled') return '';
     if (!unsettled()) {
       const needsHelp = state.transfer==='paid'&&!state.prepared;
-      return '<div class="actions">'+go(needsHelp?'recover':'result',needsHelp?'Mở hồ sơ hỗ trợ':'Xem kết quả','primary')+'</div>';
+      return '<div class="actions">'+go(needsHelp?'recover':'result',needsHelp?'Xử lý sau khi chuyển':'Xem kết quả','primary')+'</div>';
     }
     return '<div class="actions inbox-actions">'+
       (state.transfer==='waiting'?B('Kết thúc ca — chưa chuyển','finish-wait','','quiet'):'')+'</div>';
@@ -192,11 +198,12 @@
       '<div class="chat-thread" aria-label="Tin nhắn mới">'+chat+
       (state.transfer==='paid'?'<p class="bubble"><span class="speaker">Vy</span>Tớ chuyển rồi. Họ lại đòi nạp thêm để hoàn tiền.</p>':'')+
       (state.stopped?'<p class="bubble"><span class="speaker">Vy</span>Tớ dừng nạp thêm rồi.</p>':'')+'</div>'+
+      (state.transfer==='paid'?advice()+go('transfer','Xem giao dịch 500.000đ'):'')+
       (state.transfer==='waiting'&&!justPaused?'<div class="inbox-quick">'+go('post','Mở bài tuyển','primary')+'</div>':'')+
       '<section class="vy-shared"><h2>Vy đã gửi</h2><div class="attachments">'+
       attachment('receipt','Biên lai +45.000đ','Đã nhận','↙','incoming')+
       attachment('recruiter','Đoạn chat người tuyển','Tin nhắn','↗','recruiter-link')+'</div></section>'+
-      go('transfer','Xem giao dịch 500.000đ')+advice()+'</section></div>';
+      (state.transfer==='paid'?'':go('transfer','Xem giao dịch 500.000đ')+advice())+'</section></div>';
   }
   function message(who,text,quotes) {
     state.messages.push({who,text,quotes});
@@ -285,18 +292,48 @@
       '<div class="actions">'+go('inbox',unsettled()?'Quay lại điều tra':'Về hộp thư','primary')+go('post','Mở bài gốc')+'</div>',
     qa:()=>'<h1>Điều phối kiểm thử</h1><p>Các nút sau chỉ đặt lại dữ liệu bản thử trên trình duyệt này.</p><div class="actions">'+B('Mở lượt sạch','seed','clean')+B('Mở thẳng nhánh đã chuyển','seed','paid')+'</div>'
   };
+  function savedCase() {
+    const summary = {
+      pending: 'Vy chưa chuyển 500.000đ. Tiếp tục kiểm tra trước khi quyết định.',
+      waiting: 'Vy đang chờ và chưa chuyển 500.000đ.',
+      cancelled: 'Vy đã hủy giao dịch 500.000đ.',
+      paid: state.prepared ? 'Vy đã chuyển 500.000đ. Hồ sơ hỗ trợ đã được chuẩn bị.' :
+        'Vy đã chuyển 500.000đ. Tiếp tục để xử lý yêu cầu nạp thêm.'
+    };
+    return '<h1>Ca của Vy có tiến trình đã lưu</h1><p>'+e(summary[state.transfer])+'</p>'+
+      '<div class="actions">'+B('Tiếp tục ca','resume','','primary')+B('Chơi lại từ đầu','reset')+'</div>';
+  }
+  function revealLatestInbox() {
+    const latest = host.querySelector('.chat-thread .bubble:last-child, .chat-thread .case-reply:last-child');
+    if (!latest) return;
+    const followUp = state.transfer==='paid' ? host.querySelector('a[href="#recover"]') : null;
+    (followUp || latest).scrollIntoView({block:'nearest'});
+  }
   function render() {
     const view=current();
     host.innerHTML='<header class="top"><a class="brand" href="#inbox">ViệtBook <small>Ca trực an toàn số</small></a><nav>'+
-      go('inbox','▤ Hộp thư',view==='inbox'?'active':'')+go('search','⌕ Tìm kiếm',view==='search'?'active':'')+
-      (qa?go('qa','Kiểm thử'):'')+B('Chơi lại','reset','','reset')+'</nav></header>'+
+      (offerResume?'':go('inbox','▤ Hộp thư',view==='inbox'?'active':'')+go('search','⌕ Tìm kiếm',view==='search'?'active':'')+
+      (qa?go('qa','Kiểm thử'):'')+B('Chơi lại','reset','','reset'))+'</nav></header>'+
       '<div class="shell"><div class="case-label">BẢN THỬ · CA 01 <strong>Ca của Vy</strong></div>'+
       '<section class="surface '+view+'" aria-label="Nội dung ca">'+
-      '<div class="notice" role="status">'+e(notice)+'</div>'+panels[view]()+'</section>'+
+      '<div class="notice" role="status">'+e(notice)+'</div>'+(offerResume?savedCase():panels[view]())+'</section>'+
       '<footer>ViệtBook là mạng xã hội giả lập. Nhân vật và giao dịch đều là mô phỏng.</footer></div>';
   }
   function act(action,id) {
     notice='';
+    if(offerResume && action!=='resume' && action!=='reset') return;
+    if(action==='resume'&&offerResume) {
+      offerResume=false;
+      const alreadyInbox = current()==='inbox';
+      navigate('inbox');
+      if(alreadyInbox) {
+        const latest = host.querySelector('.chat-thread .bubble:last-child, .chat-thread .case-reply:last-child, .case-task');
+        latest?.setAttribute('tabindex','-1');
+        latest?.focus({preventScroll:true});
+        revealLatestInbox();
+      }
+      return;
+    }
     if (action==='pause'&&state.transfer==='pending') {
       state.transfer='waiting'; message('player','Khoan chuyển.'); message('vy',pauseReply);
     } else if(action==='pick') {
@@ -332,8 +369,8 @@
     } else if(action==='prepare'&&state.transfer==='paid'&&state.stopped&&state.bank&&state.code&&state.receipt&&state.chatSaved) {
       state.prepared=true;save();navigate('result');return;
     } else if(action==='reset'||(action==='seed'&&qa)) {
-      if(!window.confirm('Đặt lại lượt chơi bản thử này?'))return;
-      state=blank();
+      if(!window.confirm(offerResume?'Chơi lại từ đầu? Tiến trình ca này sẽ được đặt lại.':'Đặt lại lượt chơi bản thử này?'))return;
+      offerResume=false;state=blank();
       if(id==='paid')state.transfer='paid';
       search='';chatOpen=false;compareHelp=true;save();navigate(id==='paid'?'recover':'inbox');return;
     }
@@ -366,7 +403,7 @@
     notice='';render();window.scrollTo(0,0);
     const heading=host.querySelector('h1');
     heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});
-    if(current()==='inbox'&&state.messages.length)host.querySelector('.case-reply, .chat-thread .latest:last-child')?.scrollIntoView({block:'nearest'});
+    if(!offerResume&&current()==='inbox'&&(state.messages.length||state.transfer==='paid')) revealLatestInbox();
   });
   render();
 })();

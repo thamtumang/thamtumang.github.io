@@ -9,6 +9,7 @@
   const USERS_KEY = 'ttm_users';
   const SESSION_KEY = 'ttm_session';
   const SAVE_PREFIX = 'ttm_save_';
+  const PENDING_PREFIX = 'ttm_online_pending_';
   const GUEST = '__khach__';
   // Tài khoản demo công khai, chỉ lưu cục bộ; không có quyền quản trị Firebase.
   const TEST_USER = 'admin_test';
@@ -62,6 +63,7 @@
   let fb = null; // { auth, db }
   let user = null; // { id, username, name, avatar, guest }
   let saveTimer = null;
+  let guestCase = null;
 
   const Store = {
     get mode() { return mode; },
@@ -159,15 +161,35 @@
     },
 
     guest() {
+      guestCase = { save: null };
       user = { id: GUEST, username: GUEST, name: 'Khách', avatar: 0, guest: true };
       return user;
     },
 
     async logout() {
       await this.flush();
+      this._pending = null;
       if (mode === 'online' && fb) await fb.auth.signOut();
       ls.del(SESSION_KEY);
+      guestCase = null;
       user = null;
+    },
+
+    caTrucStorage() {
+      if (!user || (user.guest && !user.test)) {
+        const session = guestCase;
+        return {
+          canResume: false,
+          load: () => session?.save || null,
+          save: state => { if (session) session.save = state; }
+        };
+      }
+      const key = 'ttm_ca_truc_vy_' + (user.test ? 'demo' : mode + '_' + user.id);
+      return {
+        canResume: true,
+        load: () => ls.get(key, null),
+        save: state => state ? ls.set(key, state) : ls.del(key)
+      };
     },
 
     async _profile(uid) {
@@ -178,9 +200,16 @@
     },
 
     async loadSave() {
-      if (!user) return null;
+      if (!user || (user.guest && !user.test)) return null;
       if (mode === 'online' && !user.guest) {
         if (this._remote === undefined) await this._profile(user.id);
+        const pending = ls.get(PENDING_PREFIX + user.id, null);
+        if (pending) {
+          this._pending = pending;
+          clearTimeout(saveTimer);
+          saveTimer = setTimeout(() => this.flush(), 1500);
+          return pending.state;
+        }
         return this._remote || null;
       }
       return ls.get(SAVE_PREFIX + user.id, null);
@@ -188,7 +217,7 @@
 
     // summary: { score, stars, badges, bossDone }
     save(state, summary) {
-      if (!user) return;
+      if (!user || (user.guest && !user.test)) return;
       if (user.guest || mode === 'local') {
         ls.set(SAVE_PREFIX + user.id, state);
         if (!user.guest) {
@@ -197,15 +226,17 @@
         }
         return;
       }
-      this._pending = { state, summary };
+      // Keep unacknowledged writes through a reload or a tab close during the debounce.
+      this._pending = { owner: user.id, token: Date.now() + ':' + Math.random(), state, summary };
+      ls.set(PENDING_PREFIX + user.id, this._pending);
       clearTimeout(saveTimer);
       saveTimer = setTimeout(() => this.flush(), 1500);
     },
 
     async flush() {
       clearTimeout(saveTimer);
-      if (mode !== 'online' || !this._pending || !user || user.guest) return;
-      const { state, summary } = this._pending;
+      if (mode !== 'online' || !this._pending || !user || user.guest || this._pending.owner !== user.id) return;
+      const { owner, token, state, summary } = this._pending;
       this._pending = null;
       try {
         await fb.db.collection('players').doc(user.id).set(Object.assign({
@@ -213,14 +244,17 @@
           save: JSON.parse(JSON.stringify(state)),
           updated: firebase.firestore.FieldValue.serverTimestamp()
         }, summary), { merge: true });
+        const key = PENDING_PREFIX + owner;
+        if (ls.get(key, null)?.token === token) ls.del(key);
       } catch (e) { console.warn('Lưu online lỗi:', e); }
     },
 
     async resetSave() {
-      if (!user) return;
+      if (!user || (user.guest && !user.test)) return;
       if (mode === 'online' && !user.guest) {
         this._pending = null;
         this._remote = null;
+        ls.del(PENDING_PREFIX + user.id);
         await fb.db.collection('players').doc(user.id).set({ save: null, score: 0, stars: 0, badges: 0, bossDone: false }, { merge: true });
       } else {
         ls.del(SAVE_PREFIX + user.id);

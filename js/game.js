@@ -444,8 +444,9 @@
     // Focusing or restoring an existing window must not reload the active case.
     if (body.querySelector('iframe')) return;
     const frame = document.createElement('iframe');
+    frame.caTrucStorage = Store.caTrucStorage();
     frame.title = 'Ca trực an toàn số: Vy sắp chuyển 500k';
-    frame.src = './ca-truc/ban-thu/?v=ca-vy-evidence-20261109';
+    frame.src = './ca-truc/ban-thu/?v=ca-vy-session-20261109';
     frame.style.cssText = 'display:block;flex:1;min-height:0;width:100%;border:0';
     body.appendChild(frame);
   }
@@ -1241,6 +1242,7 @@
         (pre ? '<button class="link-btn" id="li-other">Đăng nhập tài khoản khác</button>' : '') +
         '<button class="link-btn" id="li-new">Chưa có tài khoản? <b>Tạo tài khoản mới</b></button>' +
         '<button class="link-btn dim" id="li-guest">Chơi thử không cần tài khoản</button>' +
+        '<small class="muted">Tiến trình chỉ giữ trong phiên này. Thoát hoặc tải lại trang sẽ bắt đầu lại từ đầu.</small>' +
         '<button class="link-btn" id="li-test">Vào tài khoản thử nghiệm (mở tất cả chương)</button>' +
         '<p class="test-login-hint">Tài khoản thử nghiệm: <b>admin_test</b><br>Mật khẩu: <b>Test@12345</b></p>' + modeNote + '</div>';
     } else {
@@ -1321,7 +1323,7 @@
     renderTray();
     renderTaskbar();
     const u = me();
-    if (!S.tutorialDone) setTimeout(() => Tutorial.start(WM.caTrucVisible()), 500);
+    if (!S.tutorialDone) setTimeout(() => { if (Store.user === u) Tutorial.start(WM.caTrucVisible()); }, 500);
     else toast('Chào mừng trở lại, <b>' + esc(u.name) + '</b>!', 'good');
     if (isNew) toast('Đã tạo tài khoản <b>' + esc(u.name) + '</b>.', 'good');
   }
@@ -1332,6 +1334,8 @@
     C = null;
     const last = me();
     await Store.logout();
+    S = freshState();
+    inboxView = { mode: 'list' }; bossState = null; lbCache = null; quizQ = null;
     loginPrefill = last.guest ? '' : last.username;
     showLock('login');
   }
