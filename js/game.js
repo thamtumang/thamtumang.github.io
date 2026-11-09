@@ -445,7 +445,7 @@
     if (body.querySelector('iframe')) return;
     const frame = document.createElement('iframe');
     frame.title = 'Ca trực an toàn số: Vy sắp chuyển 500k';
-    frame.src = './ca-truc/ban-thu/?v=ca-vy-entry-20261109';
+    frame.src = './ca-truc/ban-thu/?v=ca-vy-copy-20261109';
     frame.style.cssText = 'display:block;flex:1;min-height:0;width:100%;border:0';
     body.appendChild(frame);
   }

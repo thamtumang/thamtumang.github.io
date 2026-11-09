@@ -18,12 +18,19 @@
   let chatOpen = state.transfer==='cancelled';
   const clubReply = 'CLB mình không đăng bài này và không tổ chức nhiệm vụ đó.';
   const reportStatus = 'Đã gửi báo cáo · Chờ xem xét';
-  const openingMessage = 'Tớ nhận 45k thật rồi. Giờ họ bảo nạp 500k. Cậu coi giúp tớ với.';
+  const openingMessage = 'Tớ làm mấy nhiệm vụ, họ trả 45k thật. Giờ họ bảo nạp 500k mới được làm tiếp. Tớ nhập số tiền rồi, cậu xem giúp tớ với.';
+  const pauseReply = 'Ừ, tớ chưa bấm chuyển. Cậu xem giúp tớ bài tuyển nha.';
+  const pairReply = 'À, bài đăng bảo không cần ứng tiền mà giờ lại đòi nạp 500k. Thôi, tớ hủy đây.';
+  for (const message of state.messages) {
+    if (message.who!=='vy') continue;
+    if (message.text==='Ừ, tớ chờ') message.text=pauseReply;
+    if (message.text==='Bài đăng bảo không ứng tiền mà giờ lại đòi nạp trước. Ừ, tớ hủy khoản này.') message.text=pairReply;
+  }
   const e = x => String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const B = (label, action, id='', cls='', extra='') => '<button type="button" class="'+cls+'" data-action="'+action+'" data-id="'+id+'" '+extra+'>'+e(label)+'</button>';
   const go = (name,label,cls='') => '<a class="button '+cls+'" href="#'+name+'">'+e(label)+'</a>';
   const pill = label => '<span class="pill">'+e(label)+'</span>';
-  const status = () => ({pending:'Chưa chuyển',waiting:'Đang chờ · Chưa chuyển',cancelled:'Đã hủy',paid:'Đã chuyển'})[state.transfer];
+  const status = () => ({pending:'Chờ xác nhận',waiting:'Đang chờ',cancelled:'Đã hủy',paid:'Đã chuyển'})[state.transfer];
   const unsettled = () => state.transfer==='pending'||state.transfer==='waiting';
   const hasResult = () => state.transfer==='cancelled'||state.finished||state.prepared;
   const art = () => state.transfer==='pending'?'lo-lang':unsettled()||state.transfer==='paid'&&!state.prepared?'dang-nghe':'nhe-nhom';
@@ -109,7 +116,7 @@
     const missing = post ? 'Còn thiếu đoạn từ tin nhắn người tuyển.' : 'Còn thiếu đoạn từ bài tuyển.';
     const reply = [...state.messages].reverse().find(message=>message.who==='vy')?.text;
     return '<h1>Đối chiếu hai nguồn</h1><div class="compare-help">'+
-      (compareHelp?'<p id="compare-instructions">Chọn một đoạn ở mỗi bên, rồi gửi cho Vy.</p>':'')+
+      (compareHelp?'<p id="compare-instructions">Bài tuyển và tin nhắn nói gì về khoản nạp trước? Chọn một đoạn ở mỗi bên để gửi Vy.</p>':'')+
       B(compareHelp?'Ẩn chỉ dẫn':'Xem chỉ dẫn','compare-help','','','aria-expanded="'+compareHelp+'"')+'</div>'+
       '<div class="comparison evidence-sources">'+postCard()+chatCard()+'</div>'+
       '<aside class="compare-send" aria-label="Gửi đoạn đối chiếu cho Vy">'+
@@ -134,17 +141,19 @@
       return '<div class="actions">'+go(needsHelp?'recover':'result',needsHelp?'Mở hồ sơ hỗ trợ':'Xem kết quả','primary')+'</div>';
     }
     return '<div class="actions inbox-actions">'+
-      (state.transfer==='waiting'?B('Tạm dừng và kiểm tra thêm','finish-wait'):'')+'</div>';
+      (state.transfer==='waiting'?B('Kết thúc ca — chưa chuyển','finish-wait','','quiet'):'')+'</div>';
   }
   function attachment(view, label, caption, symbol, type) {
     return '<a class="attachment '+type+'" href="#'+view+'"><span class="attachment-icon" aria-hidden="true">'+symbol+
       '</span><span><strong>'+e(label)+'</strong><small>'+e(caption)+'</small></span><span class="attachment-open" aria-hidden="true">›</span></a>';
   }
   function inbox() {
+    const justPaused = state.transfer==='waiting'&&!state.finished&&state.messages.at(-1)?.text===pauseReply;
     const chat = state.messages.map((message,index)=>{
       const latest = index===state.messages.length-1?' latest':'';
       if(message.who==='vy') {
         const bubble = '<p class="bubble'+latest+'"><span class="speaker">Vy</span>'+e(message.text)+'</p>';
+        if(latest&&justPaused) return '<div class="case-reply">'+bubble+'<div class="actions">'+go('post','Mở bài tuyển','primary')+'</div></div>';
         return latest&&state.transfer==='cancelled'?'<div class="case-reply">'+bubble+resultActions(true)+'</div>':bubble;
       }
       return '<div class="bubble sent'+latest+'"><span class="speaker">Bạn</span>'+e(message.text)+
@@ -153,7 +162,8 @@
     }).join('');
     return '<div class="inbox-layout"><aside class="portrait">'+portrait()+
       '<div class="actions">'+go('call','Gọi Vy')+'</div></aside>'+
-      '<section class="conversation"><h1 class="case-task">Vy sắp chuyển 500.000đ. Hãy giúp Vy kiểm tra trước khi quyết định.</h1>'+
+      '<section class="conversation"><h1 class="case-task">Tin nhắn từ Vy</h1>'+
+      (state.transfer==='pending'?'<p class="case-task">Vy sắp chuyển 500.000đ. Hãy giúp Vy kiểm tra trước khi quyết định.</p>':'')+
       '<div class="opening-message"><div class="contact-title"><b>Thảo Vy</b>'+pill('500.000đ · '+status())+'</div>'+
       '<p class="bubble">'+e(openingMessage)+'</p></div>'+
       '<div class="inbox-quick">'+(state.transfer==='pending'?B('Bảo Vy khoan chuyển','pause','','primary'):'')+
@@ -161,7 +171,7 @@
       '<div class="chat-thread" aria-label="Tin nhắn mới">'+chat+
       (state.transfer==='paid'?'<p class="bubble"><span class="speaker">Vy</span>Tớ chuyển rồi. Họ lại đòi nạp thêm để hoàn tiền.</p>':'')+
       (state.stopped?'<p class="bubble"><span class="speaker">Vy</span>Tớ dừng nạp thêm rồi.</p>':'')+'</div>'+
-      (state.transfer!=='pending'?'<div class="inbox-quick">'+go('post','Mở bài tuyển Vy gửi',unsettled()?'primary':'')+'</div>':'')+
+      (state.transfer==='waiting'&&!justPaused?'<div class="inbox-quick">'+go('post','Mở bài tuyển','primary')+'</div>':'')+
       '<section class="vy-shared"><h2>Vy đã gửi</h2><div class="attachments">'+
       attachment('receipt','Biên lai +45.000đ','Đã nhận','↙','incoming')+
       attachment('recruiter','Đoạn chat người tuyển','Tin nhắn','↗','recruiter-link')+'</div></section>'+
@@ -184,7 +194,7 @@
     message('player','',options[id]);
     if(id==='pair'&&state.post==='advance'&&state.chat==='deposit') {
       state.transfer='cancelled';state.basis='pair';
-      message('vy','Bài đăng bảo không ứng tiền mà giờ lại đòi nạp trước. Ừ, tớ hủy khoản này.');
+      message('vy',pairReply);
     } else if(id==='club') {
       state.transfer='cancelled';state.basis='club';
       message('vy','CLB không đăng bài đó à? Ừ, tớ hủy khoản này.');
@@ -242,9 +252,9 @@
       '<div class="actions">'+B('Hoàn tất hồ sơ','prepare','','primary',state.stopped&&state.bank&&state.code&&state.receipt&&state.chatSaved?'':'disabled')+'</div>')+go('inbox','Về hộp thư'),
     bank:()=>'<h1>Hỗ trợ chính thức · Ví học đường</h1><p>Kênh ngân hàng trong mô phỏng. Bạn có thể mở hỗ trợ ngay và bổ sung mã giao dịch, biên lai và đoạn chat sau.</p><div class="actions">'+
       (state.transfer==='paid'?B(state.bank?'✓ Đã mở yêu cầu hỗ trợ':'Mở yêu cầu hỗ trợ','bank','','primary',state.bank?'disabled':''):'')+go('recover','Về hồ sơ hỗ trợ')+go('inbox','Về hộp thư')+'</div>',
-    result:()=>'<h1>Tóm tắt ca Vy</h1>'+portrait()+'<dl class="result"><dt>Vy đã làm gì?</dt><dd>'+e(status())+
+    result:()=>'<h1>Tóm tắt ca Vy</h1>'+portrait()+'<dl class="result"><dt>Vy đã làm gì?</dt><dd>'+e(state.transfer==='cancelled'?'Vy đã hủy giao dịch 500.000đ':state.finished&&unsettled()?'Chưa chuyển':status())+
       (state.prepared?' · Đã dừng nạp thêm và chuẩn bị hồ sơ (mã MP-500-042, ảnh biên lai và đoạn chat). Khoản tiền đang chờ xử lý.':'')+
-      '</dd><dt>Nguồn xác minh</dt><dd>'+e(verificationResult())+'</dd><dt>Bài đăng</dt><dd>'+
+      '</dd><dt>'+ (state.basis==='pair'?'Vì sao Vy hủy?':state.basis==='club'?'CLB xác nhận gì?':'Nguồn xác minh') +'</dt><dd>'+e(verificationResult())+'</dd><dt>Bài đăng</dt><dd>'+
       (state.reported?reportStatus:'Chưa báo cáo')+'</dd></dl>'+
       '<div class="actions">'+go('inbox',unsettled()?'Quay lại điều tra':'Về hộp thư','primary')+go('post','Mở bài gốc')+'</div>',
     qa:()=>'<h1>Điều phối kiểm thử</h1><p>Các nút sau chỉ đặt lại dữ liệu bản thử trên trình duyệt này.</p><div class="actions">'+B('Mở lượt sạch','seed','clean')+B('Mở thẳng nhánh đã chuyển','seed','paid')+'</div>'
@@ -254,7 +264,7 @@
     host.innerHTML='<header class="top"><a class="brand" href="#inbox">ViệtBook <small>Ca trực an toàn số</small></a><nav>'+
       go('inbox','▤ Hộp thư',view==='inbox'?'active':'')+go('search','⌕ Tìm kiếm',view==='search'?'active':'')+
       (qa?go('qa','Kiểm thử'):'')+B('Chơi lại','reset','','reset')+'</nav></header>'+
-      '<div class="shell"><div class="case-label">BẢN THỬ · CA 01 <strong>Vy sắp chuyển 500k</strong></div>'+
+      '<div class="shell"><div class="case-label">BẢN THỬ · CA 01 <strong>Ca của Vy</strong></div>'+
       '<section class="surface '+view+'" aria-label="Nội dung ca">'+
       '<div class="notice" role="status">'+e(notice)+'</div>'+panels[view]()+'</section>'+
       '<footer>ViệtBook là mạng xã hội giả lập. Nhân vật và giao dịch đều là mô phỏng.</footer></div>';
@@ -262,7 +272,7 @@
   function act(action,id) {
     notice='';
     if (action==='pause'&&state.transfer==='pending') {
-      state.transfer='waiting'; message('player','Khoan chuyển.'); message('vy','Ừ, tớ chờ');
+      state.transfer='waiting'; message('player','Khoan chuyển.'); message('vy',pauseReply);
     } else if(action==='pick') {
       const [group,value]=id.split('-');
       if(choices[group]?.some(([key])=>key===value)) {
