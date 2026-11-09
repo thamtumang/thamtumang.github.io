@@ -3,24 +3,40 @@
   const host = document.getElementById('app');
   const storage = window.frameElement?.caTrucStorage;
   const fresh = () => ({view:'inbox', transfer:'pending', messages:[], shared:[], seen:[], guide:true,
-    giangContacted:false, verified:false, policyAsked:false, clubWait:false, reported:false, vyRegistered:false, finished:false, history:'',
-    stopped:false, bank:false, code:false, receipt:false, chatSaved:false, prepared:false});
+    giangContacted:false, policyAsked:false, verifiedDecision:false, reported:false, linkSent:false, finished:false,
+    stopped:false, bank:false, receipt:false, chatSaved:false});
   const saved = storage?.load();
   let state = {...fresh(), ...saved};
   let resume = Boolean(storage?.canResume && saved);
-  let confirmTransfer = false;
+  // Older saves used the link action to record a simulated registration.
+  if (saved?.vyRegistered) {
+    state.linkSent = true;
+    state.messages = state.messages.map(message => message.text === 'Tớ gửi đăng ký ca chiều rồi'
+      ? {...message, text:'Để tớ xem form nha.'} : message);
+  }
+  if (saved && !Object.hasOwn(saved,'verifiedDecision')) {
+    state.verifiedDecision = state.transfer==='cancelled' &&
+      state.messages.some(message => message.text==='Hủy khoản 500k đi. Nếu vẫn muốn làm ca chiều thì đăng ký qua bài CLB nha');
+  }
+  delete state.vyRegistered;
+  delete state.verified;
+  delete state.clubWait;
+  delete state.code;
+  delete state.prepared;
+  delete state.history;
   let notice = '';
   const clb = 'CLB Truyền thông Sao Mai';
   const event = 'Tuyển cộng tác viên · Ngày hội Sao Mai';
   const publicComment = 'Em làm ca chiều được không ạ?';
   const giangQuestion = 'Bạn em là Vy, chị có phụ trách ca chiều không ạ?';
   const giangAnswer = 'Ừ, chị phụ trách ca chiều. Em nhắn Vy là chị vẫn giữ chỗ cho bạn ấy nhé.';
-  const holdAdvice = 'Cậu cứ khoan chuyển nha';
-  const cancelAdvice = 'Hủy khoản 500k đi. Nếu vẫn muốn làm ca chiều thì đăng ký qua bài CLB nha';
+  const holdAdvice = 'Khoan chuyển nha, để tớ xem';
+  const riskAdvice = 'Chị ấy đã trả cậu 45k rồi, chắc ổn đó';
+  const cancelAdvice = 'CLB không thu tiền giữ chỗ. Cậu bỏ khoản 500k đi nha';
   const clbAnswer = 'Bài tuyển này của tụi mình. Ca chiều đăng ký qua form trong bài nha. Bên mình không thu tiền giữ chỗ.';
   const reportStatus = 'Đã gửi báo cáo · Chờ xem xét';
   const clubQuestion = 'Bạn em được nhắn yêu cầu chuyển 500k để giữ ca chiều. CLB có thu khoản này không, và đăng ký ở đâu ạ?';
-  const guide = 'Bạn là bạn của Vy. Mở nội dung Vy gửi, kiểm tra người đứng sau lời mời rồi nhắn lại cho Vy.';
+  const guide = 'Bạn là bạn của Vy. Mở nội dung Vy gửi, kiểm tra lời mời rồi nhắn lại cho Vy.';
   const e = text => String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const B = (label, action, id='', cls='', extra='') =>
     '<button type="button" class="'+cls+'" data-action="'+action+'" data-id="'+id+'" '+extra+'>'+e(label)+'</button>';
@@ -29,7 +45,7 @@
   const actions = (...items) => '<div class="actions">'+items.join('')+'</div>';
   const status = () => ({pending:'Chưa chuyển',waiting:'Đang chờ',cancelled:'Đã hủy',paid:'Đã chuyển'})[state.transfer];
   const unsettled = () => state.transfer==='pending'||state.transfer==='waiting';
-  const resultReady = () => state.finished || state.transfer==='cancelled' || state.prepared;
+  const resultReady = () => state.finished || !unsettled();
   const save = () => storage?.save(JSON.stringify(state)===JSON.stringify(fresh()) ? null : state);
   const inboxLink = () => go('inbox','Về hộp thư Vy');
   const resultLink = () => go('result','Xem tổng kết');
@@ -60,11 +76,10 @@
   }
   const postPreview = (label=event) => card('post',label,clb,'assets/ngay-hoi.svg');
   const details = {
-    post:{source:clb,quote:event,text:'Tớ gửi lại bài tuyển để mình xem cùng nha.',reply:'Ừ, đúng bài tớ đã bình luận nè.'},
     comment:{source:'Bình luận công khai · Vy',quote:publicComment,text:'Tớ thấy câu hỏi của cậu ngay dưới bài.',reply:'À, tớ có hỏi ca chiều ngay dưới bài. Ai mở bài cũng đọc được ha.'},
     receipt:{source:'Biên lai · Ví học đường',quote:'+45.000đ · Đã nhận',text:'Đây là khoản 45k cậu nhận nè.',reply:'Ừ, tiền đó tớ nhận rồi. Mà cậu có biết chị ấy có làm bên CLB thật không?'},
-    giang:{source:'Hội thoại của bạn · Lời Hương Giang',quote:giangAnswer,text:'Tớ hỏi chị Giang từ tài khoản của tớ. Chị ấy nói chị ấy phụ trách ca chiều.',reply:'Ừ, chị ấy cũng nói vậy với tớ. Bên CLB có ai xác nhận chưa cậu?'},
-    club:{source:'Hộp thư trang CLB Truyền thông Sao Mai',quote:clbAnswer,text:'Tớ hỏi qua hộp thư của CLB rồi. Đây là tin họ trả lời.',reply:'Vậy vẫn có ca chiều, mà đăng ký trong bài là được hả?'}
+    giang:{source:'Hội thoại của bạn · Lời Hương Giang',quote:giangAnswer,text:'Tớ hỏi chị Giang từ tài khoản của tớ. Chị ấy nói chị ấy phụ trách ca chiều.',reply:'Chị ấy cũng nói với tớ vậy. Có cách nào hỏi bên CLB không?'},
+    club:{source:'Hộp thư trang CLB Truyền thông Sao Mai',quote:clbAnswer,text:'Tớ hỏi qua hộp thư của CLB rồi. Đây là tin họ trả lời.',reply:'À, CLB nói đăng ký trong bài. Vậy là không cần chuyển 500k để giữ ca.'}
   };
   function share(id,label='Gửi chi tiết cho Vy') {
     return state.shared.includes(id)?pill('Đã gửi cho Vy'):B(label,'share',id,'primary');
@@ -78,22 +93,22 @@
     return '<div class="inbox-layout"><aside class="portrait">'+portrait()+'</aside>'+
       '<section class="conversation"><div class="contact-title"><h1>Hộp thư · Thảo Vy</h1>'+pill('500.000đ · '+status())+'</div>'+
       '<details class="first-guide" '+(state.guide?'open':'')+'><summary>Cách chơi</summary><p>'+e(guide)+'</p></details>'+
-      bubble('Vy','Ê, có chị nhắn tớ làm thử cho cái sự kiện của trường hôm qua á. Chị ấy biết tớ muốn làm ca chiều, mà làm xong chị trả tớ 45k thật.')+
-      bubble('Vy','Giờ chị bảo chuyển 500k giữ ca, xong việc sẽ trả lại. Tớ thấy hơi cấn. Cậu coi giúp tớ với.')+
-      postPreview('Mở bài tuyển Vy gửi')+
-      '<div class="chat-thread">'+conversation+'</div>'+
-      (unsettled()?actions(
-        clubShared
-          ? (state.clubWait?'':B(holdAdvice,'club-wait'))+B(cancelAdvice,'register-advice','','primary')
-          : (state.transfer==='pending'?B('Khoan bấm nha, để tớ xem','pause','','primary'):'')+
-            B('Thôi, cậu hủy khoản này đi','cancel'),
-        state.transfer==='waiting'?B('Kết thúc tại đây · Chưa chuyển','finish-wait'):''):
-        actions(state.transfer==='paid'&&!state.prepared?go('recover','Mở hồ sơ hỗ trợ','primary'):'',
-          state.vyRegistered?pill('Đã gửi đăng ký'):clubShared&&state.transfer==='cancelled'?B('Gửi đường dẫn bài gốc cho Vy','send-registration-link','','primary'):'',
-          resultReady()?resultLink():''))+
-      '<div class="shared-list">'+card('recruiter','Đoạn chat Vy chia sẻ','Vy và Hương Giang · Bản xem lại')+
+      bubble('Vy','Ê, chị nhắn tớ vụ ca chiều hôm qua trả tớ 45k thật nè.')+
+      bubble('Vy','Giờ chị bảo chuyển 500k giữ chỗ, hết ca trả lại. Tớ muốn làm ca này mà thấy hơi cấn. Cậu coi giúp tớ với.')+
+      '<div class="shared-list">'+postPreview('Mở bài tuyển Vy gửi')+
+      card('recruiter','Đoạn chat Vy chia sẻ','Vy và Hương Giang · Bản xem lại')+
       card('receipt','Biên lai +45.000đ','Tiền đến · Đã nhận')+
-      card('transfer','Giao dịch 500.000đ',status())+'</div></section></div>';
+      card('transfer','Giao dịch 500.000đ',status())+'</div>'+
+      '<div class="chat-thread">'+conversation+'</div>'+
+      actions(
+        unsettled()&&state.transfer==='pending'?B(holdAdvice,'pause','','primary'):'',
+        unsettled()?B(clubShared?cancelAdvice:'Thôi, cậu hủy khoản này đi','cancel','',clubShared?'primary':''):'',
+        unsettled()&&!clubShared&&!state.finished?B(riskAdvice,'risk'):'',
+        state.transfer==='waiting'&&!state.finished?B('Kết thúc tại đây · Chưa chuyển','finish-wait'):'',
+        state.transfer==='paid'?go('recover','Mở hồ sơ hỗ trợ','primary'):'',
+        state.linkSent?pill('Đã gửi link bài gốc'):
+          clubShared&&state.transfer==='cancelled'?B('Gửi đường dẫn bài gốc cho Vy','send-registration-link','','primary'):'',
+        resultReady()?resultLink():'')+'</section></div>';
   }
   function post() {
     return '<h1>Bài đăng</h1><article class="artifact event-post"><header>'+
@@ -101,18 +116,24 @@
       '<img src="assets/ngay-hoi.svg" alt="Bìa minh họa Ngày hội Sao Mai tại sân trường">'+
       '<div class="artifact-body"><h2>'+e(event)+'</h2><p>Tụi mình cần cộng tác viên đón khách, hướng dẫn các gian và hỗ trợ khu truyền thông tại sân trường.</p>'+
       '<ul><li>Ca sáng: 07:30–11:00</li><li>Ca chiều: 13:00–16:30</li></ul>'+
-      actions(go('register','Mở biểu mẫu đăng ký','primary'),share('post','Chia sẻ bài cho Vy'))+
+      actions(go('register','Mở biểu mẫu đăng ký'),go('page','Ghé trang CLB','primary'))+
       '<details id="comments"><summary>3 bình luận công khai</summary><ul class="comments">'+
       '<li><b>Minh Anh</b><p>Ca sáng còn chỗ không ạ?</p></li>'+
       '<li><b>Thảo Vy</b><p>'+e(publicComment)+'</p>'+share('comment','Gửi bình luận này cho Vy')+'</li>'+
       '<li><b>Gia Bảo</b><p>Em đăng ký bên khu đón khách ạ.</p></li></ul></details></div></article>'+
-      actions(go('page','Ghé trang CLB'),go('recruiter','Xem chat Hương Giang'),inboxLink());
+      actions(go('recruiter','Xem chat Hương Giang'),inboxLink());
   }
   function recruiter() {
     return '<h1>Đoạn chat Vy chia sẻ</h1><section class="conversation source-chat">'+
       publisher('Vy và Hương Giang','HG','Bản xem lại · Chỉ đọc')+
-      bubble('Hương Giang','Chị phụ trách ca chiều. Thấy em muốn làm ca đó, em thử rà danh sách khách mời giúp chị nhé.')+
-      bubble('Hương Giang','Chị gửi em 45.000đ tiền làm thử rồi. Em chuyển 500.000đ để giữ ca, hết ca chị trả lại nha.')+
+      '<p class="chat-date">Hôm qua</p>'+
+      bubble('Hương Giang','Chị phụ trách ca chiều. Em rà lỗi bản nháp lịch sự kiện giúp chị nhé.')+
+      bubble('Vy','Em rà xong rồi ạ. Mục mở cửa bị nhầm 13:30 thành 13:00.')+
+      bubble('Hương Giang','Chị gửi em 45k tiền làm thử rồi nha.')+
+      bubble('Vy','Em nhận được rồi ạ.')+
+      '<p class="chat-date">Hôm nay</p>'+
+      bubble('Hương Giang','Em chuyển 500k để giữ ca chiều nha.')+
+      bubble('Hương Giang','Hết ca chị trả lại khoản đó.')+
       '</section>'+actions(go('giang','Mở hội thoại riêng với Hương Giang','primary'),
         state.reported?pill(reportStatus):go('report','Báo cáo tài khoản Hương Giang'),go('post','Mở bài gốc'),inboxLink());
   }
@@ -138,24 +159,45 @@
       '<dl><dt>Nội dung</dt><dd>'+(incoming?'Tiền làm thử':'Giữ ca chiều')+'</dd><dt>'+(incoming?'Nguồn tiền':'Người nhận')+'</dt><dd>LE THI H</dd></dl></article>';
   }
   function summary() {
-    const checked = [];
-    if(state.seen.includes('post')) checked.push('Đã mở bài tuyển của CLB và thấy biểu mẫu đăng ký trong bài.');
-    if(state.seen.includes('comments')) checked.push('Câu hỏi của Vy về ca chiều nằm trong bình luận công khai.');
-    if(state.seen.includes('receipt')) checked.push('Biên lai ghi nhận khoản 45.000đ đã vào ví Vy.');
-    if(state.seen.includes('recruiter')) checked.push('Đã đọc lời mời riêng yêu cầu chuyển 500.000đ để giữ ca.');
-    if(state.giangContacted) checked.push('Trong hội thoại riêng, Hương Giang tự nhận phụ trách ca chiều.');
-    if(state.verified) checked.push('CLB xác nhận ca chiều đăng ký qua biểu mẫu trong bài gốc và CLB không thu tiền giữ chỗ.');
     if(!resultReady()) return '<h1>Ca đang diễn ra</h1>'+actions(inboxLink());
-    const outcome = state.prepared?'Vy đã chuyển 500.000đ, dừng nạp thêm và gửi hồ sơ hỗ trợ. Khoản tiền đang chờ xử lý.':
-      state.transfer==='cancelled'?'Vy đã hủy khoản chuyển 500.000đ.':
-      'Vy chưa chuyển 500.000đ. Tạm dừng là cách xử lý an toàn khi lời mời riêng còn cần kiểm tra.';
-    return '<h1>Tóm tắt ca Vy</h1><div class="outcome">'+e(outcome)+'</div><dl class="result"><dt>Đã kiểm tra</dt><dd>'+
-      (checked.length?'<ul>'+checked.map(x=>'<li>'+e(x)+'</li>').join('')+'</ul>':'Chưa kiểm tra nguồn nào.')+
-      '</dd><dt>Chưa biết</dt><dd>Danh tính và vai trò thật của Hương Giang vẫn chưa rõ.'+
-      (!state.verified?' Cách đăng ký và yêu cầu thu tiền vẫn cần được kiểm tra với CLB.':'')+
-      '</dd><dt>Đăng ký qua bài gốc</dt><dd>'+(state.vyRegistered?'Vy đã gửi đăng ký ca chiều. CLB chưa xác nhận kết quả.':'Chưa gửi đăng ký.')+
-      '</dd><dt>Báo cáo tài khoản nhắn riêng</dt><dd>'+(state.reported?reportStatus:'Chưa báo cáo.')+'</dd></dl>'+
-      actions(go('inbox',unsettled()?'Quay lại kiểm tra tiếp':'Về hộp thư Vy','primary'),go('post','Mở bài gốc'));
+    const paid = state.transfer==='paid';
+    const verified = state.verifiedDecision;
+    const evidenceSaved = state.chatSaved && state.receipt;
+    const checked = [];
+    if(state.seen.includes('post')) checked.push('Đã mở bài tuyển của CLB có biểu mẫu đăng ký.');
+    if(state.seen.includes('comments')) checked.push('Vy đã hỏi về ca chiều trong bình luận công khai. Ai mở bài cũng có thể đọc bình luận này.');
+    if(state.seen.includes('receipt')) checked.push('Biên lai ghi nhận 45.000đ đã vào ví Vy.');
+    if(state.seen.includes('recruiter')) checked.push('Đã đọc đoạn chat Vy chia sẻ có yêu cầu chuyển 500.000đ.');
+    if(state.giangContacted) checked.push('Hương Giang tự nhận phụ trách ca chiều trong hội thoại riêng. Danh tính và vai trò thật vẫn chưa được xác minh.');
+    if(state.policyAsked && !state.giangContacted) checked.push('Phản hồi của CLB xác nhận quy trình tuyển. Danh tính và vai trò thật của Hương Giang vẫn chưa rõ.');
+    if(state.shared.includes('giang')) checked.push('Đã chuyển lời tự nhận của Hương Giang cho Vy.');
+    if(state.policyAsked) checked.push('CLB xác nhận ca chiều đăng ký qua biểu mẫu trong bài gốc và CLB không thu tiền giữ chỗ.');
+    if(state.shared.includes('club')) checked.push('Đã chuyển phản hồi của CLB cho Vy.');
+    if(state.linkSent) checked.push('Đã gửi link bài gốc cho Vy. Việc đăng ký chưa được xác nhận.');
+    if(state.reported) checked.push('Đã báo cáo tài khoản Hương Giang trong mô phỏng.');
+    if(state.bank) checked.push('Đã mở yêu cầu hỗ trợ qua Ví học đường trong mô phỏng.');
+    const outcome = paid?'Vy đã chuyển 500.000đ. Khoản tiền chưa được thu hồi.':
+      state.transfer==='cancelled'?'Vy đã hủy khoản chuyển 500.000đ.':'Vy đã tạm dừng và chưa chuyển 500.000đ.';
+    const reply = paid?(state.stopped?'Tớ sẽ không chuyển thêm nữa.':'Tớ chuyển rồi mà giờ chị ấy lại đòi thêm.'):
+      verified?'Tớ bỏ khoản 500k rồi. Giờ tớ biết đăng ký ở đâu.':
+      state.transfer==='cancelled'?'Tớ hủy rồi. Để tớ tìm hiểu thêm.':'Ừ, tớ sẽ chờ, chưa chuyển đâu.';
+    const lesson = paid?'Khoản trả thử 45k đã khiến lời mời có vẻ đáng tin. Khi họ đòi thêm phí để hoàn tiền, hãy dừng chuyển và giữ bằng chứng.':
+      verified?'Khoản 45k đã nhận không chứng minh người nhắn có quyền tuyển. Hộp thư CLB xác nhận cách đăng ký và việc CLB không thu phí giữ chỗ.':
+      state.policyAsked?'Dừng lại giúp Vy giữ được tiền. Hộp thư CLB đã xác nhận quy trình đăng ký.':
+      'Dừng lại giúp Vy giữ được tiền. Yêu cầu chuyển 500k vẫn cần được kiểm tra với CLB.';
+    return '<h1>Tóm tắt ca Vy</h1><div class="outcome">'+e(outcome)+'</div>'+
+      (paid?'<ul><li>'+(state.stopped?'Vy đã dừng chuyển thêm.':'Chưa nhắn Vy dừng chuyển thêm.')+'</li><li>'+
+        (evidenceSaved?'Đã lưu tin nhắn đòi thêm tiền và biên lai.':state.chatSaved?'Đã lưu tin nhắn đòi thêm tiền. Còn thiếu biên lai.':
+          state.receipt?'Đã lưu biên lai. Còn thiếu tin nhắn đòi thêm tiền.':'Chưa lưu tin nhắn đòi thêm tiền và biên lai.')+'</li></ul>':'')+
+      bubble('Vy',reply)+'<p>'+e(lesson)+'</p>'+
+      '<details><summary>Những việc bạn đã làm</summary><dl class="result">'+
+      '<dt>Nhận diện yêu cầu cần kiểm tra</dt><dd>'+
+        (state.transfer==='waiting'?'Đã nhắn Vy khoan chuyển.':state.transfer==='cancelled'?'Đã khuyên Vy từ chối yêu cầu chuyển tiền.':
+          state.messages.some(message=>message.text===holdAdvice)?'Đã nhắn Vy khoan chuyển trước khi gửi lời khuyên rủi ro.':'Đã khuyên Vy tin vào khoản trả thử.')+'</dd>'+
+      '<dt>Chọn nguồn độc lập</dt><dd>'+(state.policyAsked?'Đã hỏi qua hộp thư trang CLB.':'Chưa hỏi qua hộp thư trang CLB.')+'</dd>'+
+      '<dt>Xử lý giao dịch</dt><dd>'+e(outcome)+'</dd></dl>'+
+      (checked.length?'<ul>'+checked.map(item=>'<li>'+e(item)+'</li>').join('')+'</ul>':'')+'</details>'+
+      actions(inboxLink(),paid?go('recover','Về hồ sơ hỗ trợ'):'',go('post','Mở bài gốc'));
   }
   const panels = {
     inbox,post,recruiter,giang,club,
@@ -163,11 +205,7 @@
       '<p>Kênh của CLB Truyền thông, nơi đăng thông tin và lịch hoạt động của trường.</p>'+
       actions(go('club','Mở hộp thư trang CLB','primary'),go('post','Xem bài tuyển'),inboxLink()),
     receipt:()=>'<h1>Biên lai Vy gửi</h1>'+transaction(true)+actions(share('receipt','Gửi biên lai cho Vy'),inboxLink()),
-    transfer:()=>'<h1>Giao dịch Vy chia sẻ</h1>'+transaction()+actions(
-      unsettled()?B('Khuyên Vy chuyển','choose-transfer','','danger'):state.transfer==='paid'?go('recover','Mở hồ sơ hỗ trợ','primary'):'',
-      inboxLink()),
-    confirm:()=>'<h1>Xác nhận lời khuyên</h1>'+transaction()+'<p>Trong mô phỏng, Vy sẽ chuyển 500.000đ nếu bạn xác nhận.</p>'+
-      actions(unsettled()&&confirmTransfer?B('Xác nhận khuyên chuyển','confirm','','danger'):'',go('transfer','Quay lại, chưa chuyển','primary')),
+    transfer:()=>'<h1>Giao dịch Vy chia sẻ</h1>'+transaction()+actions(inboxLink()),
     register:()=>'<h1>Biểu mẫu đăng ký · Ngày hội Sao Mai</h1><p>Biểu mẫu mô phỏng do '+e(clb)+' đăng trong bài gốc.</p>'+
       '<article class="idcard"><h3>Thông tin trong biểu mẫu</h3><p>Họ tên, lớp và ca muốn tham gia.</p>'+
       '<ul><li>Ca sáng · 07:30–11:00</li><li>Ca chiều · 13:00–16:30</li></ul><p>Bản xem trước. Vy tự điền khi muốn đăng ký.</p></article>'+
@@ -177,15 +215,18 @@
         '<p>Lý do: yêu cầu chuyển tiền giữ chỗ qua tin nhắn riêng.</p>'+B('Gửi báo cáo','report','','primary'))+
       actions(go('recruiter','Về cuộc trò chuyện'),inboxLink(),resultReady()?resultLink():''),
     result:summary,
-    recover:()=>'<h1>Hồ sơ hỗ trợ</h1><p>Hương Giang lại đòi nạp thêm để hoàn tiền.</p>'+pill(state.prepared?'Đã chuẩn bị':state.bank||state.code||state.receipt||state.chatSaved?'Đang bổ sung':'Chưa chuẩn bị')+
-      (state.transfer!=='paid'?'<p>Giao dịch này chưa phát sinh.</p>':state.prepared?'<p>Khoản tiền đang chờ xử lý.</p>':
-      '<div class="actions">'+B(state.stopped?'✓ Đã nhắn dừng nạp':'Nhắn Vy dừng nạp thêm','stop','','',state.stopped?'disabled':'')+go('bank','Mở hỗ trợ chính thức của ngân hàng')+'</div>'+
-      '<h3>Lịch sử giao dịch</h3><div class="history">'+
-      [['incoming','↙ +45.000đ · Tiền đến'],['sent','↗ −500.000đ · Giữ ca chiều'],['other','↗ −32.000đ · Ăn trưa']].map(([id,label])=>B(label,'history',id,'','aria-pressed="'+(state.history===id)+'"')).join('')+'</div>'+
-      (state.history==='sent'?transaction()+'<div class="actions">'+B(state.code?'✓ Đã lưu MP-500-042':'Lưu mã MP-500-042','keep','code','',state.code?'disabled':'')+
-        B(state.receipt?'✓ Đã lưu biên lai':'Lưu ảnh biên lai','keep','receipt','',state.receipt?'disabled':'')+'</div>':'')+
-      '<details '+(state.chatSaved?'open':'')+'><summary>Xem đoạn chat đòi nạp thêm</summary><p class="bubble">Em nạp thêm phí mở khóa thì chị mới hoàn tiền được nha.</p>'+B(state.chatSaved?'✓ Đã lưu đoạn chat':'Lưu đoạn chat','keep','chatSaved','',state.chatSaved?'disabled':'')+'</details>'+
-      '<div class="actions">'+B('Hoàn tất hồ sơ','prepare','','primary',state.stopped&&state.bank&&state.code&&state.receipt&&state.chatSaved?'':'disabled')+'</div>')+actions(inboxLink(),state.prepared?resultLink():''),
+    recover:()=>'<h1>Hồ sơ hỗ trợ</h1>'+
+      (state.transfer!=='paid'?'<p>Giao dịch này chưa phát sinh.</p>':
+        '<p>Vy đã chuyển 500.000đ. Hương Giang đang đòi thêm phí để hoàn tiền.</p>'+
+        actions(B(state.stopped?'✓ Vy đã dừng chuyển thêm':'Nhắn Vy dừng chuyển thêm','stop','','primary',state.stopped?'disabled':''),
+          go('bank','Mở hỗ trợ của Ví học đường'))+
+        '<details '+(state.receipt?'open':'')+'><summary>Biên lai giao dịch 500.000đ</summary>'+transaction()+
+        B(state.receipt?'✓ Đã lưu biên lai':'Lưu biên lai','keep','receipt','',state.receipt?'disabled':'')+'</details>'+
+        '<details '+(state.chatSaved?'open':'')+'><summary>Tin nhắn đòi thêm phí</summary>'+
+        bubble('Hương Giang','Em chuyển thêm phí thì chị mới hoàn tiền được nha.')+
+        B(state.chatSaved?'✓ Đã lưu tin nhắn':'Lưu tin nhắn đòi thêm phí','keep','chatSaved','',state.chatSaved?'disabled':'')+'</details>'+
+        actions(state.reported?pill(reportStatus):go('report','Báo cáo tài khoản Hương Giang'),resultLink()))+
+      actions(inboxLink()),
     bank:()=>'<h1>Hỗ trợ chính thức · Ví học đường</h1><p>Kênh ngân hàng trong mô phỏng. Bạn có thể mở hỗ trợ ngay và bổ sung mã giao dịch, biên lai và đoạn chat sau.</p><div class="actions">'+
       (state.transfer==='paid'?B(state.bank?'✓ Đã mở yêu cầu hỗ trợ':'Mở yêu cầu hỗ trợ','bank','','primary',state.bank?'disabled':''):'')+go('recover','Về hồ sơ hỗ trợ')+go('inbox','Về hộp thư')+'</div>',
   };
@@ -235,62 +276,52 @@
     }
     if(action==='reset') {
       if(!window.confirm('Chơi lại từ đầu? Tiến trình ca này sẽ được đặt lại.')) return;
-      state=fresh();resume=false;confirmTransfer=false;navigate('inbox');return;
+      state=fresh();resume=false;navigate('inbox');return;
     }
     if(action==='share' && Object.hasOwn(details,id) && !state.shared.includes(id)) {
       if((id==='club'&&!state.policyAsked)||(id==='giang'&&!state.giangContacted)) return;
       const {source,quote,text,reply}=details[id];
       state.shared.push(id);
-      chat(text,reply,{source,quote});
+      const vyReply = id==='club' && state.transfer==='paid'
+        ? 'Vậy khoản tớ vừa chuyển không phải tiền giữ chỗ của CLB rồi.' : reply;
+      chat(text,vyReply,{source,quote});
       save();navigate('inbox');return;
     }
-    if(action==='pause'&&state.transfer==='pending') {
+    if(action==='pause'&&current()==='inbox'&&state.transfer==='pending') {
       state.transfer='waiting';
-      chat('Khoan bấm nha, để tớ xem','Ừ, tớ để đó. Mà nếu chị ấy không phụ trách thật thì tớ đăng ký ca chiều ở đâu ta?');
+      chat(holdAdvice,'Ừ, tớ chờ. Mà nếu chị ấy nói thật thì tớ đăng ký ca chiều ở đâu?');
     } else if(action==='ask-giang'&&current()==='giang'&&!state.giangContacted) state.giangContacted=true;
-    else if(action==='ask-club'&&!state.policyAsked) {
-      state.policyAsked=true;state.verified=true;
-    } else if(action==='club-wait'&&unsettled()&&state.shared.includes('club')&&!state.clubWait) {
-      state.transfer='waiting';state.clubWait=true;
-      chat(holdAdvice,'Ừ, tớ chưa chuyển. Tớ để đó nha.');
-    }
-    else if(action==='cancel'&&unsettled()) {
-      state.transfer='cancelled';state.finished=true;
-      chat('Thôi, cậu hủy khoản này đi','Ừ, tớ hủy khoản 500k nha.');
-    } else if(action==='register-advice'&&unsettled()&&state.shared.includes('club')) {
-      state.transfer='cancelled';state.finished=true;
-      chat(cancelAdvice,'Ừ, tớ hủy khoản 500k rồi. Cậu gửi lại đường dẫn bài cho tớ nha.');
-    } else if(action==='send-registration-link'&&state.transfer==='cancelled'&&state.shared.includes('club')&&!state.vyRegistered) {
+    else if(action==='ask-club'&&current()==='club'&&!state.policyAsked) state.policyAsked=true;
+    else if(action==='cancel'&&current()==='inbox'&&unsettled()) {
+      state.verifiedDecision=state.shared.includes('club');
+      chat(state.verifiedDecision?cancelAdvice:'Thôi, cậu hủy khoản này đi',
+        state.verifiedDecision?'Ừ, tớ hủy khoản 500k rồi. Cậu gửi lại đường dẫn bài cho tớ nha.':'Ừ, tớ quyết định hủy khoản 500k rồi.');
+      state.transfer='cancelled';
+      state.finished=true;
+    } else if(action==='send-registration-link'&&current()==='inbox'&&state.transfer==='cancelled'&&state.shared.includes('club')&&!state.linkSent) {
       state.messages.push({name:'Bạn · Đã gửi',text:'Đây, đường dẫn bài gốc của CLB nè.',sent:true,postLink:true},
-        {name:'Vy',text:'Tớ gửi đăng ký ca chiều rồi'});
-      state.vyRegistered=true;
-    } else if(action==='finish-wait'&&state.transfer==='waiting') {
+        {name:'Vy',text:'Để tớ xem form nha.'});
+      state.linkSent=true;
+    } else if(action==='finish-wait'&&current()==='inbox'&&state.transfer==='waiting'&&!state.finished) {
       state.finished=true;save();navigate('result');return;
-    } else if(action==='choose-transfer'&&unsettled()) {
-      confirmTransfer=true;navigate('confirm');return;
-    } else if(action==='confirm'&&unsettled()&&confirmTransfer) {
-      confirmTransfer=false;state.transfer='paid';state.finished=false;
-      chat('Cậu thử chuyển khoản giữ ca đi.','Tớ chuyển rồi. Giờ chị ấy bảo nạp thêm phí thì mới hoàn lại.');
-      save();navigate('inbox');return;
-    } else if(action==='report'&&!state.reported) state.reported=true;
-    else if(action==='stop'&&state.transfer==='paid'&&!state.stopped) {
+    } else if(action==='risk'&&current()==='inbox'&&unsettled()&&!state.finished&&!state.shared.includes('club')) {
+      chat(riskAdvice,'Tớ muốn giữ ca chiều. Tớ nghĩ tớ sẽ chuyển.');
+      state.messages.push({name:'Vy',text:'Tớ vừa chuyển 500k rồi.'},
+        {name:'Vy',text:'Ơ, chị ấy lại bảo chuyển thêm phí thì mới hoàn tiền.'});
+      state.transfer='paid';
+    } else if(action==='report'&&current()==='report'&&!state.reported) state.reported=true;
+    else if(action==='stop'&&current()==='recover'&&state.transfer==='paid'&&!state.stopped) {
+      chat('Cậu dừng chuyển thêm nha.','Ừ, tớ không chuyển thêm nữa.');
       state.stopped=true;
-      chat('Cậu dừng nạp thêm nha.','Ừ, tớ không chuyển thêm nữa.');
-      notice='Đã nhắn Vy dừng nạp thêm.';
-    } else if(action==='bank'&&state.transfer==='paid') state.bank=true;
-    else if(action==='history'&&state.transfer==='paid') {
-      state.history=id;
-      if(id==='incoming') notice='Đây là khoản 45.000đ tiền đến. Hãy chọn giao dịch 500.000đ đã chuyển đi.';
-      if(id==='other') notice='Khoản này không phải khoản giữ ca.';
-    } else if(action==='keep'&&state.transfer==='paid'&&(id==='chatSaved'||(state.history==='sent'&&['code','receipt'].includes(id)))) {
+      notice='Vy đã nhắn lại rằng sẽ dừng chuyển thêm.';
+    } else if(action==='bank'&&current()==='bank'&&state.transfer==='paid'&&!state.bank) state.bank=true;
+    else if(action==='keep'&&current()==='recover'&&state.transfer==='paid'&&['receipt','chatSaved'].includes(id)&&!state[id]) {
       state[id]=true;notice='Đã lưu vào hồ sơ hỗ trợ.';
-    } else if(action==='prepare'&&state.transfer==='paid'&&state.stopped&&state.bank&&state.code&&state.receipt&&state.chatSaved) {
-      state.prepared=true;save();navigate('result');return;
     } else return;
     render();
-    const feedback={pause:'.chat-thread .bubble:last-child',cancel:'.chat-thread .bubble:last-child','register-advice':'.chat-thread .bubble:last-child',
-      'club-wait':'.chat-thread .bubble:last-child','send-registration-link':'.chat-thread .bubble:last-child',
-      'ask-giang':'.source-chat .bubble:last-of-type','ask-club':'.source-chat .bubble:last-of-type',report:'.outcome',history:'.notice',bank:'.bank .actions'};
+    const feedback={pause:'.chat-thread .bubble:last-child',cancel:'.chat-thread .bubble:last-child',risk:'.chat-thread .bubble:last-child',
+      'send-registration-link':'.chat-thread .bubble:last-child',
+      'ask-giang':'.source-chat .bubble:last-of-type','ask-club':'.source-chat .bubble:last-of-type',report:'.outcome',bank:'.bank .actions'};
     focusLatest(feedback[action] || (notice?'.notice':'.surface h1'));
   }
   host.addEventListener('click',event=>{
@@ -298,12 +329,12 @@
     if(button) act(button.dataset.action,button.dataset.id);
   });
   addEventListener('hashchange',()=>{
-    if(current()!=='confirm') confirmTransfer=false;
     notice='';render();window.scrollTo(0,0);
     focusLatest(current()==='inbox'&&state.messages.length?'.chat-thread .bubble:last-child':'.surface h1');
   });
-  if (saved && !location.hash && Object.hasOwn(panels,saved.view) && saved.view!=='inbox') {
-    history.replaceState(null,'','#'+(saved.view==='confirm'?'transfer':saved.view));
+  const savedView = saved?.view==='confirm'?'transfer':saved?.view;
+  if (savedView && !location.hash && Object.hasOwn(panels,savedView) && savedView!=='inbox') {
+    history.replaceState(null,'','#'+savedView);
   }
   render();
 })();

@@ -164,3 +164,8 @@ button.amount[aria-pressed=true] { border-color:#aa761e; background:#fff0c9; }
 .result dt:not(:first-child) { margin-top:.7rem; }
 .result ul { margin:.25rem 0; padding-left:1.25rem; }
 @media(max-width:700px) { .inbox-layout .portrait { display:none; } }
+
+.chat-date { margin: .85rem 0 .25rem; color: var(--muted); font-size: .82rem; font-weight: 700; }
+.result > details, .recover details { padding: .55rem .7rem; border: 1px solid var(--line); border-radius: .55rem; }
+.result summary, .recover summary, #comments summary { cursor: pointer; font-weight: 650; padding-block: .35rem; }
+.recover details .slip { margin-bottom: .45rem; }
