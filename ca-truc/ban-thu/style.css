@@ -84,3 +84,12 @@ button.amount[aria-pressed=true] { border-color:#aa761e; background:#fff0c9; }
   .vy-content { display:none; }
   .expanded .vy-content { display:block; max-height:26vh; overflow:auto; }
 }
+
+.results .search-result { display:grid; justify-content:start; text-align:left; }
+.search-result small { font-weight:500; }
+.club-post { margin:.75rem 0; }
+.club-post h3 { margin:.2rem 0; }
+.case-reply .case-end { margin-top:.35rem; }
+.vy-dock .case-end { margin-bottom:0; }
+.vy-dock .case-end > a { font-size:.88rem; }
+.report-confirmation { margin:.45rem 0; }

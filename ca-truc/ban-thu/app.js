@@ -14,7 +14,9 @@
   let notice = '';
   let search = '';
   let wantsTransfer = false;
-  let chatOpen = false;
+  let chatOpen = state.transfer==='cancelled';
+  const clubReply = 'CLB mình không đăng bài này và không tổ chức nhiệm vụ đó.';
+  const reportStatus = 'Đã gửi báo cáo · Chờ xem xét';
   const openingMessage = 'Tớ nhận 45k thật rồi. Giờ họ bảo nạp 500k. Cậu coi giúp tớ với.';
   const e = x => String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const B = (label, action, id='', cls='', extra='') => '<button type="button" class="'+cls+'" data-action="'+action+'" data-id="'+id+'" '+extra+'>'+e(label)+'</button>';
@@ -22,6 +24,7 @@
   const pill = label => '<span class="pill">'+e(label)+'</span>';
   const status = () => ({pending:'Chờ xác nhận',waiting:'Đang chờ · Chưa chuyển',cancelled:'Đã hủy',paid:'Đã chuyển'})[state.transfer];
   const unsettled = () => state.transfer==='pending'||state.transfer==='waiting';
+  const hasResult = () => state.transfer==='cancelled'||state.finished||state.prepared;
   const art = () => state.transfer==='pending'?'lo-lang':unsettled()||state.transfer==='paid'&&!state.prepared?'dang-nghe':'nhe-nhom';
   function save() { try { localStorage.setItem(key,JSON.stringify(state)); } catch {} }
   function navigate(view) {
@@ -60,6 +63,19 @@
     return '<article class="artifact recruiter"><header>'+publisher('Hương Giang · Người tuyển')+
       '<small>Đoạn trò chuyện Vy chia sẻ</small></header><div class="artifact-body">'+pickLines('chat')+'</div></article>';
   }
+  function resultActions(includeReport = false) {
+    return '<div class="actions case-end">'+go('result','Xem kết quả ca','primary')+
+      (includeReport&&!state.reported?go('post','Mở bài để báo cáo'):'')+'</div>';
+  }
+  function verificationResult() {
+    const verified = [];
+    if (state.independent) verified.push('CLB Truyền thông qua trang THPT Sao Mai: CLB không đăng bài và không tổ chức nhiệm vụ này.');
+    if (state.basis==='pair') verified.push('Bài tuyển và đoạn chat người tuyển: bài ghi không cần ứng tiền, nhưng người tuyển yêu cầu nạp 500.000đ.');
+    return verified.length ? verified.join(' ') : 'Chưa xác minh đủ về bài tuyển.';
+  }
+  function searchResult(view, title, source) {
+    return '<a class="button search-result" href="#'+view+'"><b>'+e(title)+'</b><small>'+e(source)+'</small></a>';
+  }
   function vyDock(pair = false) {
     const groups = pair ? ['post','chat'] : ['post'];
     const drafts = groups.flatMap(group => {
@@ -79,13 +95,13 @@
       (unsettled()?'<div class="vy-compose"><small>Sắp gửi cho Vy</small>'+
         (drafts.length?drafts.join(''):'<p>Chưa chọn đoạn nào.</p>')+
         (pair&&drafts.length===1?'<small>Chọn thêm một đoạn ở nguồn còn lại.</small>':'')+'</div>':'')+'</div>'+
-      sendBar('Gửi Vy',pair?'pair':'post',drafts.length===groups.length)+'</aside>';
+      (state.transfer==='cancelled'?resultActions(true):sendBar('Gửi Vy',pair?'pair':'post',drafts.length===groups.length))+'</aside>';
   }
   function recruitment(pair = false) {
     const title = pair ? 'Đối chiếu hai nguồn' : 'Bài tuyển';
     const hint = pair ? 'Chọn một đoạn ở mỗi nguồn để gửi Vy.' : 'Chọn đoạn muốn gửi Vy.';
     const postActions = '<div class="actions">'+go('compare','Đặt cạnh đoạn chat','primary')+
-      (state.reported?pill('Đã gửi báo cáo · Chờ xem xét'):go('report','Báo cáo bài viết'))+
+      (state.reported?pill(reportStatus):go('report','Báo cáo bài viết'))+
       go('inbox','Về hộp thư')+'</div>';
     return '<h1>'+title+'</h1><p>'+hint+'</p><div class="evidence-layout"><div class="evidence-sources">'+
       (pair?'<div class="comparison">'+postCard()+chatCard()+'</div>'+sourceLinks():postCard()+postActions)+
@@ -101,6 +117,7 @@
     return unsettled()?B(label,'send',id,'primary',enabled?'':'disabled'):'';
   }
   function advice() {
+    if (state.transfer==='cancelled') return '';
     if (!unsettled()) {
       const needsHelp = state.transfer==='paid'&&!state.prepared;
       return '<div class="actions">'+go(needsHelp?'recover':'result',needsHelp?'Mở hồ sơ hỗ trợ':'Xem kết quả','primary')+'</div>';
@@ -116,7 +133,10 @@
   function inbox() {
     const chat = state.messages.map((message,index)=>{
       const latest = index===state.messages.length-1?' latest':'';
-      if(message.who==='vy') return '<p class="bubble'+latest+'"><span class="speaker">Vy</span>'+e(message.text)+'</p>';
+      if(message.who==='vy') {
+        const bubble = '<p class="bubble'+latest+'"><span class="speaker">Vy</span>'+e(message.text)+'</p>';
+        return latest&&state.transfer==='cancelled'?'<div class="case-reply">'+bubble+resultActions(true)+'</div>':bubble;
+      }
       return '<div class="bubble sent'+latest+'"><span class="speaker">Bạn</span>'+e(message.text)+
         (message.quotes?'<div class="sent-quotes">'+message.quotes.map(([source,quote])=>
           '<blockquote><small>'+e(source)+'</small>'+e(quote)+'</blockquote>').join('')+'</div>':'')+'</div>';
@@ -140,7 +160,6 @@
   }
   function sendToVy(id) {
     const post = selected('post'), chat = selected('chat');
-    const clubReply = 'CLB mình không đăng bài này và không tổ chức nhiệm vụ đó.';
     const options = {
       post:post&&[['Bài tuyển',post]],
       chat:chat&&[['Đoạn chat',chat]],
@@ -185,15 +204,16 @@
     intro:()=>'<h1>Ảnh người tuyển gửi</h1><article class="idcard">'+publisher('Hương Giang')+'<h3>CTV · CLB Truyền thông Sao Mai</h3><p>Ảnh giới thiệu do Hương Giang gửi trong hội thoại.</p></article><div class="actions">'+go('recruiter','Về hội thoại')+go('search','Tìm trang trường')+go('inbox','Về hộp thư','primary')+'</div>',
     search:()=>'<h1>Tìm trên ViệtBook</h1><form id="search"><label for="query">Tìm trang hoặc tên trường</label><div class="searchrow"><input id="query" name="query" type="search" value="'+e(search)+'" placeholder="Ví dụ: Sao Mai"><button class="primary">Tìm</button></div></form>'+
       (!search?'<p>Nhập tên hoặc từ khóa để xem các trang.</p>':/sao|mai|clb|trường|truong|thpt|việc|viec/i.test(search)?
-        '<div class="results">'+go('page','VL · Việc làm thêm Sao Mai')+go('school','SM · THPT Sao Mai · Trang trường')+'</div>':'<p>Chưa tìm thấy trang phù hợp. Thử tên trường hoặc tên CLB.</p>')+go('inbox','Về hộp thư','primary'),
+        '<div class="results">'+searchResult('page','Việc làm thêm Sao Mai','Trang tuyển dụng · Liên hệ CLB do trang tự khai')+searchResult('school','THPT Sao Mai','Trang nhà trường · Danh bạ câu lạc bộ')+'</div>':'<p>Chưa tìm thấy trang phù hợp. Thử tên trường hoặc tên CLB.</p>')+go('inbox','Về hộp thư','primary'),
     school:()=>'<div class="cover school-cover"></div>'+publisher('THPT Sao Mai',true)+'<h1>THPT Sao Mai</h1><p>Trang nhà trường trong ViệtBook. Xem danh bạ các câu lạc bộ.</p><div class="actions">'+go('club','Liên hệ · CLB Truyền thông')+go('search','Về tìm kiếm')+go('inbox','Về hộp thư','primary')+'</div>',
     club:()=>'<h1>Liên hệ CLB Truyền thông</h1>'+publisher('Đầu mối từ trang THPT Sao Mai',true)+
-      (state.independent?'<p class="bubble sent">▧ Bài gốc · Tuyển CTV tương tác online</p><p class="bubble latest">CLB mình không đăng bài này và không tổ chức nhiệm vụ đó.</p>'+
-        sendBar('Chuyển phản hồi cho Vy','club'):
-      go('post','Xem bài gốc')+B('Gửi bài gốc cho CLB','verify','','primary'))+'<div class="actions">'+go('school','Về trang trường')+go('inbox','Về hộp thư','primary')+'</div>',
-    report:()=>'<h1>Báo cáo bài viết</h1>'+(state.reported?pill('Đã gửi báo cáo · Chờ xem xét'):
+      '<article class="idcard club-post"><small>Bài gốc · Việc làm thêm Sao Mai</small><h3>Tuyển CTV tương tác online</h3>'+
+      '<a href="#post">Xem bài gốc</a></article>'+
+      (state.independent?'<p class="bubble latest" role="status">'+e(clubReply)+'</p>'+sendBar('Chuyển cho Vy','club'):
+      B('Hỏi CLB về bài này','verify','','primary'))+'<div class="actions">'+go('school','Về trang trường')+go('inbox','Về hộp thư','primary')+'</div>',
+    report:()=>'<h1>Báo cáo bài viết</h1>'+(state.reported?'<p class="report-confirmation" role="status" tabindex="-1">'+pill(reportStatus)+'</p>':
       '<form id="report"><fieldset><legend>Lý do báo cáo</legend><label><input type="radio" name="reason" value="fraud" required> Nghi ngờ lừa đảo hoặc yêu cầu nạp tiền</label><label><input type="radio" name="reason" value="irrelevant" required> Không liên quan đến tôi</label><label><input type="radio" name="reason" value="violence" required> Nội dung bạo lực</label></fieldset><button class="primary">Gửi báo cáo</button></form>')+
-      '<div class="actions">'+go('post','Về bài gốc')+go('inbox','Về hộp thư','primary')+'</div>',
+      (hasResult()?resultActions():'')+'<div class="actions">'+go('post','Về bài gốc')+go('inbox','Về hộp thư')+'</div>',
     confirm:()=>'<h1>Xác nhận lựa chọn mô phỏng</h1>'+transaction()+'<p>Vy chỉ chuyển sau khi bạn xác nhận lời khuyên này.</p><div class="actions">'+
       (unsettled()&&wantsTransfer?B('Xác nhận khuyên chuyển','confirm','','danger'):'')+go('inbox','Quay lại, chưa chuyển','primary')+'</div>',
     call:()=>'<h1>Cuộc gọi với Vy</h1><div class="call-view">'+portrait()+'</div><p class="bubble">'+(state.transfer==='pending'?'Tớ đang giữ điện thoại. Cậu muốn xem bài tuyển không?':state.transfer==='waiting'?'Ừ, tớ hạ máy rồi. Mình kiểm tra thêm nhé.':state.transfer==='cancelled'?'Tớ hủy rồi. Cảm ơn cậu đã giải thích.':'Tớ đã chuyển rồi. Cậu giúp tớ lưu lại giao dịch nhé.')+'</p><div class="actions">'+
@@ -211,9 +231,8 @@
       (state.transfer==='paid'?B(state.bank?'✓ Đã mở yêu cầu hỗ trợ':'Mở yêu cầu hỗ trợ','bank','','primary',state.bank?'disabled':''):'')+go('recover','Về hồ sơ hỗ trợ')+go('inbox','Về hộp thư')+'</div>',
     result:()=>'<h1>Tóm tắt ca Vy</h1>'+portrait()+'<dl class="result"><dt>Vy đã làm gì?</dt><dd>'+e(status())+
       (state.prepared?' · Đã dừng nạp thêm và chuẩn bị hồ sơ (mã MP-500-042, ảnh biên lai và đoạn chat). Khoản tiền đang chờ xử lý.':'')+
-      '</dd><dt>Đã xác minh</dt><dd>'+(state.independent?'CLB không đăng bài hoặc tổ chức chương trình.':state.post==='advance'&&state.chat==='deposit'?'Bài tuyển và đoạn chat mâu thuẫn về tiền ứng.':'Chưa xác minh đủ về chương trình.')+
-      '</dd><dt>Còn bỏ ngỏ</dt><dd>Danh tính thật của người tuyển.'+(state.finished&&unsettled()?' Có thể quay lại đối chiếu hoặc hỏi CLB.':'')+
-      '</dd><dt>Bài đăng</dt><dd>'+(state.reported?'Đã gửi báo cáo · Chờ xem xét':'Chưa báo cáo')+'</dd></dl>'+
+      '</dd><dt>Nguồn xác minh</dt><dd>'+e(verificationResult())+'</dd><dt>Bài đăng</dt><dd>'+
+      (state.reported?reportStatus:'Chưa báo cáo')+'</dd></dl>'+
       '<div class="actions">'+go('inbox',unsettled()?'Quay lại điều tra':'Về hộp thư','primary')+go('post','Mở bài gốc')+'</div>',
     qa:()=>'<h1>Điều phối kiểm thử</h1><p>Các nút sau chỉ đặt lại dữ liệu bản thử trên trình duyệt này.</p><div class="actions">'+B('Mở lượt sạch','seed','clean')+B('Mở thẳng nhánh đã chuyển','seed','paid')+'</div>'
   };
@@ -283,7 +302,10 @@
     }
     if(ev.target.id==='report'&&!state.reported) {
       const reason=new FormData(ev.target).get('reason');
-      if(reason==='fraud'){state.reported=reason;save();navigate('post');}
+      if(reason==='fraud'){
+        state.reported=reason;notice='';save();render();
+        host.querySelector('.report-confirmation')?.focus();
+      }
       else {notice='Lý do này chưa phản ánh yêu cầu nạp tiền. Xem lại bài trước khi báo cáo.';render();}
     }
   });
@@ -292,7 +314,7 @@
     notice='';render();window.scrollTo(0,0);
     const heading=host.querySelector('h1');
     heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});
-    if(current()==='inbox'&&state.messages.length)host.querySelector('.chat-thread .latest')?.scrollIntoView({block:'nearest'});
+    if(current()==='inbox'&&state.messages.length)host.querySelector('.case-reply, .chat-thread .latest:last-child')?.scrollIntoView({block:'nearest'});
   });
   render();
 })();
