@@ -38,7 +38,7 @@
   const giangAnswer = 'Form chỉ nhận đăng ký chung thôi em. Ca chiều chị chốt riêng.';
   const holdAdvice = 'Khoan chuyển nha, để tớ xem';
   const riskAdvice = 'Chị ấy đã trả cậu 45k rồi, chắc ổn đó';
-  const cancelAdvice = 'CLB không thu tiền giữ chỗ. Cậu bỏ khoản 500k đi nha';
+  const refusalAdvice = 'Thôi, cậu đừng chuyển khoản này';
   const transferQuestion = 'Vậy tớ chuyển 500k để giữ chỗ nha?';
   const rethinkAdvice = 'Khoan, để tớ kiểm tra lại';
   const proceedAdvice = 'Ừ, cậu chuyển đi';
@@ -55,7 +55,7 @@
       answer:'Không em. Ca chiều đăng ký qua form trong bài. CLB không thu tiền giữ chỗ.',
       forward:'Chuyển xác nhận về khoản 500k cho Vy',
       summary:'CLB xác nhận ca chiều đăng ký qua biểu mẫu trong bài và không thu tiền giữ chỗ.',
-      reply:'Vậy tớ đăng ký ca chiều qua form, khỏi chuyển 500k.'
+      reply:'Vậy tớ không chuyển nữa. Cậu gửi tớ bài gốc với.'
     }
   };
   const reportStatus = 'Đã gửi báo cáo · Chờ xem xét';
@@ -66,10 +66,9 @@
   const go = (view,label,cls='') => '<a class="button '+cls+'" href="#'+view+'">'+e(label)+'</a>';
   const pill = label => '<span class="pill">'+e(label)+'</span>';
   const actions = (...items) => '<div class="actions">'+items.join('')+'</div>';
-  const status = () => ({pending:'Chưa chuyển',waiting:'Đang chờ',declined:'Chưa chuyển',cancelled:'Đã hủy',paid:'Đã chuyển'})[state.transfer];
+  const status = () => ({pending:'Chưa chuyển',waiting:'Chưa chuyển',declined:'Chưa chuyển',cancelled:'Đã hủy',paid:'Đã chuyển'})[state.transfer];
   const unsettled = () => state.transfer==='pending'||state.transfer==='waiting';
   const refused = () => state.transfer==='cancelled'||state.transfer==='declined';
-  const refusalAdvice = () => state.transfer==='waiting'?'Thôi, cậu đừng chuyển khoản này':'Thôi, cậu hủy khoản này đi';
   const feeShared = () => state.shared.includes('club-fee');
   const canSuggestTransfer = () => unsettled() && !state.finished && !feeShared() &&
     !state.messages.some(message=>message.text===riskAdvice);
@@ -117,10 +116,13 @@
   function inbox() {
     const conversation = state.messages.map(m=>bubble(m.name,m.text,m.attachment,m.sent,m.postLink)+
       (state.transferPrompt&&m.text===transferQuestion?
-        actions(B(rethinkAdvice,'rethink','','primary'),B(proceedAdvice,'proceed')):'')).join('');
+        actions(B(rethinkAdvice,'rethink','','primary'),B(proceedAdvice,'proceed')):'')+
+      (!feeShared()&&m.text===clubQuestions['club-post'].reply?
+        actions(go('club','Quay lại hội thoại CLB','primary')):'')).join('');
     const clubShared = feeShared();
     return '<div class="inbox-layout"><aside class="portrait">'+portrait()+'</aside>'+
       '<section class="conversation"><div class="contact-title"><h1>Hộp thư · Thảo Vy</h1>'+pill('500.000đ · '+status())+'</div>'+
+      (state.transfer==='waiting'&&!state.finished?'<p>Vy đang chờ xác minh</p>':'')+
       '<details class="first-guide" '+(state.guide?'open':'')+'><summary>Cách chơi</summary><p>'+e(guide)+'</p></details>'+
       bubble('Vy','Ê, chị nhắn tớ vụ ca chiều hôm qua trả tớ 45k thật nè.')+
       bubble('Vy','Giờ chị bảo chuyển 500k giữ chỗ, hết ca trả lại. Tớ muốn làm ca này mà thấy hơi cấn. Cậu coi giúp tớ với.')+
@@ -131,10 +133,10 @@
       '<div class="chat-thread">'+conversation+'</div>'+
       (state.transferPrompt?'':actions(
         unsettled()&&state.transfer==='pending'?B(holdAdvice,'pause','','primary'):'',
-        unsettled()?B(clubShared?cancelAdvice:refusalAdvice(),'cancel','',clubShared?'primary':''):'',
+        unsettled()?B(refusalAdvice,'cancel'):'',
         canSuggestTransfer()?B(riskAdvice,'risk'):'',
         state.transfer==='waiting'&&!state.finished?B('Kết thúc tại đây · Chưa chuyển','finish-wait'):'',
-        state.transfer==='paid'?go('recover','Mở hồ sơ hỗ trợ','primary'):'',
+        state.transfer==='paid'?go('recover',state.stopped?'Quay lại hồ sơ hỗ trợ':'Mở hồ sơ hỗ trợ','primary'):'',
         state.linkSent?pill('Đã gửi link bài gốc'):
           clubShared&&refused()?B('Gửi đường dẫn bài gốc cho Vy','send-registration-link','','primary'):'',
         resultReady()?resultLink():''))+'</section></div>';
@@ -213,8 +215,8 @@
     const outcome = paid?'Vy đã chuyển 500.000đ. Khoản tiền chưa được thu hồi.':
       state.transfer==='cancelled'?'Vy đã hủy khoản chuyển 500.000đ.':
       state.transfer==='declined'?'Vy quyết định không chuyển 500.000đ.':'Vy đã tạm dừng và chưa chuyển 500.000đ.';
-    const reply = paid?(state.stopped?'Tớ sẽ không chuyển thêm nữa.':'Tớ chuyển rồi mà giờ chị ấy lại đòi thêm.'):
-      verified?'Tớ bỏ khoản 500k rồi. Giờ tớ biết đăng ký ở đâu.':
+    const reply = paid?(state.stopped?'Giờ tớ giữ lại mấy tin nhắn này.':'Tớ chưa biết xử lý khoản này sao nữa.'):
+      verified?(state.linkSent?'Tớ sẽ xem form trong bài gốc.':'May quá, tớ vẫn có thể đăng ký ca chiều.'):
       state.transfer==='cancelled'?'Tớ hủy rồi. Để tớ tìm hiểu thêm.':
       state.transfer==='declined'?'Tớ không chuyển nữa. Để tớ tìm hiểu thêm.':'Ừ, tớ sẽ chờ, chưa chuyển đâu.';
     const lesson = paid?'Khoản trả thử 45k đã khiến lời mời có vẻ đáng tin. Khi họ đòi thêm phí để hoàn tiền, hãy dừng chuyển và giữ bằng chứng.':
@@ -229,10 +231,11 @@
       bubble('Vy',reply)+'<p>'+e(lesson)+'</p>'+
       '<details><summary>Những việc bạn đã làm</summary><dl class="result">'+
       '<dt>Nhận diện yêu cầu cần kiểm tra</dt><dd>'+
-        (state.transfer==='waiting'?'Đã nhắn Vy khoan chuyển.':refused()?'Đã khuyên Vy từ chối yêu cầu chuyển tiền.':
+        (verified?'Đã chuyển cho Vy căn cứ về khoản giữ ca.':
+          state.transfer==='waiting'?'Đã nhắn Vy khoan chuyển.':refused()?'Đã khuyên Vy từ chối yêu cầu chuyển tiền.':
           state.messages.some(message=>[holdAdvice,rethinkAdvice].includes(message.text))?'Đã nhắn Vy khoan chuyển trước khi gửi lời khuyên rủi ro.':'Đã khuyên Vy tin vào khoản trả thử.')+'</dd>'+
       '<dt>Chọn nguồn độc lập</dt><dd>'+(state.clubAsked.length?'Đã hỏi qua hộp thư trang CLB.':'Chưa hỏi qua hộp thư trang CLB.')+'</dd>'+
-      '<dt>Xử lý giao dịch</dt><dd>'+e(outcome)+'</dd></dl>'+
+      '</dl>'+
       (checked.length?'<ul>'+checked.map(item=>'<li>'+e(item)+'</li>').join('')+'</ul>':'')+'</details>'+
       actions(inboxLink(),paid?go('recover','Về hồ sơ hỗ trợ'):'',go('post','Mở bài gốc'));
   }
@@ -325,10 +328,21 @@
     if(action==='share'&&current()==='club'&&state.clubAsked.includes(id)&&!state.shared.includes(id)) {
       const {answer,reply} = clubQuestions[id];
       state.shared.push(id);
-      if(id==='club-fee') state.transferPrompt=false;
-      const vyReply = id==='club-fee'&&state.transfer==='paid'
-        ? 'Vậy khoản tớ vừa chuyển không phải tiền giữ chỗ của CLB rồi.'
-        : id==='club-post'&&feeShared()?'Ừ, vậy đúng là bài CLB đăng.':reply;
+      let vyReply = reply;
+      if(id==='club-fee') {
+        state.transferPrompt=false;
+        if(state.transfer==='paid') {
+          vyReply='Vậy khoản tớ chuyển không phải phí của CLB. Cậu giúp tớ xử lý với.';
+        } else if(refused()) {
+          vyReply='Giờ tớ biết ca chiều đăng ký qua form. Cậu gửi tớ bài gốc với.';
+        } else {
+          state.transfer='declined';
+          state.verifiedDecision=true;
+          state.finished=true;
+        }
+      } else if(feeShared()||!unsettled()) {
+        vyReply='Ừ, vậy đúng là bài CLB đăng.';
+      }
       chat('Tớ gửi cậu tin CLB trả lời nè.',vyReply,{source:clb,quote:answer});
       save();navigate('inbox');return;
     }
@@ -340,12 +354,8 @@
       state.clubAsked.push(id);
     }
     else if(action==='cancel'&&current()==='inbox'&&unsettled()&&!state.transferPrompt) {
-      state.verifiedDecision=feeShared();
-      const wasWaiting = state.transfer==='waiting';
-      const reply = wasWaiting?'Ừ, tớ quyết định không chuyển.':'Ừ, tớ hủy khoản 500k rồi.';
-      chat(state.verifiedDecision?cancelAdvice:refusalAdvice(),
-        reply+(state.verifiedDecision?' Cậu gửi lại đường dẫn bài cho tớ nha.':''));
-      state.transfer=wasWaiting?'declined':'cancelled';
+      chat(refusalAdvice,'Ừ, tớ quyết định không chuyển.');
+      state.transfer='declined';
       state.finished=true;
     } else if(action==='send-registration-link'&&current()==='inbox'&&refused()&&feeShared()&&!state.linkSent) {
       state.messages.push({name:'Bạn · Đã gửi',text:'Đây, đường dẫn bài gốc của CLB nè.',sent:true,postLink:true},
@@ -369,9 +379,9 @@
       state.transfer='paid';
     } else if(action==='report'&&current()==='report'&&!state.reported) state.reported=true;
     else if(action==='stop'&&current()==='recover'&&state.transfer==='paid'&&!state.stopped) {
-      chat('Cậu dừng chuyển thêm nha.','Ừ, tớ không chuyển thêm nữa.');
+      chat('Cậu đừng chuyển thêm nha','Ừ, tớ dừng ở đây. Tớ không chuyển thêm nữa.');
       state.stopped=true;
-      notice='Vy đã nhắn lại rằng sẽ dừng chuyển thêm.';
+      save();navigate('inbox');return;
     } else if(action==='bank'&&current()==='bank'&&state.transfer==='paid'&&!state.bank) state.bank=true;
     else if(action==='keep'&&current()==='recover'&&state.transfer==='paid'&&['receipt','chatSaved'].includes(id)&&!state[id]) {
       state[id]=true;notice='Đã lưu vào hồ sơ hỗ trợ.';
