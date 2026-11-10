@@ -215,7 +215,7 @@
     const outcome = paid?'Vy đã chuyển 500.000đ. Khoản tiền chưa được thu hồi.':
       state.transfer==='cancelled'?'Vy đã hủy khoản chuyển 500.000đ.':
       state.transfer==='declined'?'Vy quyết định không chuyển 500.000đ.':'Vy đã tạm dừng và chưa chuyển 500.000đ.';
-    const reply = paid?(state.stopped?'Giờ tớ giữ lại mấy tin nhắn này.':'Tớ chưa biết xử lý khoản này sao nữa.'):
+    const reply = paid?(state.stopped?'Tớ không chuyển thêm nữa.':'Tớ chưa biết xử lý khoản này sao nữa.'):
       verified?(state.linkSent?'Tớ sẽ xem form trong bài gốc.':'May quá, tớ vẫn có thể đăng ký ca chiều.'):
       state.transfer==='cancelled'?'Tớ hủy rồi. Để tớ tìm hiểu thêm.':
       state.transfer==='declined'?'Tớ không chuyển nữa. Để tớ tìm hiểu thêm.':'Ừ, tớ sẽ chờ, chưa chuyển đâu.';
