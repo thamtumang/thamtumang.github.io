@@ -445,8 +445,8 @@
     if (body.querySelector('iframe')) return;
     const frame = document.createElement('iframe');
     frame.caTrucStorage = Store.caTrucStorage('sao-mai-v2');
-    frame.title = 'Ca trực an toàn số: Vy sắp chuyển 500k';
-    frame.src = './ca-truc/ban-thu/?v=ca-vy-summary-v6';
+    frame.title = 'Ca trực an toàn số: Ca của Vy';
+    frame.src = './ca-truc/ban-thu/?v=ca-vy-intro-v7';
     frame.style.cssText = 'display:block;flex:1;min-height:0;width:100%;border:0';
     body.appendChild(frame);
   }
