@@ -2,7 +2,7 @@
   'use strict';
   const host = document.getElementById('app');
   const storage = window.frameElement?.caTrucStorage;
-  const fresh = () => ({view:'inbox', transfer:'pending', messages:[], shared:[], seen:[], guide:true,
+  const fresh = () => ({view:'inbox', recruiterReturn:'inbox', transfer:'pending', messages:[], shared:[], seen:[], guide:true,
     giangContacted:false, clubAsked:[], transferPrompt:false, verifiedDecision:false, reported:false, linkSent:false, finished:false,
     stopped:false, bank:false, receipt:false, chatSaved:false});
   const saved = storage?.load();
@@ -170,8 +170,9 @@
       bubble('Hương Giang','Ca chiều em đừng điền form nha.')+
       bubble('Hương Giang','Em chuyển 500k để giữ ca chiều nha.')+
       bubble('Hương Giang','Hết ca chị trả lại khoản đó.')+
-      '</section>'+actions(go('giang','Mở hội thoại riêng với Hương Giang','primary'),
-        state.reported?pill(reportStatus):go('report','Báo cáo tài khoản Hương Giang'),go('post','Mở bài gốc'),inboxLink());
+      '</section>'+actions(state.recruiterReturn==='club'?go('club','Về hội thoại CLB','primary'):inboxLink(),
+        go('giang','Mở hội thoại riêng với Hương Giang'),
+        state.reported?pill(reportStatus):go('report','Báo cáo tài khoản Hương Giang'),go('post','Mở bài gốc'));
   }
   function giang() {
     return '<h1>Hội thoại riêng · Hương Giang</h1><section class="conversation source-chat">'+
@@ -190,7 +191,7 @@
       .map(([id,{question}])=>B(question,'ask-club',id));
     return '<h1>Hộp thư trang CLB</h1><section class="conversation source-chat">'+publisher(clb,'SM','Hộp thư mở từ trang đăng bài gốc')+
       '<div class="shared-list">'+postPreview()+'</div>'+conversation+actions(...choices)+
-      '</section>'+actions(!knowsFee()?go('recruiter','Xem đoạn chat Vy chia sẻ'):'',go('page','Về trang CLB'),inboxLink());
+      '</section>'+actions(go('recruiter','Xem đoạn chat Vy chia sẻ'),go('page','Về trang CLB'),inboxLink());
   }
   function transaction(incoming=false) {
     return '<article class="slip"><header><span class="seal">'+(incoming?'↙':'↗')+'</span><b>Ví học đường</b><small>Mô phỏng</small></header>'+
@@ -402,6 +403,11 @@
     focusLatest(feedback[action] || (notice?'.notice':'.surface h1'));
   }
   host.addEventListener('click',event=>{
+    const chatLink=event.target.closest('a[href="#recruiter"]');
+    if(chatLink && !resume && !['giang','report'].includes(current())) {
+      state.recruiterReturn=current()==='club'?'club':'inbox';
+      save();
+    }
     const button=event.target.closest('button[data-action]');
     if(button) act(button.dataset.action,button.dataset.id);
   });

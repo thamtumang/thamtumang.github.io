@@ -446,7 +446,7 @@
     const frame = document.createElement('iframe');
     frame.caTrucStorage = Store.caTrucStorage('sao-mai-v2');
     frame.title = 'Ca trực an toàn số: Ca của Vy';
-    frame.src = './ca-truc/ban-thu/?v=ca-vy-intro-v7';
+    frame.src = './ca-truc/ban-thu/?v=ca-vy-return-v8';
     frame.style.cssText = 'display:block;flex:1;min-height:0;width:100%;border:0';
     body.appendChild(frame);
   }
