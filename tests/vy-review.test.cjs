@@ -28,6 +28,8 @@ for(const id of ['receipt','post','compare']){
  t.do('review',id);t.do('draft',id+'-0');t.do('send-draft');assert.equal(t.currentOpinion(id),0);
  t.do('send-draft');assert.equal(t.state.messages.length,before+4);
 }
+// An unrelated draft appears once when a comparison has only one selected excerpt.
+{const t=load();t.state.selected=['0'];t.do('draft','receipt-0');assert.equal((t.inbox().match(/class="draft-box"/g)||[]).length,1);}
 // Verification before weak evidence must remain before it in the ordered summary.
 let t=load();t.view('club');t.do('ask','process');t.do('share-process');t.do('draft','receipt-0');t.do('send-draft');
 assert.equal(t.state.extraPaid,false);assert.match(t.state.messages.at(-1).text,/Studio đã nói/);
