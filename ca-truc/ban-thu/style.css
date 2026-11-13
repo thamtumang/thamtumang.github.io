@@ -169,3 +169,6 @@ button.amount[aria-pressed=true] { border-color:#aa761e; background:#fff0c9; }
 .result > details, .recover details { padding: .55rem .7rem; border: 1px solid var(--line); border-radius: .55rem; }
 .result summary, .recover summary, #comments summary { cursor: pointer; font-weight: 650; padding-block: .35rem; }
 .recover details .slip { margin-bottom: .45rem; }
+
+.draft-box{margin:.75rem 0;padding:.7rem;border:2px solid #a97b27;border-radius:.65rem;background:#fff7df}
+.draft-box h3{font-size:1rem}.draft-box .bubble{margin:.4rem 0}.artifact-body h2{font-size:1.2rem}
