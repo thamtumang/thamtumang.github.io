@@ -172,3 +172,6 @@ button.amount[aria-pressed=true] { border-color:#aa761e; background:#fff0c9; }
 
 .draft-box{margin:.75rem 0;padding:.7rem;border:2px solid #a97b27;border-radius:.65rem;background:#fff7df}
 .draft-box h3{font-size:1rem}.draft-box .bubble{margin:.4rem 0}.artifact-body h2{font-size:1.2rem}
+
+.comparison-box{margin:.8rem 0;padding:.7rem;border:1px solid var(--line);border-radius:.65rem;background:#f5f7fc}
+.comparison-box h3{font-size:1rem}.comparison-box ul{padding-left:1.2rem}.artifact-body>.publisher{margin-bottom:.8rem}

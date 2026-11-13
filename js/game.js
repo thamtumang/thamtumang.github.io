@@ -447,7 +447,7 @@
     frame.caTrucStorage = Store.caTrucStorage('payment-v1');
     frame.caTrucRevised = !frame.caTrucStorage.load() && Boolean(Store.caTrucStorage('sao-mai-v2').load());
     frame.title = 'Ca trực an toàn số: Ca của Vy';
-    frame.src = './ca-truc/ban-thu/?v=ca-vy-payment-v1';
+    frame.src = './ca-truc/ban-thu/?v=ca-vy-compare-v2';
     frame.style.cssText = 'display:block;flex:1;min-height:0;width:100%;border:0';
     body.appendChild(frame);
   }
