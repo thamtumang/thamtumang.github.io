@@ -2,12 +2,14 @@
   'use strict';
   const host = document.getElementById('app');
   const storage = window.frameElement?.caTrucStorage;
-  const fresh = () => ({view:'inbox', selected:[], taskReturn:'recruiter', messages:[], seen:[], sent:[], asked:[], draft:null,
+  const fresh = () => ({view:'inbox', review:null, taskReflection:false, reflectionUnread:false, timeline:[], legacy:null, selected:[], taskReturn:'recruiter', messages:[], seen:[], sent:[], asked:[], draft:null,
     sharedReturn:'inbox', paused:false, stopped:false, verifiedShared:false, extraPaid:false,
     transferPrompt:false, finished:false, receiptSaved:false, chatSaved:false, reported:false,
     dossier:false, giangAsked:false});
   const saved = storage?.load();
   let state = {...fresh(), ...saved};
+  // Older payment-v1 saves have no ordered event log. Keep their facts separate.
+  if(saved && !Object.hasOwn(saved,'timeline')) state.legacy=JSON.parse(JSON.stringify(saved));
   const studio = 'Sao Mai Studio';
   const postQuestion = 'Bài tuyển hỗ trợ nội dung này bên mình đăng phải không ạ?';
   const processQuestion = 'Bạn em được hướng dẫn ứng tiền làm nhiệm vụ, đã chuyển 500k rồi. Bên mình có quy trình này không ạ?';
@@ -48,6 +50,45 @@
       'Tên thì giống, nhưng ai xác nhận phần ứng tiền này là của Studio vậy cậu?'
     ]}
   };
+  const groupNames={receipt:'biên lai 45k',post:'xác nhận bài tuyển của Studio',compare:'đối chiếu bài tuyển với thẻ nhiệm vụ'};
+  const viewNames={recruiter:'đoạn chat Vy chia sẻ',post:'bài tuyển gốc',receipt:'biên lai 45k',task:'thẻ nhiệm vụ hỗ trợ đơn hàng',tasks:'bảng nhiệm vụ',transactions:'lịch sử giao dịch'};
+  function log(text) { state.timeline.push(text); }
+  function currentOpinion(id) {
+    for(let i=state.messages.length-1;i>=0;i--) {
+      const m=state.messages[i];
+      if(m.sent && m.evidenceId===id) return m.choice;
+      if(m.sent && m.attachment?.source===evidence[id].source) {
+        const choice=evidence[id].options.findIndex(text=>m.text===text||m.text==='Tớ xem lại rồi… '+text);
+        if(choice>=0) return choice;
+      }
+    }
+    // A single legacy token is unambiguous; never infer order from two flags.
+    const choices=[0,1].filter(choice=>state.sent.includes(id+'-'+choice));
+    return choices.length===1?choices[0]:null;
+  }
+  const hasOpinion=id=>state.sent.some(token=>token.startsWith(id+'-'))||state.messages.some(m=>m.sent&&m.evidenceId===id);
+  if(state.draft&&hasOpinion(state.draft.id)) {
+    if(currentOpinion(state.draft.id)===state.draft.choice) state.draft=null;
+    else state.review=state.draft.id;
+  }
+  function legacyFacts() {
+    const old=state.legacy;if(!old) return [];
+    return [
+      ...(old.seen||[]).map(id=>'Đã mở '+(viewNames[id]||id)+'.'),
+      ...(old.sent||[]).filter(token=>Object.hasOwn(evidence,token.split('-')[0])).map(token=>{
+        const [id,choice]=token.split('-');return 'Đã gửi '+groupNames[id]+' kèm nhận định “'+evidence[id].options[Number(choice)]+'”.';
+      }),
+      ...(old.asked||[]).map(id=>id==='post'?'Đã hỏi Studio và nhận xác nhận bài tuyển do họ đăng.':'Đã hỏi Studio và nhận xác nhận không có quy trình ứng tiền.'),
+      ...(old.verifiedShared?['Đã chuyển phản hồi Studio về quy trình và khuyên Vy dừng.']:[]),
+      ...(old.paused?['Đã khuyên Vy tạm dừng chuyển thêm.']:[]),
+      ...(old.extraPaid?['Vy đã chuyển thêm 1.000.000đ.']:[]),
+      ...(old.stopped?['Vy đã xác nhận dừng chuyển thêm.']:[]),
+      ...(old.receiptSaved?['Đã lưu chứng từ chuyển tiền.']:[]),
+      ...(old.chatSaved?['Đã lưu tin nhắn yêu cầu chuyển thêm.']:[]),
+      ...(old.reported?['Đã báo cáo tài khoản Hương Giang trên ViệtBook.']:[]),
+      ...(old.dossier?['Đã chuẩn bị hồ sơ mô phỏng, chưa trình báo.']:[])
+    ];
+  }
   const e = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const button = (label,action,id='',cls='') => '<button type="button" data-action="'+action+'" data-id="'+id+'" class="'+cls+'">'+e(label)+'</button>';
   const go = (view,label,cls='') => '<a class="button '+cls+'" href="#'+view+'">'+e(label)+'</a>';
@@ -79,19 +120,26 @@
   function draft() {
     if(!state.draft) return '';
     const {id,choice} = state.draft, item=evidence[id];
-    return '<section class="draft-box"><h3>Bản nháp · Chưa gửi</h3>'+bubble('Bạn · Sắp gửi',item.options[choice],true,item)+
+    const revising=hasOpinion(id);
+    return '<section class="draft-box"><h3>Bản nháp · Chưa gửi</h3>'+bubble(revising?'Bạn · Sắp gửi sửa ý':'Bạn · Sắp gửi',(revising?'Tớ xem lại rồi… ':'')+item.options[choice],true,item)+
       actions(button('Gửi cho Vy','send-draft','','primary'),button('Đổi nhận định','change-draft'),button('Bỏ bản nháp','discard-draft'))+'</section>';
   }
   function evidenceChoices(id) {
-    const item=evidence[id];
-    return '<p>Chọn lời nhắn gửi kèm căn cứ</p>'+actions(...item.options.map((label,i)=>
-      state.sent.includes(id+'-'+i)?pill('Đã gửi · '+label):button(label,'draft',id+'-'+i)))+draft();
+    const item=evidence[id],sent=hasOpinion(id),active=state.review===id;
+    if(sent&&!active) return actions(button('Xem lại nhận định','review',id));
+    const choice=currentOpinion(id);
+    return (sent?'<h3>Xem lại · '+e(groupNames[id])+'</h3>'+bubble('Căn cứ đã gửi','',false,item):'')+
+      '<p>Chọn lời nhắn gửi kèm căn cứ</p>'+actions(...item.options.map((label,i)=>
+        sent&&choice===i?pill('Nhận định hiện tại · '+label):button(label,'draft',id+'-'+i)))+
+      (state.draft?.id===id?draft():'')+
+      (sent?actions(button('Đóng bộ soạn','close-review',id)):'');
   }
   function selectExcerpt(id) {
     const selected=state.selected.includes(id);
     return actions(button(selected?'✓ Đã chọn · Bỏ chọn':'Chọn để đối chiếu','select-excerpt',id,selected?'primary':''));
   }
   function comparison() {
+    if(hasOpinion('compare')) return evidenceChoices('compare');
     return '<section class="comparison-box"><h3>Đối chiếu phần việc</h3><p>Đang chọn '+state.selected.length+'/2 nội dung</p>'+
       '<ul>'+state.selected.map(id=>'<li>'+e(excerpts[Number(id)].source)+'</li>').join('')+'</ul>'+
       actions(!state.selected.includes('0')?go('post','Chọn nội dung bài tuyển'):'',
@@ -111,7 +159,9 @@
       card('tasks','Bảng nhiệm vụ','Số hiển thị do bên tuyển dụng cung cấp')+
       card('post','Bài tuyển gốc','Sao Mai Studio · Hỗ trợ nội dung')+'</div>'+
       '<div class="chat-thread">'+thread+'</div>'+
-      (state.selected.length?comparison():draft())+
+      (state.selected.length||hasOpinion('compare')?comparison():'')+
+      ['receipt','post'].filter(hasOpinion).map(id=>'<section class="opinion-review"><h3>'+e(groupNames[id])+'</h3>'+evidenceChoices(id)+'</section>').join('')+
+      (state.draft&&!hasOpinion(state.draft.id)&&state.draft.id!=='compare'?draft():'')+
       (state.transferPrompt?actions(button('Khoan, để tớ kiểm tra lại','rethink','','primary'),button('Ừ, cậu chuyển tiếp đi','proceed')):
       actions(!state.paused&&canContinue()?button('Khoan chuyển thêm, để tớ kiểm tra','pause','','primary'):'',
         canContinue()?button('Tớ nghĩ cậu có thể làm tiếp','risk'):'',
@@ -196,11 +246,6 @@
     const group=state.extraPaid?'Đã chuyển thêm':state.verifiedShared&&state.stopped?'Đã xác minh và dừng chuyển thêm':'Đã tạm dừng, chưa xác minh đầy đủ';
     const reply=state.stopped?'Tớ không chuyển thêm nữa.':state.extraPaid?'Tớ chuyển thêm rồi mà tiền vẫn chưa về.':'Ừ, tớ chờ. Tớ chưa chuyển thêm.';
     const weakPost=state.sent.includes('post-0')||state.sent.includes('compare-1'), weakReceipt=state.sent.includes('receipt-0');
-    const verifiedAt=state.messages.findIndex(message=>message.text===processReply);
-    const weakReceiptAt=state.messages.findIndex(message=>message.sent&&message.text===evidence.receipt.options[0]);
-    const weakPostAt=state.messages.findIndex(message=>message.sent&&message.text===evidence.post.options[0]);
-    const correctedReceipt=weakReceiptAt>=0&&verifiedAt>weakReceiptAt;
-    const correctedPost=weakPostAt>=0&&verifiedAt>weakPostAt;
     const lesson=weakPost?'Bài tuyển thật chưa xác nhận người nhắn riêng đại diện cho đơn vị.':
       weakReceipt?'Những lần nhận tiền trước không xác nhận độ an toàn của yêu cầu tiếp theo.':
       'Khoản tiền đã chuyển không làm cho lần chuyển tiếp theo an toàn hơn.';
@@ -210,16 +255,12 @@
       (state.receiptSaved&&state.chatSaved?'Đã lưu tin nhắn và chứng từ chuyển tiền.':state.receiptSaved?'Đã lưu chứng từ. Còn thiếu tin nhắn.':
         state.chatSaved?'Đã lưu tin nhắn. Còn thiếu chứng từ.':'Chưa lưu tin nhắn và chứng từ.')+'</li></ul>'+
       '<details><summary>Những việc bạn đã làm</summary><ul>'+
-      state.seen.map(id=>'<li>Đã mở '+e(({recruiter:'đoạn chat Vy chia sẻ',post:'bài tuyển gốc',receipt:'biên lai 45k',task:'thẻ nhiệm vụ hỗ trợ đơn hàng',tasks:'bảng nhiệm vụ',transactions:'lịch sử giao dịch'})[id]||id)+'.</li>').join('')+
-      state.sent.map(key=>{const [id,choice]=key.split('-');return '<li>'+(id==='compare'?'Đã đối chiếu phần việc bằng hai trích đoạn':'Đã gửi '+e(evidence[id].quote))+' cùng nhận định “'+e(evidence[id].options[Number(choice)])+'”.</li>';}).join('')+
-      (correctedReceipt?'<li>Ban đầu dựa vào biên lai 45k để khuyên tin. Sau đó hỏi Studio và giúp Vy dừng chuyển thêm.</li>':'')+
-      (correctedPost?'<li>Ban đầu coi bài tuyển thật là căn cứ tin lời mời. Sau đó hỏi đúng về ứng tiền và giúp Vy dừng chuyển thêm.</li>':'')+
-      (state.asked.includes('post')?'<li>Đơn vị xác nhận bài tuyển do họ đăng.</li>':'')+
-      (state.asked.includes('process')?'<li>Đơn vị xác nhận không tổ chức ứng tiền làm nhiệm vụ và không yêu cầu chuyển tiền để thanh toán.</li>':'')+
-      (state.verifiedShared?'<li>Đã gửi phản hồi về quy trình và lời khuyên dừng cho Vy.</li>':'')+
+      (state.legacy?'<li>Thông tin từ lượt đã lưu trước bản cập nhật (không xác định đầy đủ thứ tự):<ul>'+legacyFacts().map(text=>'<li>'+e(text)+'</li>').join('')+'</ul></li>':'')+
+      state.timeline.map(text=>'<li>'+e(text)+'</li>').join('')+
+      (state.draft?'<li>Chưa gửi: bản nháp nhận định về '+e(groupNames[state.draft.id])+'.</li>':'')+
+      (!hasOpinion('compare')&&state.selected.length?'<li>Đang chọn '+state.selected.length+'/2 trích đoạn; chưa gửi đối chiếu.</li>':'')+
       (state.asked.length?'<li>Danh tính và vai trò thật của Hương Giang chưa được xác minh.</li>':'')+
-      (state.reported?'<li>Đã báo cáo tài khoản Hương Giang trên ViệtBook. Chờ xem xét.</li>':'')+
-      (state.dossier?'<li>Đã chuẩn bị hồ sơ mô phỏng. Chưa trình báo.</li>':'')+'</ul></details>'+
+'</ul></details>'+
       '<details><summary>Cơ sở tình huống</summary><p>Cơ chế trả công ban đầu, yêu cầu ứng tiền và giữ thanh toán được chuyển thể từ các cảnh báo dưới đây. Tên người, tổ chức và mọi diễn biến cụ thể trong ca đều hư cấu.</p><ul>'+
       sources.map(([label,url])=>'<li><a href="'+url+'" target="_blank" rel="noopener">'+label+'</a></li>').join('')+'</ul></details>'+
       actions(go('recover','Tiếp tục hỗ trợ Vy','primary'),go('inbox','Về hộp thư Vy'));
@@ -238,10 +279,15 @@
   };
   function render() {
     const view=current();state.view=view;
-    if(['recruiter','post','receipt','transactions','tasks','task'].includes(view)&&!state.seen.includes(view)) state.seen.push(view);
+    if(Object.hasOwn(viewNames,view)&&!state.seen.includes(view)) {state.seen.push(view);log('Đã mở '+viewNames[view]+'.');}
+    if(view==='task'&&!state.taskReflection) {
+      state.taskReflection=true;state.reflectionUnread=true;
+      state.messages.push({name:'Vy',text:'Hồi đó tớ nghĩ chị ấy đã trả tiền lần trước, chắc lần này cũng trả. Nhìn lại mới thấy phần việc khác hẳn.',reflection:true});
+    }
+    if(view==='inbox') state.reflectionUnread=false;
     save();
     host.innerHTML='<header class="top"><a class="brand" href="#inbox">ViệtBook <small>Ca trực an toàn số</small></a><nav>'+
-      go('inbox','Hộp thư Vy')+button('Chơi lại','reset')+'</nav></header><div class="shell"><div class="case-label">CA CỦA VY <strong>Khoản tiền chưa về</strong></div>'+
+      go('inbox','Hộp thư Vy'+(state.reflectionUnread?' · Có tin nhắn của Vy':''))+button('Chơi lại','reset')+'</nav></header><div class="shell"><div class="case-label">CA CỦA VY <strong>Khoản tiền chưa về</strong></div>'+
       (window.frameElement?.caTrucRevised?'<p class="notice">Ca Vy có kịch bản mới. Lượt giữ ca cũ được lưu riêng, lượt này bắt đầu lại.</p>':'')+
       '<section class="surface '+view+'">'+panels[view]()+'</section><footer>Mạng xã hội giả lập. Mọi giao dịch, báo cáo và liên hệ trong ca đều là mô phỏng.</footer></div>';
   }
@@ -250,7 +296,12 @@
       if(!window.confirm('Chơi lại riêng ca Vy từ đầu?')) return;
       state=fresh();save();navigate('inbox');return;
     }
-    if(action==='ask'&&current()==='club'&&['post','process'].includes(id)&&!state.asked.includes(id)) state.asked.push(id);
+    if(action==='ask'&&current()==='club'&&['post','process'].includes(id)&&!state.asked.includes(id)) {
+      state.asked.push(id);log(id==='post'?'Đã hỏi Studio và nhận xác nhận bài tuyển do họ đăng.':'Đã hỏi Studio và nhận xác nhận không tổ chức ứng tiền, không yêu cầu chuyển tiền để thanh toán.');
+    } else if(action==='review'&&Object.hasOwn(evidence,id)&&hasOpinion(id)) state.review=id;
+    else if(action==='close-review'&&state.review===id) {
+      state.review=null;if(state.draft?.id===id) state.draft=null;
+    }
     else if(action==='select-excerpt'&&['0','1'].includes(id)&&
       ((id==='0'&&current()==='post')||(id==='1'&&current()==='task'))) {
       state.selected=state.selected.includes(id)?state.selected.filter(value=>value!==id):[...state.selected,id];
@@ -260,47 +311,54 @@
       if(state.draft?.id==='compare') state.draft=null;
     } else if(action==='draft') {
       const [key,choice]=id.split('-');
-      if(!Object.hasOwn(evidence,key)||!['0','1'].includes(choice)||(key==='post'&&!state.asked.includes('post'))||(key==='compare'&&state.selected.length!==2)) return;
-      if(state.sent.includes(id)) return;
+      if(!Object.hasOwn(evidence,key)||!['0','1'].includes(choice)||(key==='post'&&!state.asked.includes('post'))||(key==='compare'&&!hasOpinion(key)&&state.selected.length!==2)) return;
+      if(hasOpinion(key)&&(state.review!==key||currentOpinion(key)===Number(choice))) return;
       state.draft={id:key,choice:Number(choice)};
     } else if(action==='discard-draft'&&state.draft) state.draft=null;
     else if(action==='change-draft'&&state.draft) {
-      const key=state.draft.id;state.draft=null;save();navigate(key==='post'?'club':key==='compare'?'task':'receipt');return;
+      const key=state.draft.id;state.draft=null;
+      if(hasOpinion(key)) {state.review=key;render();return;}
+      save();navigate(key==='post'?'club':key==='compare'?'task':'receipt');return;
     } else if(action==='send-draft'&&state.draft) {
       const {id:key,choice}=state.draft,item=evidence[key],token=key+'-'+choice;
-      if(state.sent.includes(token)||(key==='compare'&&state.selected.length!==2)) return;
-      state.sent.push(token);state.draft=null;
+      const revising=hasOpinion(key);
+      if((revising&&(state.review!==key||currentOpinion(key)===choice))||(!revising&&key==='compare'&&state.selected.length!==2)) return;
+      if(!state.sent.includes(token)) state.sent.push(token);
+      state.draft=null;state.review=null;
       let reply=item.replies[choice];
       if(state.verifiedShared) reply='Studio đã nói không có quy trình ứng tiền này. Tớ không chuyển thêm nữa.';
       else if(state.stopped) reply='Tớ đã dừng chuyển thêm. Mình vẫn cần kiểm tra phần ứng tiền với Studio.';
       else if(state.extraPaid) reply='Tớ đã chuyển thêm rồi mà chưa được thanh toán. Mình kiểm tra lại với Studio nha.';
       else if(state.finished) reply='Tớ vẫn đang chờ, chưa chuyển thêm. Mình kiểm tra tiếp nha.';
-      chat(item.options[choice],reply,item);save();navigate('inbox');return;
+      chat((revising?'Tớ xem lại rồi… ':'')+item.options[choice],reply,item);
+      Object.assign(state.messages[state.messages.length-2],{evidenceId:key,choice,revised:revising});
+      log((revising?'Đã sửa nhận định về ':'Đã gửi ')+groupNames[key]+(key==='compare'?' (hai trích đoạn)':'')+' kèm nhận định “'+item.options[choice]+'”.');
+      save();navigate('inbox');return;
     } else if(action==='pause'&&canContinue()&&!state.paused) {
-      state.paused=true;chat('Khoan chuyển thêm, để tớ kiểm tra','Ừ, tớ chưa chuyển thêm. Cậu xem giúp tớ.');
+      log('Đã khuyên Vy tạm dừng chuyển thêm.');state.paused=true;chat('Khoan chuyển thêm, để tớ kiểm tra','Ừ, tớ chưa chuyển thêm. Cậu xem giúp tớ.');
     } else if(action==='finish'&&state.paused&&!state.transferPrompt&&!state.finished) {
-      state.finished=true;save();navigate('result');return;
+      state.finished=true;log('Đã kết thúc tạm dừng, chưa xác minh đầy đủ.');save();navigate('result');return;
     } else if(action==='share-process'&&current()==='club'&&state.asked.includes('process')&&!state.verifiedShared) {
-      state.verifiedShared=true;state.stopped=true;state.transferPrompt=false;state.finished=true;
+      log('Đã chuyển phản hồi Studio về quy trình ứng tiền; Vy xác nhận dừng chuyển thêm.');state.verifiedShared=true;state.stopped=true;state.transferPrompt=false;state.finished=true;
       chat('Bên Sao Mai nói không có quy trình này. Cậu dừng chuyển thêm nha.',processReply,{source:studio,quote:processAnswer});
       save();navigate('inbox');return;
     } else if(action==='risk'&&canContinue()&&!state.transferPrompt) {
-      state.transferPrompt=true;chat('Tớ nghĩ cậu có thể làm tiếp','Vậy tớ chuyển thêm 1 triệu để lấy lại khoản trước nha?');
+      log('Đã khuyên Vy tiếp tục; Vy hỏi lại trước khi quyết định.');state.transferPrompt=true;chat('Tớ nghĩ cậu có thể làm tiếp','Vậy tớ chuyển thêm 1 triệu để lấy lại khoản trước nha?');
     } else if(action==='rethink'&&state.transferPrompt&&canContinue()) {
-      state.transferPrompt=false;state.paused=true;chat('Khoan, để tớ kiểm tra lại','Ừ, tớ vẫn chưa chuyển thêm.');
+      log('Đã đổi ý trước khi chuyển thêm và tiếp tục kiểm tra.');state.transferPrompt=false;state.paused=true;chat('Khoan, để tớ kiểm tra lại','Ừ, tớ vẫn chưa chuyển thêm.');
     } else if(action==='proceed'&&state.transferPrompt&&canContinue()) {
-      state.transferPrompt=false;state.extraPaid=true;state.finished=false;
+      log('Đã xác nhận lời khuyên; Vy chuyển thêm 1.000.000đ. Tổng đã chuyển 1.500.000đ, chưa thu hồi.');state.transferPrompt=false;state.extraPaid=true;state.finished=false;
       state.receiptSaved=false;state.chatSaved=false;state.dossier=false;
       chat('Ừ, cậu chuyển tiếp đi','Tớ quyết định thử làm nốt bước này.');
       state.messages.push({name:'Vy',text:'Tớ vừa chuyển thêm 1 triệu rồi.'},{name:'Vy',text:'Vẫn chưa được thanh toán. Giờ họ lại đòi phí xử lý.'});
     } else if(action==='stop'&&!state.stopped&&current()==='recover') {
-      state.stopped=true;state.transferPrompt=false;
+      log('Đã nhắn Vy dừng; Vy xác nhận không chuyển thêm.');state.stopped=true;state.transferPrompt=false;
       chat('Cậu đừng chuyển thêm nha.','Ừ, tớ dừng ở đây. Tớ không chuyển thêm nữa.');
       save();navigate('inbox');return;
-    } else if(action==='keep'&&current()==='recover'&&['receiptSaved','chatSaved'].includes(id)) state[id]=true;
-    else if(action==='dossier'&&current()==='recover'&&state.chatSaved&&state.receiptSaved) state.dossier=true;
-    else if(action==='report'&&current()==='report') state.reported=true;
-    else if(action==='ask-giang'&&current()==='giang'&&!state.giangAsked) state.giangAsked=true;
+    } else if(action==='keep'&&current()==='recover'&&['receiptSaved','chatSaved'].includes(id)&&!state[id]) {state[id]=true;log(id==='receiptSaved'?'Đã lưu chứng từ chuyển tiền.':'Đã lưu tin nhắn yêu cầu chuyển thêm.');}
+    else if(action==='dossier'&&current()==='recover'&&state.chatSaved&&state.receiptSaved&&!state.dossier) {state.dossier=true;log('Đã chuẩn bị hồ sơ mô phỏng. Chưa trình báo.');}
+    else if(action==='report'&&current()==='report'&&!state.reported) {state.reported=true;log('Đã báo cáo tài khoản Hương Giang trên ViệtBook. Chờ xem xét.');}
+    else if(action==='ask-giang'&&current()==='giang'&&!state.giangAsked) {state.giangAsked=true;log('Đã hỏi riêng Hương Giang; đây là lời của bên đang yêu cầu tiền.');}
     else return;
     render();
     host.querySelector(action==='risk'?'.conversation .actions button':'.chat-thread .bubble:last-child')?.focus();
