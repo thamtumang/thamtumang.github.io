@@ -146,7 +146,7 @@
         !state.selected.includes('1')?go('task','Chọn nội dung nhiệm vụ'):'',
         state.selected.length?button('Bỏ chọn tất cả','clear-excerpts'):'')+
       (state.selected.length===2?evidenceChoices('compare'):
-        draft())+'</section>';
+        (state.draft?.id==='compare'?draft():''))+'</section>';
   }
   function inbox() {
     const thread=state.messages.map(m=>bubble(m.name,m.text,m.sent,m.attachment)).join('');
