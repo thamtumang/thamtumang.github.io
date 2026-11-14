@@ -210,3 +210,20 @@ button.amount[aria-pressed=true] { border-color:#aa761e; background:#fff0c9; }
  .contact-title .pill{font-size:.8rem}
 }
 .attachment-preview p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.support-paths{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem;margin:1rem 0}
+.support-paths .share-card{align-items:start;padding:.8rem;min-height:7rem}
+.support-paths .share-card strong,.support-paths .share-card small{display:block}
+.support-paths .share-card small{margin-top:.4rem;line-height:1.4}
+.support-artifact{border:1px solid var(--line);border-radius:.75rem;padding:.85rem;margin:.75rem 0;background:#f8faff;overflow-wrap:anywhere}
+.support-artifact h2,.support-intro h2,.draft-box h2{font-size:1.1rem;margin-bottom:.4rem}
+.support-artifact details{margin:.5rem 0}
+.support-artifact summary,.support-intro summary,.dossier summary,.report summary{cursor:pointer;min-height:44px;padding:.6rem .15rem;font-weight:650}
+.support-reaction{margin:.75rem 0;padding:.6rem;border-left:3px solid #6d85b4;background:#edf2fc;scroll-margin-block:1rem;border-radius:.4rem}
+.support-reaction .bubble{margin:0}.support-reaction .actions{margin-bottom:0}.support-reaction .button{font-size:.86rem}
+.support-reaction:focus-visible{outline:3px solid #a9610e;outline-offset:3px}
+.recover>.bubble{max-width:65ch}.support-intro{margin:.7rem 0}
+.bankHelp .small,.policeHelp .small,.report .small{font-size:.85rem;color:var(--muted);margin-top:.7rem}
+.support-artifact .result{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.4rem .7rem}
+.support-artifact dd{margin:0}.support-artifact dt{font-weight:650}
+@media(max-width:700px){.support-paths{grid-template-columns:1fr}.support-paths .share-card{min-height:72px}.support-artifact{padding:.65rem}}
