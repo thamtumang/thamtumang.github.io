@@ -175,3 +175,37 @@ button.amount[aria-pressed=true] { border-color:#aa761e; background:#fff0c9; }
 
 .comparison-box{margin:.8rem 0;padding:.7rem;border:1px solid var(--line);border-radius:.65rem;background:#f5f7fc}
 .comparison-box h3{font-size:1rem}.comparison-box ul{padding-left:1.2rem}.artifact-body>.publisher{margin-bottom:.8rem}
+
+/* Khoản tiền chưa về: compact sources, readable turns, full drafts. */
+.role-hint{font-size:.9rem;color:var(--muted);margin:.35rem 0 .65rem}
+.inbox .shared-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+.shared-content,.opening-history{border:1px solid #c4cfe1;border-radius:.65rem;padding:.3rem .6rem;margin:.5rem 0;background:#f6f8fd}
+.shared-content>summary,.opening-history>summary,.chat-evidence>summary{cursor:pointer;font-weight:650;min-height:44px;padding:.6rem .1rem}
+.shared-content .share-card{min-height:60px}
+.shared-content .share-card strong{font-size:.94rem}.shared-content .share-card small{font-size:.82rem}
+.message-turn{margin-top:1rem;scroll-margin-top:1rem;outline-offset:4px}
+.message-turn:focus-visible{outline:2px solid #a9610e;border-radius:.55rem}
+.attachment-preview{border-top:1px solid #b8c8e0;padding-top:.35rem;margin-top:.45rem;display:grid;gap:.35rem}
+.attachment-preview p{font-size:.88rem;line-height:1.4}.attachment-preview small{font-size:.76rem;font-weight:650}
+.chat-evidence summary{font-size:.87rem;color:var(--blue)}
+.chat-evidence[open]{border-top:1px solid #b8c8e0;margin-top:.4rem}
+.chat-evidence .actions{margin-bottom:0}.chat-evidence button{font-size:.85rem}
+.opinion-tools{display:flex;justify-content:flex-end;margin:-.2rem 0 .35rem}
+.opinion-tools button{background:transparent;border-color:transparent;text-decoration:underline;font-size:.84rem;font-weight:550;padding:.3rem .5rem}
+.next-actions{border-top:1px solid #d1d9ea;padding-top:.2rem;margin-top:.55rem}
+.opinion-editor{margin-top:.75rem;padding:.8rem;border:1px solid #aebed9;border-radius:.65rem;background:#f6f8fd}
+.opinion-editor h3{font-size:1rem}.draft-box{scroll-margin-block:1rem}
+.composer-zone:empty{display:none}
+.bubble,.share-card,.draft-box,.opinion-editor{overflow-wrap:anywhere;min-width:0}
+.bubble p:empty{display:none}
+@media(max-width:620px){
+ .inbox .shared-list{grid-template-columns:1fr}
+ .inbox .surface{padding:.7rem}
+ .message-turn .bubble{max-width:100%}
+ .message-turn .sent{max-width:94%}
+ .draft-box .bubble{max-width:100%}
+ .opinion-editor{padding:.55rem}
+ .composer-zone .actions{align-items:stretch}
+ .composer-zone .actions button{flex:1 1 100%}
+ .contact-title .pill{font-size:.8rem}
+}

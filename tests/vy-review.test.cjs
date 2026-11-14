@@ -5,7 +5,7 @@ const source=fs.readFileSync('ca-truc/ban-thu/app.js','utf8').replace('  render(
 function load(saved){
  const host={innerHTML:'',addEventListener(){},querySelector(){return null;}};
  const location={hash:''};
- const context={document:{getElementById:()=>host},window:{frameElement:{caTrucStorage:{load:()=>saved,save(){}}}},location,history:{replaceState(a,b,hash){location.hash=hash}},addEventListener(){}};
+ const context={document:{getElementById:()=>host},requestAnimationFrame:fn=>fn(),window:{scrollTo(){},scrollY:0,frameElement:{caTrucStorage:{load:()=>saved,save(){}}}},location,history:{replaceState(a,b,hash){location.hash=hash}},addEventListener(){}};
  vm.runInNewContext(source,context);
  const t=context.test;
  t.view=v=>{location.hash='#'+v;t.render()};
@@ -30,6 +30,12 @@ for(const id of ['receipt','post','compare']){
 }
 // An unrelated draft appears once when a comparison has only one selected excerpt.
 {const t=load();t.state.selected=['0'];t.do('draft','receipt-0');assert.equal((t.inbox().match(/class="draft-box"/g)||[]).length,1);}
+// History collapses attachments, while drafts keep both complete sources readable.
+{const t=load();t.state.selected=['0','1'];t.do('draft','compare-0');
+ assert.match(t.inbox(),/Bài tuyển gốc · Sao Mai Studio/);assert.doesNotMatch(t.inbox(),/Xem căn cứ/);
+ t.do('send-draft');assert.match(t.inbox(),/Xem căn cứ · 2 nguồn/);assert.match(t.inbox(),/data-disclosure="message-0"/);
+ assert.equal((t.inbox().match(/data-action="review"/g)||[]).length,1);
+}
 // Verification before weak evidence must remain before it in the ordered summary.
 let t=load();t.view('club');t.do('ask','process');t.do('share-process');t.do('draft','receipt-0');t.do('send-draft');
 assert.equal(t.state.extraPaid,false);assert.match(t.state.messages.at(-1).text,/Studio đã nói/);
