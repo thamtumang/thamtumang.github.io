@@ -439,7 +439,7 @@
     }
     const target=event.target.closest('button[data-action]');
     if(target?.dataset.action==='close-evidence') {
-      const details=target.closest('details');state.disclosures[details.dataset.disclosure]=false;save();details.open=false;details.querySelector('summary').focus({preventScroll:true});return;
+      const details=target.closest('details');state.disclosures[details.dataset.disclosure]=false;save();details.open=false;details.querySelector('summary').focus({preventScroll:true});details.querySelector('summary').scrollIntoView({block:'nearest'});return;
     }
     if(target) act(target.dataset.action,target.dataset.id);
   });

@@ -209,3 +209,4 @@ button.amount[aria-pressed=true] { border-color:#aa761e; background:#fff0c9; }
  .composer-zone .actions button{flex:1 1 100%}
  .contact-title .pill{font-size:.8rem}
 }
+.attachment-preview p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
