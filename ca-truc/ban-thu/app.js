@@ -2,7 +2,7 @@
   'use strict';
   const host = document.getElementById('app');
   const storage = window.frameElement?.caTrucStorage;
-  const fresh = () => ({view:'inbox', supportIntro:null, supportOpened:false, supportFeedback:null, helpSeen:[], helpShared:[], helpDraft:null, reportDraft:null, reportSnapshot:null, dossierSnapshot:null, scrolls:{}, disclosures:{}, pendingTurn:null, studioVisited:false, review:null, taskReflection:false, reflectionUnread:false, timeline:[], legacy:null, selected:[], taskReturn:'recruiter', messages:[], seen:[], sent:[], asked:[], draft:null,
+  const fresh = () => ({view:'inbox', dossierOpened:false, dossierIntro:null, dossierIntroOpen:false, dossierSelection:[], dossierDraft:null, dossierSent:[], dossierArchive:[], dossierSeen:[], receiptSavedTotal:null, supportIntro:null, supportOpened:false, supportFeedback:null, helpSeen:[], helpShared:[], helpDraft:null, reportDraft:null, reportSnapshot:null, dossierSnapshot:null, scrolls:{}, disclosures:{}, pendingTurn:null, studioVisited:false, review:null, taskReflection:false, reflectionUnread:false, timeline:[], legacy:null, selected:[], taskReturn:'recruiter', messages:[], seen:[], sent:[], asked:[], draft:null,
     sharedReturn:'inbox', paused:false, stopped:false, verifiedShared:false, extraPaid:false,
     transferPrompt:false, finished:false, receiptSaved:false, chatSaved:false, reported:false,
     dossier:false, giangAsked:false});
@@ -10,6 +10,8 @@
   let state = {...fresh(), ...saved};
   // Older payment-v1 saves have no ordered event log. Keep their facts separate.
   if(saved && !Object.hasOwn(saved,'timeline')) state.legacy=JSON.parse(JSON.stringify(saved));
+  if(saved?.dossier&&!Object.hasOwn(saved,'dossierOpened')) state.dossierOpened=true;
+  if(saved?.receiptSaved&&!state.receiptSavedTotal) state.receiptSavedTotal=saved.extraPaid?'1.500.000đ':'500.000đ';
   const studio = 'Sao Mai Studio';
   const postQuestion = 'Bài tuyển hỗ trợ nội dung này bên mình đăng phải không ạ?';
   const processQuestion = 'Bạn em được hướng dẫn ứng tiền làm nhiệm vụ, đã chuyển 500k rồi. Bên mình có quy trình này không ạ?';
@@ -179,9 +181,10 @@
     return message.evidenceId||Object.keys(evidence).find(id=>message.sent&&message.attachment?.source===evidence[id].source)||null;
   }
   function nextActions() {
-    if(state.transferPrompt) return actions(button('Khoan, để tớ kiểm tra lại','rethink','','primary'),button('Ừ, cậu chuyển tiếp đi','proceed'));
-    if(state.stopped||state.extraPaid) return actions(go('recover','Mở hồ sơ hỗ trợ','primary'),resultLink());
-    return actions(
+    const follow=dossierFollowup();
+    if(state.transferPrompt) return follow+actions(button('Khoan, để tớ kiểm tra lại','rethink','','primary'),button('Ừ, cậu chuyển tiếp đi','proceed'));
+    if(state.stopped||state.extraPaid) return follow+actions(go('recover','Mở hồ sơ hỗ trợ','primary'),resultLink());
+    return follow+actions(
       !state.paused&&canContinue()?button('Khoan chuyển thêm, để tớ kiểm tra','pause','','primary'):'',
       state.messages.length?(state.studioVisited||state.asked.length?go('club','Quay lại hội thoại Sao Mai'):go('post','Mở bài tuyển gốc')):'',
       canContinue()?button('Tớ nghĩ cậu có thể làm tiếp','risk'):'',
@@ -342,17 +345,105 @@
       actions(go('dossier',state.dossier?'Xem lại bản chuẩn bị thông tin':'Cùng Vy chuẩn bị thông tin'),go('help','Chọn kênh khác'))+
       '<p class="small">Ca này không gọi điện, gửi biểu mẫu hay xác nhận ngân hàng/cơ quan đã tiếp nhận. Chưa có kết quả về khoản tiền.</p>'+supportExit();
   }
+  const dossierLabels={receipt45:'Biên lai nhận 45.000đ',transfers:'Chứng từ khoản đã chuyển',demands:'Tin nhắn yêu cầu tiền',post:'Bài tuyển gốc của Studio',studioPost:'Studio xác nhận bài tuyển',studioProcess:'Studio trả lời về ứng tiền'};
+  function dossierItems() {
+    const items={
+      receipt45:{title:dossierLabels.receipt45,source:'Ví học đường · Tiền công làm thử',quote:'+45.000đ · Đã nhận · Tiền đã vào ví Vy.',
+        role:'Thể hiện khoản công Vy từng nhận.',limit:'Không thể hiện khoản đã chuyển hoặc bảo đảm lần tiếp theo được thanh toán.',kept:false},
+      transfers:{title:dossierLabels.transfers,source:'Chứng từ Vy chia sẻ · Mô phỏng',
+        quote:'MP-500-042 · 500.000đ · Ứng tiền làm nhiệm vụ · Đã chuyển.'+(state.extraPaid?' MP-1000-043 · 1.000.000đ · Bước tiếp theo · Đã chuyển.':''),
+        role:'Thể hiện '+total()+' đã chuyển qua '+(state.extraPaid?'hai giao dịch.':'một giao dịch.'),limit:'Riêng chứng từ chưa thể hiện lời mời và điều kiện đòi tiền.',kept:state.receiptSaved},
+      demands:{title:dossierLabels.demands,source:'Đoạn chat Vy và Hương Giang · Chỉ đọc',
+        quote:'Hương Giang gửi nhiệm vụ ứng 500.000đ, mô tả hoàn khoản ứng và tiền công sau khi hoàn thành. Sau khi Vy chuyển 500.000đ, Giang nhắn: “Em cần làm tiếp bước 1 triệu mới thanh toán được.”'+
+          (state.extraPaid?' Vy đã chuyển thêm 1.000.000đ. Giang tiếp tục đòi phí xử lý.':' Khoản 1.000.000đ này chưa chuyển.'),
+        role:'Thể hiện yêu cầu tiền và điều kiện gắn với thanh toán.',limit:'Không tự chứng minh tiền đã chuyển hay danh tính thật người đứng sau tài khoản.',kept:state.chatSaved},
+      post:{title:dossierLabels.post,source:'Sao Mai Studio · Bài đăng công khai',quote:originalWork+' Gửi mẫu bài qua hộp thư trang.',
+        role:'Bổ sung bối cảnh phần việc tuyển công khai.',limit:'Bài thật chưa xác nhận lời mời riêng hoặc quy trình ứng tiền.',kept:false}
+    };
+    if(state.asked.includes('post')) items.studioPost={title:dossierLabels.studioPost,source:'Hộp thư Sao Mai Studio',quote:postAnswer,
+      role:'Xác nhận bài tuyển thuộc Studio.',limit:'Chưa xác nhận người nhắn riêng đại diện Studio hoặc khoản ứng tiền.',kept:false};
+    if(state.asked.includes('process')) items.studioProcess={title:dossierLabels.studioProcess,source:'Hộp thư Sao Mai Studio',quote:processAnswer,
+      role:'Xác nhận phạm vi quy trình ứng tiền của Studio.',limit:'Chưa xác minh danh tính thật của Hương Giang hoặc thu hồi khoản tiền.',kept:false};
+    return items;
+  }
+  function dossierKey(data,includeKept=false) {
+    if(!data) return null;
+    return JSON.stringify({amount:data.amount,selected:data.selected,attachments:data.attachments?.map(item=>({id:item.id,quote:item.quote,...(includeKept?{kept:item.kept}:{})}))});
+  }
   function dossierData() {
-    return {amount:total(),receipts:state.receiptSaved,chat:state.chatSaved};
+    const items=dossierItems(),selected=Object.keys(items).filter(id=>state.dossierSelection.includes(id));
+    return {schema:2,amount:total(),selected,summary:'Vy nhận 45.000đ tiền công làm thử, sau đó ứng 500.000đ theo nhiệm vụ.'+
+      (state.extraPaid?' Vy đã chuyển thêm 1.000.000đ nhưng vẫn chưa được thanh toán.':' Vy chưa chuyển khoản 1.000.000đ đang bị yêu cầu.')+
+      ' Tổng đã chuyển '+total()+', chưa xác nhận thu hồi. Khoản 45.000đ được ghi riêng.',
+      attachments:selected.map(id=>({id,...items[id]}))};
+  }
+  function dossierCoverage(data) {
+    const ids=data.selected||[];
+    return ids.includes('transfers')?(ids.includes('demands')?'Có chứng từ khoản đã chuyển và nội dung yêu cầu tiền.':'Có chứng từ khoản đã chuyển; chưa kèm lời yêu cầu tiền.'):
+      ids.includes('demands')?'Có lời yêu cầu tiền; chưa kèm chứng từ khoản đã chuyển.':'Chưa kèm chứng từ khoản đã chuyển hoặc lời yêu cầu tiền.';
+  }
+  function dossierBody(data) {
+    if(data?.schema!==2) return '<p>Bản từ trước cập nhật; chưa ghi các lựa chọn đính kèm theo cơ chế mới.</p>'+
+      (data?'<p>Tổng ghi trong bản: '+e(data.amount||'chưa lưu chi tiết')+'. '+(data.receipts?'Có chứng từ theo trạng thái cũ. ':'')+(data.chat?'Có tin nhắn theo trạng thái cũ.':'')+'</p>':'');
+    const core=data.attachments.filter(item=>['transfers','demands'].includes(item.id)),context=data.attachments.filter(item=>!['transfers','demands'].includes(item.id));
+    const list=(label,items)=>items.length?'<section class="dossier-inclusions"><h3>'+label+'</h3>'+items.map(item=>'<article><h4>'+e(item.title)+'</h4><p class="small">'+e(item.source)+'</p><blockquote>'+e(item.quote)+'</blockquote><p><b>Làm rõ:</b> '+e(item.role)+'</p><p><b>Giới hạn:</b> '+e(item.limit)+'</p><small>'+ (item.kept?'Đã lưu riêng khi tạo bản này.':'Đính kèm từ nội dung đã chia sẻ; chưa lưu riêng khi tạo bản này.')+'</small></article>').join('')+'</section>':'';
+    return '<p class="small">Tóm tắt tự điền từ diễn biến, không phải phần người chơi tự viết.</p><p>'+e(data.summary)+'</p>'+list('Khoản chuyển và yêu cầu tiền',core)+list('Bối cảnh và thông tin đối chiếu',context)+
+      (!data.attachments.length?'<p>Chưa đính kèm nội dung nào.</p>':'')+'<p class="dossier-scope">'+e(dossierCoverage(data))+' Đây không phải xác nhận hồ sơ đã đầy đủ hoặc sẽ được giải quyết.</p>';
+  }
+  function dossierReply(data) {
+    const ids=data.selected;
+    if(!ids.includes('transfers')) {
+      if(ids.includes('demands')) return 'Có lời yêu cầu rồi. Còn chứng từ khoản đã chuyển nữa.';
+      if(ids.includes('receipt45')) return 'Cái này cho thấy lần trước tớ có nhận tiền. Còn khoản tớ đã chuyển thì mình chưa kèm.';
+      if(ids.includes('post')) return 'Bài này cho thấy công việc ban đầu. Còn chứng từ khoản đã chuyển thì mình chưa kèm.';
+      return 'Bản này chưa kèm chứng từ khoản tớ đã chuyển. Mình xem lại phần đó nha?';
+    }
+    if(!ids.includes('demands')) return 'Có khoản chuyển rồi. Mình kèm đoạn họ yêu cầu tiền để rõ vì sao tớ chuyển nha?';
+    return ids.includes('post')?'Mình có cả khoản đã chuyển và lời yêu cầu tiền rồi. Bài tuyển thêm bối cảnh, chưa xác nhận lời mời riêng.':'Mình có cả khoản đã chuyển và lời yêu cầu tiền rồi.';
+  }
+  function dossierFollowup() {
+    if(state.messages.at(-1)?.supportKind!=='dossier-review') return '';
+    const data=state.dossierSent.at(-1);if(!data) return '';
+    const missing=!data.selected.includes('transfers')?'transfers':!data.selected.includes('demands')?'demands':null;
+    return actions(missing?button(missing==='transfers'?'Bổ sung chứng từ đã chuyển':'Bổ sung tin nhắn yêu cầu tiền','dossier-supplement',missing):'',
+      go('dossier','Xem lại bản nháp'),dossierKey(state.dossierSnapshot,true)===dossierKey(data,true)?pill('Đã lưu bản này'):
+      data.amount===total()?button('Lưu bản này','dossier-save'):'');
+  }
+  function dossierStatus() {
+    const latest=state.dossierSent.at(-1),saved=state.dossierSnapshot;
+    return '<details class="dossier-status"><summary>Chi tiết bản chuẩn bị</summary>'+
+      '<p>Đang chọn: '+e(state.dossierSelection.map(id=>dossierLabels[id]).join('; ')||'chưa chọn nội dung')+'. Việc chọn chưa phải gửi hoặc lưu.</p>'+
+      (state.dossierDraft&&dossierKey(state.dossierDraft)!==dossierKey(latest)?'<p>Có bản nháp chưa gửi Vy.</p>':'')+
+      (latest?'<p>Đã gửi Vy xem: '+e(latest.selected.map(id=>dossierLabels[id]).join('; ')||'bản chưa đính kèm')+'. '+e(dossierCoverage(latest))+'</p>':'<p>Chưa gửi Vy bản nháp theo cơ chế đính kèm mới.</p>')+
+      (state.dossierSent.length>1?'<p>Có '+(state.dossierSent.length-1)+' lần sửa/bổ sung đã gửi Vy.</p>':'')+
+      (saved||state.dossier?'<p>Bản đã lưu '+(saved?.amount?e(saved.amount):'từ lượt cũ')+(saved?.amount&&saved.amount!==total()?' khác tổng hiện tại '+total():'')+'.</p>':'<p>Chưa lưu bản chuẩn bị.</p>')+
+      '<p>Các bản này chưa gửi ngân hàng hoặc cơ quan Công an.</p></details>';
   }
   function dossier() {
-    const data=state.dossierSnapshot;
-    return '<h1>Cùng Vy chuẩn bị thông tin</h1><p>Bản ghi mô phỏng · Chưa gửi ngân hàng hoặc cơ quan Công an.</p>'+supportReaction()+
-      '<article class="support-artifact"><h2>Thông tin của lượt hiện tại</h2><p>Vy được mời hỗ trợ nội dung, đã nhận 45.000đ làm thử rồi ứng tiền theo nhiệm vụ. Hiện chưa được thanh toán.</p>'+
-      '<dl class="result"><dt>Tổng đã chuyển</dt><dd>'+total()+'</dd><dt>Chứng từ đã lưu</dt><dd>'+(state.receiptSaved?'Có':'Chưa lưu')+'</dd><dt>Tin nhắn đã lưu</dt><dd>'+(state.chatSaved?'Có':'Chưa lưu')+'</dd></dl></article>'+
-      (state.dossier?'<details><summary>Xem bản đã chuẩn bị</summary>'+(data?'<p>Tổng ghi trong bản: '+e(data.amount)+'. '+(data.receipts?'Có chứng từ. ':'Chưa kèm chứng từ. ')+(data.chat?'Có tin nhắn.':'Chưa kèm tin nhắn.')+'</p>':'<p>Bản từ lượt đã lưu trước cập nhật; chưa có chi tiết thành phần được ghi lại.</p>')+'</details>':'')+
-      actions(!data||JSON.stringify(data)!==JSON.stringify(dossierData())?button(state.dossier?'Cập nhật bản chuẩn bị':'Lưu bản chuẩn bị mô phỏng','dossier','','primary'):pill('Đã lưu bản chuẩn bị · Chưa trình báo'),
-      go('proofs','Xem lại chứng cứ'),go('help','Xem hướng dẫn hỗ trợ'))+supportExit();
+    const items=dossierItems(),data=state.dossierDraft,latest=state.dossierSent.at(-1),saved=state.dossierSnapshot;
+    const stale=data&&data.amount!==total(),changed=saved&&dossierKey(saved,true)!==dossierKey(dossierData(),true);
+    const intro=state.messages[state.dossierIntro];
+    const selection=Object.entries(items).map(([id,item])=>'<article class="dossier-item" data-item="'+id+'"><h3>'+e(item.title)+'</h3><p class="small">'+e(item.source)+'</p>'+
+      '<details data-disclosure="dossier-'+id+'" data-dossier-item="'+id+'" '+(state.disclosures['dossier-'+id]?'open':'')+'><summary>Xem nội dung</summary><p>'+e(item.quote)+'</p></details>'+
+      '<p class="small">'+(item.kept?'Đã lưu riêng.':id==='transfers'&&state.receiptSavedTotal?'Đã lưu riêng chứng từ ở mốc '+e(state.receiptSavedTotal)+'; có khoản mới chưa lưu.':'Chưa lưu riêng; có thể dùng từ nội dung Vy chia sẻ.')+'</p>'+
+      '<label class="dossier-check"><input type="checkbox" data-action="dossier-toggle" data-id="'+id+'" '+(state.dossierSelection.includes(id)?'checked':'')+' aria-label="Đính kèm '+e(item.title)+'">Đính kèm nội dung này</label></article>').join('');
+    return '<h1>Cùng Vy chuẩn bị thông tin</h1><p>Chọn nội dung giúp làm rõ khoản Vy đã chuyển và yêu cầu chuyển thêm.</p>'+
+      (intro?(state.dossierIntroOpen?bubble('Vy',intro.text):'<details><summary>Xem lời Vy khi bắt đầu</summary>'+bubble('Vy',intro.text)+'</details>'):'')+
+      '<p class="small">Chọn đính kèm khác với lưu riêng chứng cứ. Bản này chưa gửi ngân hàng hoặc cơ quan Công an.</p>'+
+      (saved&&saved.amount!==total()?'<p class="notice">Bản đã lưu ghi '+e(saved.amount)+'. Lượt hiện tại đã chuyển '+total()+'. Bản cũ được giữ nguyên; hãy xem lại số tiền và chứng từ khi cập nhật.</p>':'')+
+      (state.dossier&&saved?.schema!==2?'<p class="notice">Bản từ trước cập nhật vẫn được giữ. Chưa có lựa chọn đính kèm mới được tự gán.</p>':'')+
+      '<details class="dossier-sources" '+(!data?'open':'')+'><summary>Chọn hoặc bỏ nội dung đính kèm</summary><div class="dossier-grid">'+selection+'</div></details>'+
+      (!data?actions(button('Xem bản nháp','dossier-preview','','primary')):
+      '<section class="draft-box dossier-preview" tabindex="-1"><h2>'+ (dossierKey(data)===dossierKey(latest)?'Bản đã gửi Vy xem':'Bản nháp · Chưa gửi Vy')+'</h2>'+dossierBody(data)+
+      (!stale&&dossierKey(data,true)!==dossierKey(dossierData(),true)?'<p class="small">Nội dung hoặc trạng thái lưu riêng hiện tại đã khác nháp này.</p>'+actions(button('Lấy thay đổi hiện tại vào nháp','dossier-preview')):'')+
+      (stale?'<p class="notice">Nháp ghi '+e(data.amount)+'; tổng hiện tại là '+total()+'. Cần cập nhật nháp trước khi gửi hoặc lưu.</p>'+actions(button('Cập nhật nháp theo lượt hiện tại','dossier-preview','','primary')):
+      actions(dossierKey(data)===dossierKey(latest)?pill('Đã gửi Vy bộ nội dung này'):button('Gửi Vy xem bản nháp','dossier-send','','primary'),
+        dossierKey(data,true)===dossierKey(saved,true)?pill('Đã lưu bản này'):button(state.dossier?'Cập nhật bản đã lưu':'Lưu bản nháp này','dossier-save')))+
+      '<p class="small">Chưa gửi ngân hàng hoặc cơ quan Công an.</p>'+actions(button('Đổi lựa chọn','dossier-edit'),button('Hủy bản nháp','dossier-cancel'))+'</section>')+
+      (state.supportFeedback!==null&&state.messages[state.supportFeedback]?.supportKind==='dossier-review'?supportReaction()+dossierFollowup():'')+
+      (state.dossier?'<details class="dossier-saved"><summary>Xem các bản đã lưu</summary>'+[...state.dossierArchive,saved].map((record,i)=>'<article><h3>Bản lưu '+(i+1)+(i===state.dossierArchive.length?' · gần nhất':' · trước đó')+'</h3>'+dossierBody(record)+'</article>').join('')+'</details>':'')+
+      (changed?'<p class="small">Lựa chọn, nội dung hoặc trạng thái lưu riêng hiện tại khác bản đã lưu. Bản cũ chưa bị thay đổi.</p>':'')+
+      actions(go('proofs','Xem lại chứng cứ'),go('help','Xem hướng dẫn hỗ trợ'))+supportExit();
   }
   function makeReport() {
     return {amount:total(),text:'Tài khoản Hương Giang tự nhận tuyển cộng tác viên cho Sao Mai Studio, hướng dẫn Vy ứng tiền. Vy đã chuyển '+total()+' nhưng chưa được thanh toán và vẫn bị yêu cầu chuyển thêm. Đề nghị ViệtBook xem xét tài khoản gửi yêu cầu tiền.'};
@@ -383,11 +474,11 @@
       '<p>45.000đ tiền công đã nhận trước đó được ghi riêng.</p>'+bubble('Vy',reply)+'<p>'+lesson+'</p>'+
       '<ul><li>'+(state.stopped?'Vy đã dừng chuyển thêm.':state.paused?'Vy đang chờ kiểm tra; chưa chốt dừng.':'Chưa chốt dừng chuyển thêm.')+'</li><li>'+
       (state.receiptSaved&&state.chatSaved?'Đã lưu tin nhắn và chứng từ chuyển tiền.':state.receiptSaved?'Đã lưu chứng từ. Còn thiếu tin nhắn.':
-        state.chatSaved?'Đã lưu tin nhắn. Còn thiếu chứng từ.':'Chưa lưu tin nhắn và chứng từ.')+'</li><li>'+
+        state.chatSaved?'Đã lưu tin nhắn. Còn thiếu chứng từ hiện tại.':state.receiptSavedTotal?'Đã lưu chứng từ ở mốc '+state.receiptSavedTotal+'; khoản chuyển mới và tin nhắn chưa được lưu riêng.':'Chưa lưu tin nhắn và chứng từ.')+'</li><li>'+
       (state.verifiedShared?'Vy đã nhận căn cứ Studio về quy trình ứng tiền.':state.asked.includes('process')?'Đã hỏi Studio về ứng tiền; chưa chuyển phản hồi cho Vy.':'Chưa xác minh quy trình ứng tiền với Studio.')+'</li><li>'+
       (state.helpSeen.length?'Đã mở kênh: '+state.helpSeen.map(id=>e(helpSources[id].title)).join('; ')+'.':'Chưa mở kênh hỗ trợ khoản tiền.')+'</li><li>'+
       (state.helpShared.length?'Đã gửi hướng dẫn cho Vy: '+state.helpShared.map(id=>e(helpSources[id].title)).join('; ')+'.':'Chưa gửi hướng dẫn hỗ trợ cho Vy.')+'</li><li>'+
-      (state.dossier?'Đã chuẩn bị thông tin mô phỏng; chưa trình báo.':'Chưa chuẩn bị thông tin.')+'</li><li>'+
+      (state.dossier?'Đã lưu bản chuẩn bị mô phỏng; chưa trình báo.':state.dossierSent.length?'Đã gửi Vy xem nháp; chưa lưu bản chuẩn bị.':'Chưa chuẩn bị thông tin.')+'</li><li>'+
       (state.reported?'Đã gửi báo cáo ViệtBook; chưa có kết quả xử lý.':'Chưa gửi báo cáo ViệtBook.')+'</li><li>Chưa có xác nhận Vy đã liên hệ ngân hàng hoặc trình báo cơ quan Công an.</li></ul>'+
       '<details><summary>Những việc bạn đã làm</summary><ul>'+
       (state.legacy?'<li>Thông tin từ lượt đã lưu trước bản cập nhật (không xác định đầy đủ thứ tự):<ul>'+legacyFacts().map(text=>'<li>'+e(text)+'</li>').join('')+'</ul></li>':'')+
@@ -396,7 +487,7 @@
       (state.draft?'<li>Chưa gửi: bản nháp nhận định về '+e(groupNames[state.draft.id])+'.</li>':'')+
       (!hasOpinion('compare')&&state.selected.length?'<li>Đang chọn '+state.selected.length+'/2 trích đoạn; chưa gửi đối chiếu.</li>':'')+
       (state.asked.length?'<li>Danh tính và vai trò thật của Hương Giang chưa được xác minh.</li>':'')+
-'</ul></details>'+
+'</ul></details>'+dossierStatus()+
       '<details><summary>Cơ sở tình huống</summary><p>Cơ chế trả công ban đầu, yêu cầu ứng tiền và giữ thanh toán được chuyển thể từ các cảnh báo dưới đây. Tên người, tổ chức và mọi diễn biến cụ thể trong ca đều hư cấu.</p><ul>'+
       sources.map(([label,url])=>'<li><a href="'+url+'" target="_blank" rel="noopener">'+label+'</a></li>').join('')+'</ul><h3>Cơ sở ứng phó</h3><ul>'+
       Object.values(helpSources).map(item=>'<li><a href="'+item.url+'" target="_blank" rel="noopener">'+e(item.organization)+' · '+item.date+'</a> — '+e(item.label)+'. Áp dụng: '+e(item.purpose)+'</li>').join('')+'</ul></details>'+
@@ -416,6 +507,11 @@
   function render() {
     const view=current(),restoreY=state.scrolls[view]||0;state.view=view;
     if(view==='club') state.studioVisited=true;
+    if(view!=='dossier') state.dossierIntroOpen=false;
+    if(view==='dossier'&&!state.dossierOpened) {
+      state.dossierOpened=true;state.dossierIntroOpen=true;state.dossierIntro=state.messages.length;state.pendingTurn=state.messages.length;
+      state.messages.push({name:'Vy',dossierIntro:true,text:'Tớ có cả biên lai lần nhận tiền lẫn lần chuyển tiền. Mình kèm những gì để kể rõ chuyện này?'});
+    }
     if(view==='recover'&&!state.supportOpened) {
       state.supportOpened=true;state.supportIntro=state.messages.length;state.pendingTurn=state.messages.length;
       state.messages.push({name:'Vy',supportKind:'intro',text:state.extraPaid?
@@ -451,7 +547,10 @@
   }
   function act(action,id) {
     state.scrolls[current()]=window.scrollY;
-    if(['keep','dossier','report'].includes(action)) focusAfterRender='.support-reaction';
+    if(action==='dossier-toggle') focusAfterRender='[data-action="dossier-toggle"][data-id="'+id+'"]';
+    else if(action==='dossier-preview') focusAfterRender='.dossier-preview';
+    else if(action==='dossier-edit'||action==='dossier-cancel') focusAfterRender='[data-action="dossier-toggle"]';
+    else if(['keep','report'].includes(action)) focusAfterRender='.support-reaction';
     else if(action==='draft-help'||action==='draft-report') focusAfterRender='.draft-box button';
     else if(action==='cancel-report') focusAfterRender='[data-action="draft-report"]';
     else if(action==='cancel-help') focusAfterRender='[data-action="draft-help"]';
@@ -517,7 +616,7 @@
       log('Đã đổi ý trước khi chuyển thêm và tiếp tục kiểm tra.');state.transferPrompt=false;state.paused=true;chat('Khoan, để tớ kiểm tra lại','Ừ, tớ vẫn chưa chuyển thêm.');
     } else if(action==='proceed'&&state.transferPrompt&&canContinue()) {
       log('Đã xác nhận lời khuyên; Vy chuyển thêm 1.000.000đ. Tổng đã chuyển 1.500.000đ, chưa thu hồi.');state.transferPrompt=false;state.extraPaid=true;state.finished=false;
-      state.receiptSaved=false;state.chatSaved=false;state.dossier=false;state.dossierSnapshot=null;
+      state.receiptSaved=false;state.chatSaved=false;
       chat('Ừ, cậu chuyển tiếp đi','Tớ quyết định thử làm nốt bước này.');
       state.messages.push({name:'Vy',text:'Tớ vừa chuyển thêm 1 triệu rồi.'},{name:'Vy',text:'Vẫn chưa được thanh toán. Giờ họ lại đòi phí xử lý.'});
     } else if(action==='stop'&&!state.stopped&&current()==='recover') {
@@ -525,7 +624,7 @@
       supportChat('Cậu đừng chuyển thêm nha.','Ừ, tớ dừng ở đây. Tớ không chuyển thêm nữa.','stop');
       save();navigate('inbox');return;
     } else if(action==='keep'&&['recover','proofs'].includes(current())&&['receiptSaved','chatSaved'].includes(id)&&!state[id]) {
-      state[id]=true;log(id==='receiptSaved'?'Đã lưu chứng từ chuyển tiền.':'Đã lưu tin nhắn yêu cầu chuyển thêm.');
+      state[id]=true;if(id==='receiptSaved') state.receiptSavedTotal=total();log(id==='receiptSaved'?'Đã lưu chứng từ chuyển tiền.':'Đã lưu tin nhắn yêu cầu chuyển thêm.');
       supportChat(id==='receiptSaved'?'Tớ lưu lại chứng từ chuyển tiền nha.':'Tớ lưu lại đoạn họ yêu cầu tiền nha.',
         state.receiptSaved&&state.chatSaved?'Mình đã giữ cả tin nhắn và chứng từ rồi.':
         id==='receiptSaved'?'Ừ, mình giữ được chứng từ rồi. Còn đoạn họ yêu cầu chuyển tiền nữa.':'Ừ, mình giữ được tin nhắn rồi. Còn chứng từ khoản đã chuyển nữa.','evidence');
@@ -535,12 +634,31 @@
       const item=helpSources[id];state.helpShared.push(id);state.helpDraft=null;
       log('Đã gửi hướng dẫn '+item.title+' cho Vy. Chưa xác nhận đã liên hệ.');
       supportChat(item.advice,item.reply,'guidance',{source:item.organization,quote:item.quote});save();navigate('inbox');return;
-    } else if(action==='dossier'&&['recover','dossier'].includes(current())) {
-      const data=dossierData();if(state.dossierSnapshot&&JSON.stringify(data)===JSON.stringify(state.dossierSnapshot)) return;
-      const updating=state.dossier;state.dossier=true;state.dossierSnapshot=data;
-      log((updating?'Đã cập nhật':'Đã chuẩn bị')+' bản thông tin mô phỏng: '+data.amount+', '+(data.receipts?'có':'chưa kèm')+' chứng từ, '+(data.chat?'có':'chưa kèm')+' tin nhắn. Chưa trình báo.');
-      supportChat('Mình lưu bản thông tin đang có để nhờ hỗ trợ nha.',
-        'Ừ, mình có bản ghi sự việc rồi.'+(!data.receipts||!data.chat?' Còn chứng cứ chưa kèm đủ.':'')+' Vẫn còn bước liên hệ nơi hỗ trợ.','dossier');
+    } else if(action==='dossier-toggle'&&current()==='dossier'&&Object.hasOwn(dossierItems(),id)) {
+      state.dossierSelection=state.dossierSelection.includes(id)?state.dossierSelection.filter(value=>value!==id):[...state.dossierSelection,id];state.dossierDraft=null;
+    } else if(action==='dossier-preview'&&current()==='dossier') state.dossierDraft=dossierData();
+    else if(['dossier-edit','dossier-cancel'].includes(action)&&current()==='dossier') state.dossierDraft=null;
+    else if(action==='dossier-send'&&current()==='dossier'&&state.dossierDraft&&state.dossierDraft.amount===total()) {
+      const data=state.dossierDraft,last=state.dossierSent.at(-1);
+      if(dossierKey(data)===dossierKey(last)) return;
+      const revision=state.dossierSent.length>0;
+      const record=JSON.parse(JSON.stringify(data));state.dossierSent.push(record);state.dossierIntroOpen=false;
+      const attachments=[{source:'Tóm tắt tự điền · Bản '+(state.dossierSent.length),quote:data.summary},...data.attachments.map(item=>({source:item.title+' · '+item.source,quote:item.quote}))];
+      supportChat((revision?'Tớ bổ sung/sửa bản chuẩn bị rồi. ':'Tớ gửi cậu xem bản chuẩn bị nha. ')+
+        'Đính kèm: '+(data.selected.map(id=>dossierLabels[id]).join('; ')||'chưa có nội dung')+'.',dossierReply(data),'dossier-review',
+        {source:'Bản chuẩn bị · Chưa gửi cơ quan',quote:data.summary,excerpts:attachments});
+      state.messages[state.messages.length-2].dossierVersion=record;
+      log((revision?'Đã gửi bản bổ sung/sửa':'Đã gửi bản nháp')+' cho Vy: '+data.amount+', '+(data.selected.map(id=>dossierLabels[id]).join('; ')||'chưa đính kèm')+'. '+dossierCoverage(data));
+      save();navigate('inbox');return;
+    } else if(action==='dossier-supplement'&&['transfers','demands'].includes(id)&&state.dossierSent.length) {
+      state.dossierSelection=[...new Set([...state.dossierSent.at(-1).selected,id])];state.dossierDraft=null;
+      focusAfterRender='[data-action="dossier-toggle"][data-id="'+id+'"]';save();navigate('dossier');return;
+    } else if(action==='dossier-save'&&state.dossierDraft&&state.dossierDraft.amount===total()) {
+      const data=state.dossierDraft;if(dossierKey(state.dossierSnapshot,true)===dossierKey(data,true)) return;
+      const updating=state.dossier;
+      if(state.dossier) state.dossierArchive.push(state.dossierSnapshot?JSON.parse(JSON.stringify(state.dossierSnapshot)):null);
+      state.dossier=true;state.dossierSnapshot=JSON.parse(JSON.stringify(data));state.dossierIntroOpen=false;
+      log((updating?'Đã cập nhật bản đã lưu':'Đã lưu bản chuẩn bị')+': '+data.amount+', '+(data.selected.map(id=>dossierLabels[id]).join('; ')||'chưa đính kèm')+'. Chưa gửi ngân hàng hoặc cơ quan Công an.');
     } else if(action==='draft-report'&&current()==='report'&&!state.reported) state.reportDraft=makeReport();
     else if(action==='cancel-report'&&current()==='report') state.reportDraft=null;
     else if(action==='report'&&current()==='report'&&!state.reported&&state.reportDraft&&state.reportDraft.amount===total()) {
@@ -559,6 +677,8 @@
   }
   host.addEventListener('click',event=>{
     const summary=event.target.closest('summary');
+    const readId=summary?.parentElement.dataset.dossierItem;
+    if(readId&&!summary.parentElement.open&&!state.dossierSeen.includes(readId)) {state.dossierSeen.push(readId);log('Đã mở '+dossierLabels[readId]+' trong phần chuẩn bị.');save();}
     if(summary?.parentElement.dataset.disclosure) {
       const details=summary.parentElement;state.disclosures[details.dataset.disclosure]=!details.open;save();
     }
@@ -575,6 +695,9 @@
       const details=target.closest('details');state.disclosures[details.dataset.disclosure]=false;save();details.open=false;details.querySelector('summary').focus({preventScroll:true});details.querySelector('summary').scrollIntoView({block:'nearest'});return;
     }
     if(target) act(target.dataset.action,target.dataset.id);
+  });
+  host.addEventListener('change',event=>{
+    const input=event.target.closest('input[data-action="dossier-toggle"]');if(input) act('dossier-toggle',input.dataset.id);
   });
   addEventListener('hashchange',render);
   addEventListener('scroll',()=>{state.scrolls[current()]=window.scrollY;save();},{passive:true});

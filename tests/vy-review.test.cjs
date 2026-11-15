@@ -54,6 +54,6 @@ t=load({sent:['receipt-0','receipt-1'],messages:[],paused:true,finished:true});a
 t=load();t.do('risk');t.do('proceed');t.do('proceed');assert.equal(t.state.messages.filter(m=>m.text==='Tớ vừa chuyển thêm 1 triệu rồi.').length,1);
 t.view('recover');t.do('stop');t.view('recover');t.do('keep','receiptSaved');t.do('keep','receiptSaved');
 assert.match(t.summary(),/Còn thiếu tin nhắn/);assert.equal(t.state.timeline.filter(x=>x==='Đã lưu chứng từ chuyển tiền.').length,1);
-t.do('keep','chatSaved');t.do('dossier');assert.equal(t.state.reported,false);assert.equal(t.state.dossier,true);
+t.do('keep','chatSaved');t.view('dossier');t.do('dossier-preview');t.do('dossier-save');assert.equal(t.state.reported,false);assert.equal(t.state.dossier,true);
 assert.match(t.summary(),/1.500.000đ/);assert.match(t.summary(),/chưa được thu hồi/);
 console.log('PASS: three evidence groups, draft/cancel/revise/reload, historical ordering, legacy saves, reflection, verified decision, transfer/support idempotency.');

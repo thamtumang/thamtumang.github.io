@@ -227,3 +227,17 @@ button.amount[aria-pressed=true] { border-color:#aa761e; background:#fff0c9; }
 .support-artifact .result{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.4rem .7rem}
 .support-artifact dd{margin:0}.support-artifact dt{font-weight:650}
 @media(max-width:700px){.support-paths{grid-template-columns:1fr}.support-paths .share-card{min-height:72px}.support-artifact{padding:.65rem}}
+
+.dossier-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem;margin:.6rem 0}
+.dossier-item{min-width:0;overflow-wrap:anywhere;border:1px solid var(--line);border-radius:.7rem;padding:.75rem;background:#f7f9fe}
+.dossier-item h3{font-size:1rem}.dossier-item p{margin:.35rem 0}.dossier-item summary{cursor:pointer;min-height:44px;padding:.6rem .1rem}
+.dossier-check{display:flex;align-items:center;gap:.6rem;min-height:44px;padding:.4rem;border:1px solid #b9c6dd;border-radius:.45rem;cursor:pointer;font-weight:600}
+.dossier-check input{flex:none;width:1.2rem;height:1.2rem;accent-color:var(--blue)}
+.dossier-check:focus-within{outline:3px solid #a9610e;outline-offset:2px}
+.dossier-sources>summary,.dossier-saved>summary,.dossier-status>summary{cursor:pointer;font-weight:650;min-height:44px;padding:.6rem .1rem}
+.dossier-inclusions{margin:.8rem 0}.dossier-inclusions h3{font-size:1rem}.dossier-inclusions article{border-left:2px solid #6881aa;padding:.5rem .65rem;margin:.4rem 0;background:#fff;overflow-wrap:anywhere}
+.dossier-inclusions h4{margin:0 0 .3rem;font-size:1rem}.dossier-inclusions blockquote{margin:.5rem 0;padding:.5rem;border:1px solid var(--line);background:#f8faff}
+.dossier-preview{scroll-margin:1rem;overflow-wrap:anywhere}.dossier-preview h2{margin-bottom:.5rem}.dossier-preview:focus-visible{outline:3px solid #a9610e;outline-offset:3px}
+.dossier-scope{font-size:.9rem;margin:.7rem 0;padding:.6rem;border-top:1px solid var(--line)}
+.dossier-saved>article{margin:.7rem 0;padding:.6rem;border:1px solid var(--line);border-radius:.55rem}
+@media(max-width:700px){.dossier-grid{grid-template-columns:1fr}.dossier-item{padding:.65rem}.dossier-preview .actions button{width:100%}}
