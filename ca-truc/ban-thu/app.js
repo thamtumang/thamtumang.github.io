@@ -546,6 +546,7 @@
     });
   }
   function act(action,id,checked) {
+    const hadDossierDraft=Boolean(state.dossierDraft);
     state.scrolls[current()]=window.scrollY;
     if(action==='dossier-toggle') focusAfterRender='[data-action="dossier-toggle"][data-id="'+id+'"]';
     else if(action==='dossier-preview') focusAfterRender='.dossier-preview';
@@ -673,6 +674,8 @@
     }
     else if(action==='ask-giang'&&current()==='giang'&&!state.giangAsked) {state.giangAsked=true;log('Đã hỏi riêng Hương Giang; đây là lời của bên đang yêu cầu tiền.');}
     else return;
+    // Keep the native checkbox node alive through its change event.
+    if(action==='dossier-toggle'&&typeof checked==='boolean'&&!hadDossierDraft) {focusAfterRender=null;save();return;}
     render();
 
   }
