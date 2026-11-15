@@ -116,7 +116,7 @@
     if(!compact) return quotes(attachment);
     const items=attachment.excerpts||[attachment];
     return '<div class="attachment-preview">'+items.map(item=>'<div><small>'+e(item.source)+'</small><p>'+e(item.quote.length>62?item.quote.slice(0,59)+'…':item.quote)+'</p></div>').join('')+'</div>'+
-      '<details class="chat-evidence" data-disclosure="'+disclosure+'" '+(state.disclosures[disclosure]?'open':'')+'><summary>Xem căn cứ'+(items.length>1?' · 2 nguồn':'')+'</summary>'+quotes(attachment)+
+      '<details class="chat-evidence" data-disclosure="'+disclosure+'" '+(state.disclosures[disclosure]?'open':'')+'><summary>'+e(attachment.kind==='dossier'?'Xem bản đã gửi'+(attachment.itemCount?' · '+attachment.itemCount+' nội dung đính kèm':' · chưa đính kèm'):'Xem căn cứ'+(items.length>1?' · '+items.length+' nguồn':''))+'</summary>'+quotes(attachment)+
       actions(button('Đóng căn cứ','close-evidence'))+'</details>';
   }
   const bubble = (name,text,sent=false,attachment=null,compact=false,disclosure='') => '<article class="bubble'+(sent?' sent':'')+'"><small class="speaker">'+e(name)+'</small><p>'+e(text)+'</p>'+
@@ -646,7 +646,7 @@
       const attachments=[{source:'Tóm tắt tự điền · Bản '+(state.dossierSent.length),quote:data.summary},...data.attachments.map(item=>({source:item.title+' · '+item.source,quote:item.quote}))];
       supportChat((revision?'Tớ bổ sung/sửa bản chuẩn bị rồi. ':'Tớ gửi cậu xem bản chuẩn bị nha. ')+
         'Đính kèm: '+(data.selected.map(id=>dossierLabels[id]).join('; ')||'chưa có nội dung')+'.',dossierReply(data),'dossier-review',
-        {source:'Bản chuẩn bị · Chưa gửi cơ quan',quote:data.summary,excerpts:attachments});
+        {kind:'dossier',itemCount:data.selected.length,source:'Bản chuẩn bị · Chưa gửi cơ quan',quote:data.summary,excerpts:attachments});
       state.messages[state.messages.length-2].dossierVersion=record;
       log((revision?'Đã gửi bản bổ sung/sửa':'Đã gửi bản nháp')+' cho Vy: '+data.amount+', '+(data.selected.map(id=>dossierLabels[id]).join('; ')||'chưa đính kèm')+'. '+dossierCoverage(data));
       save();navigate('inbox');return;
