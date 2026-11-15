@@ -545,7 +545,7 @@
       } else window.scrollTo(0,restoreY);
     });
   }
-  function act(action,id) {
+  function act(action,id,checked) {
     state.scrolls[current()]=window.scrollY;
     if(action==='dossier-toggle') focusAfterRender='[data-action="dossier-toggle"][data-id="'+id+'"]';
     else if(action==='dossier-preview') focusAfterRender='.dossier-preview';
@@ -635,7 +635,8 @@
       log('Đã gửi hướng dẫn '+item.title+' cho Vy. Chưa xác nhận đã liên hệ.');
       supportChat(item.advice,item.reply,'guidance',{source:item.organization,quote:item.quote});save();navigate('inbox');return;
     } else if(action==='dossier-toggle'&&current()==='dossier'&&Object.hasOwn(dossierItems(),id)) {
-      state.dossierSelection=state.dossierSelection.includes(id)?state.dossierSelection.filter(value=>value!==id):[...state.dossierSelection,id];state.dossierDraft=null;
+      const selected=typeof checked==='boolean'?checked:!state.dossierSelection.includes(id);
+      state.dossierSelection=selected?[...new Set([...state.dossierSelection,id])]:state.dossierSelection.filter(value=>value!==id);state.dossierDraft=null;
     } else if(action==='dossier-preview'&&current()==='dossier') state.dossierDraft=dossierData();
     else if(['dossier-edit','dossier-cancel'].includes(action)&&current()==='dossier') state.dossierDraft=null;
     else if(action==='dossier-send'&&current()==='dossier'&&state.dossierDraft&&state.dossierDraft.amount===total()) {
@@ -697,7 +698,7 @@
     if(target) act(target.dataset.action,target.dataset.id);
   });
   host.addEventListener('change',event=>{
-    const input=event.target.closest('input[data-action="dossier-toggle"]');if(input) act('dossier-toggle',input.dataset.id);
+    const input=event.target.closest('input[data-action="dossier-toggle"]');if(input) act('dossier-toggle',input.dataset.id,input.checked);
   });
   addEventListener('hashchange',render);
   addEventListener('scroll',()=>{state.scrolls[current()]=window.scrollY;save();},{passive:true});

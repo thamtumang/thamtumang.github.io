@@ -21,6 +21,8 @@ for(let mask=0;mask<16;mask++){
  const count=t.state.timeline.length;t.do('dossier-save');assert.equal(t.state.timeline.length,count);assert.equal(t.state.dossierArchive.length,0);
 }
 assert.ok(responses.size>=5);
+// Repeated native change delivery sets the checkbox state instead of toggling it twice.
+{const t=load();t.view('dossier');t.act('dossier-toggle','transfers',true);t.act('dossier-toggle','transfers',true);assert.equal(t.state.dossierSelection.length,1);t.act('dossier-toggle','transfers',false);assert.equal(t.state.dossierSelection.length,0);}
 // Saved evidence never becomes an attachment automatically. Gated Studio answers stay unavailable.
 let t=load();t.view('proofs');t.do('keep','receiptSaved');t.do('keep','chatSaved');t.view('dossier');assert.equal(t.state.dossierSelection.length,0);
 t.do('dossier-toggle','studioProcess');assert.equal(t.state.dossierSelection.length,0);assert.equal(t.dossierItems().studioProcess,undefined);
