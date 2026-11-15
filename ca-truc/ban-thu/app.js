@@ -382,13 +382,40 @@
     return ids.includes('transfers')?(ids.includes('demands')?'Có chứng từ khoản đã chuyển và nội dung yêu cầu tiền.':'Có chứng từ khoản đã chuyển; chưa kèm lời yêu cầu tiền.'):
       ids.includes('demands')?'Có lời yêu cầu tiền; chưa kèm chứng từ khoản đã chuyển.':'Chưa kèm chứng từ khoản đã chuyển hoặc lời yêu cầu tiền.';
   }
-  function dossierBody(data) {
+  function dossierVersions(data) {
+    return {
+      sent:state.dossierSent.findIndex(record=>dossierKey(record)===dossierKey(data)),
+      kept:state.dossier?[...state.dossierArchive,state.dossierSnapshot].findIndex(record=>record&&dossierKey(record,true)===dossierKey(data,true)):-1
+    };
+  }
+  function dossierPreviewLine(item,data) {
+    if(item.id==='transfers') return data.amount+' · '+(item.quote.includes('MP-1000-043')?'2 giao dịch':'1 giao dịch')+' mô phỏng';
+    if(item.id==='receipt45') return '+45.000đ · Tiền công đã nhận';
+    if(item.id==='demands') return data.amount==='1.500.000đ'?'Yêu cầu ứng tiền và phí xử lý tiếp theo':'Ứng 500k rồi bị yêu cầu chuyển tiếp 1 triệu';
+    if(item.id==='post') return 'Công việc hỗ trợ nội dung · Bài đăng công khai';
+    return item.id==='studioPost'?'Studio xác nhận bài tuyển do họ đăng':'Studio không tổ chức quy trình ứng tiền';
+  }
+  function dossierBody(data,scope='draft') {
     if(data?.schema!==2) return '<p>Bản từ trước cập nhật; chưa ghi các lựa chọn đính kèm theo cơ chế mới.</p>'+
       (data?'<p>Tổng ghi trong bản: '+e(data.amount||'chưa lưu chi tiết')+'. '+(data.receipts?'Có chứng từ theo trạng thái cũ. ':'')+(data.chat?'Có tin nhắn theo trạng thái cũ.':'')+'</p>':'');
-    const core=data.attachments.filter(item=>['transfers','demands'].includes(item.id)),context=data.attachments.filter(item=>!['transfers','demands'].includes(item.id));
-    const list=(label,items)=>items.length?'<section class="dossier-inclusions"><h3>'+label+'</h3>'+items.map(item=>'<article><h4>'+e(item.title)+'</h4><p class="small">'+e(item.source)+'</p><blockquote>'+e(item.quote)+'</blockquote><p><b>Làm rõ:</b> '+e(item.role)+'</p><p><b>Giới hạn:</b> '+e(item.limit)+'</p><small>'+ (item.kept?'Đã lưu riêng khi tạo bản này.':'Đính kèm từ nội dung đã chia sẻ; chưa lưu riêng khi tạo bản này.')+'</small></article>').join('')+'</section>':'';
-    return '<p class="small">Tóm tắt tự điền từ diễn biến, không phải phần người chơi tự viết.</p><p>'+e(data.summary)+'</p>'+list('Khoản chuyển và yêu cầu tiền',core)+list('Bối cảnh và thông tin đối chiếu',context)+
-      (!data.attachments.length?'<p>Chưa đính kèm nội dung nào.</p>':'')+'<p class="dossier-scope">'+e(dossierCoverage(data))+' Đây không phải xác nhận hồ sơ đã đầy đủ hoặc sẽ được giải quyết.</p>';
+    return '<p class="small">Tóm tắt tự điền từ diễn biến</p><p>'+e(data.summary)+'</p><div class="dossier-documents">'+data.attachments.map(item=>{
+      const disclosure='dossier-read-'+scope+'-'+data.amount+'-'+item.id;
+      return '<details class="dossier-document" data-disclosure="'+e(disclosure)+'" '+(state.disclosures[disclosure]?'open':'')+'><summary><strong>'+e(item.title)+'</strong><span class="document-preview">'+e(dossierPreviewLine(item,data))+'</span><span class="document-toggle"><span class="when-closed">Xem đầy đủ</span><span class="when-open">Thu gọn</span></span></summary>'+
+        '<div class="document-full"><p class="small">'+e(item.source)+'</p><blockquote>'+e(item.quote)+'</blockquote><p><b>Làm rõ:</b> '+e(item.role)+'</p><p><b>Giới hạn:</b> '+e(item.limit)+'</p>'+
+        (['transfers','demands'].includes(item.id)?'<p class="small">'+(item.kept?'Đã lưu riêng khi tạo bản này.':'Chưa lưu riêng khi tạo bản này.')+'</p>':'')+
+        actions(button('Thu gọn tài liệu','close-evidence'))+'</div></details>';
+    }).join('')+'</div>'+(!data.attachments.length?'<p>Chưa đính kèm nội dung nào.</p>':'');
+  }
+  function dossierSentHistory() {
+    if(!state.dossierSent.length) return '';
+    const sentMessages=state.messages.map((m,index)=>({m,index})).filter(({m})=>m.dossierVersion);
+    return '<details class="dossier-history"><summary>Bản đã gửi trước đó · '+state.dossierSent.length+' bản</summary>'+state.dossierSent.map((record,i)=>{
+      const kept=dossierVersions(record).kept;
+      const message=sentMessages[i]?.index??-1;
+      const reply=message>=0?state.messages[message+1]:null;
+      return '<details class="dossier-sent-record"><summary>Bản gửi '+(i+1)+(kept>=0?' · Đã lưu ở bản lưu '+(kept+1):' · Chưa lưu phiên bản này')+'</summary>'+dossierBody(record,'sent-'+i)+
+        (reply?.supportKind==='dossier-review'?'<section class="support-reaction"><small>Phản hồi của Vy về bản gửi '+(i+1)+'</small>'+bubble('Vy',reply.text)+'</section>':'')+'</details>';
+    }).join('')+actions(go('inbox','Xem lịch sử trong hộp thư Vy'))+'</details>';
   }
   function dossierReply(data) {
     const ids=data.selected;
@@ -406,8 +433,8 @@
     const data=state.dossierSent.at(-1);if(!data) return '';
     const missing=!data.selected.includes('transfers')?'transfers':!data.selected.includes('demands')?'demands':null;
     return actions(missing?button(missing==='transfers'?'Bổ sung chứng từ đã chuyển':'Bổ sung tin nhắn yêu cầu tiền','dossier-supplement',missing):'',
-      go('dossier','Xem lại bản nháp'),dossierKey(state.dossierSnapshot,true)===dossierKey(data,true)?pill('Đã lưu bản này'):
-      data.amount===total()?button('Lưu bản này','dossier-save'):'');
+      go('dossier','Xem bản đã gửi'),dossierVersions(data).kept>=0?pill('Bản gửi '+state.dossierSent.length+' · Đã lưu ở bản lưu '+(dossierVersions(data).kept+1)):
+      data.amount===total()?button('Lưu bản đã gửi này','dossier-save',String(state.dossierSent.length-1)):'');
   }
   function dossierStatus() {
     const latest=state.dossierSent.at(-1),saved=state.dossierSnapshot;
@@ -421,7 +448,7 @@
   }
   function dossier() {
     const items=dossierItems(),data=state.dossierDraft,latest=state.dossierSent.at(-1),saved=state.dossierSnapshot;
-    const stale=data&&data.amount!==total(),changed=saved&&dossierKey(saved,true)!==dossierKey(dossierData(),true);
+    const stale=data&&data.amount!==total();
     const intro=state.messages[state.dossierIntro];
     const selection=Object.entries(items).map(([id,item])=>'<article class="dossier-item" data-item="'+id+'"><h3>'+e(item.title)+'</h3><p class="small">'+e(item.source)+'</p>'+
       '<details data-disclosure="dossier-'+id+'" data-dossier-item="'+id+'" '+(state.disclosures['dossier-'+id]?'open':'')+'><summary>Xem nội dung</summary><p>'+e(item.quote)+'</p></details>'+
@@ -429,20 +456,20 @@
       '<label class="dossier-check"><input type="checkbox" data-action="dossier-toggle" data-id="'+id+'" '+(state.dossierSelection.includes(id)?'checked':'')+' aria-label="Đính kèm '+e(item.title)+'">Đính kèm nội dung này</label></article>').join('');
     return '<h1>Cùng Vy chuẩn bị thông tin</h1><p>Chọn nội dung giúp làm rõ khoản Vy đã chuyển và yêu cầu chuyển thêm.</p>'+
       (intro?(state.dossierIntroOpen?bubble('Vy',intro.text):'<details><summary>Xem lời Vy khi bắt đầu</summary>'+bubble('Vy',intro.text)+'</details>'):'')+
-      '<p class="small">Chọn đính kèm khác với lưu riêng chứng cứ. Bản này chưa gửi ngân hàng hoặc cơ quan Công an.</p>'+
+      '<p class="small">Đính kèm không đồng nghĩa lưu riêng chứng cứ. Phần chuẩn bị này chưa gửi ngân hàng hoặc cơ quan Công an.</p>'+
       (saved&&saved.amount!==total()?'<p class="notice">Bản đã lưu ghi '+e(saved.amount)+'. Lượt hiện tại đã chuyển '+total()+'. Bản cũ được giữ nguyên; hãy xem lại số tiền và chứng từ khi cập nhật.</p>':'')+
       (state.dossier&&saved?.schema!==2?'<p class="notice">Bản từ trước cập nhật vẫn được giữ. Chưa có lựa chọn đính kèm mới được tự gán.</p>':'')+
       '<details class="dossier-sources" '+(!data?'open':'')+'><summary>Chọn hoặc bỏ nội dung đính kèm</summary><div class="dossier-grid">'+selection+'</div></details>'+
-      (!data?actions(button('Xem bản nháp','dossier-preview','','primary')):
-      '<section class="draft-box dossier-preview" tabindex="-1"><h2>'+ (dossierKey(data)===dossierKey(latest)?'Bản đã gửi Vy xem':'Bản nháp · Chưa gửi Vy')+'</h2>'+dossierBody(data)+
-      (!stale&&dossierKey(data,true)!==dossierKey(dossierData(),true)?'<p class="small">Nội dung hoặc trạng thái lưu riêng hiện tại đã khác nháp này.</p>'+actions(button('Lấy thay đổi hiện tại vào nháp','dossier-preview')):'')+
-      (stale?'<p class="notice">Nháp ghi '+e(data.amount)+'; tổng hiện tại là '+total()+'. Cần cập nhật nháp trước khi gửi hoặc lưu.</p>'+actions(button('Cập nhật nháp theo lượt hiện tại','dossier-preview','','primary')):
-      actions(dossierKey(data)===dossierKey(latest)?pill('Đã gửi Vy bộ nội dung này'):button('Gửi Vy xem bản nháp','dossier-send','','primary'),
-        dossierKey(data,true)===dossierKey(saved,true)?pill('Đã lưu bản này'):button(state.dossier?'Cập nhật bản đã lưu':'Lưu bản nháp này','dossier-save')))+
-      '<p class="small">Chưa gửi ngân hàng hoặc cơ quan Công an.</p>'+actions(button('Đổi lựa chọn','dossier-edit'),button('Hủy bản nháp','dossier-cancel'))+'</section>')+
-      (state.supportFeedback!==null&&state.messages[state.supportFeedback]?.supportKind==='dossier-review'?supportReaction()+dossierFollowup():'')+
-      (state.dossier?'<details class="dossier-saved"><summary>Xem các bản đã lưu</summary>'+[...state.dossierArchive,saved].map((record,i)=>'<article><h3>Bản lưu '+(i+1)+(i===state.dossierArchive.length?' · gần nhất':' · trước đó')+'</h3>'+dossierBody(record)+'</article>').join('')+'</details>':'')+
-      (changed?'<p class="small">Lựa chọn, nội dung hoặc trạng thái lưu riêng hiện tại khác bản đã lưu. Bản cũ chưa bị thay đổi.</p>':'')+
+      (!data?actions(button('Xem bản nháp','dossier-preview','','primary')):(()=>{
+        const versions=dossierVersions(data),sent=versions.sent>=0,kept=versions.kept>=0;
+        return '<section class="draft-box dossier-preview" tabindex="-1"><header class="dossier-state"><h2>'+(!sent&&!kept?'Bản nháp mới':'Bản chuẩn bị đang xem')+'</h2><p>'+ (sent?'Đã gửi Vy · Bản gửi '+(versions.sent+1):'Chưa gửi Vy')+' · '+(kept?'Đã lưu · Bản lưu '+(versions.kept+1):'Chưa lưu phiên bản này')+'</p></header>'+dossierBody(data)+
+          (!stale&&dossierKey(data,true)!==dossierKey(dossierData(),true)?'<p class="small">Nội dung hoặc trạng thái lưu riêng hiện tại đã khác nháp này.</p>'+actions(button('Lấy thay đổi hiện tại vào nháp','dossier-preview')):'')+
+          (stale?'<p class="notice">Bản đang xem ghi '+e(data.amount)+'; tổng hiện tại là '+total()+'. Cần cập nhật nháp trước khi gửi hoặc lưu.</p>'+actions(button('Cập nhật nháp theo lượt hiện tại','dossier-preview','','primary')):
+            actions(!sent?button('Gửi Vy xem bản nháp','dossier-send','','primary'):'',!kept?button(state.dossier?'Lưu thành phiên bản mới':'Lưu phiên bản này','dossier-save'):''))+
+          actions(button('Đổi lựa chọn','dossier-edit'),button(sent||kept?'Đóng phần xem':'Hủy bản nháp','dossier-cancel'))+'</section>';
+      })())+
+      dossierSentHistory()+
+      (state.dossier?'<details class="dossier-saved"><summary>Bản đã lưu · '+(state.dossierArchive.length+1)+' phiên bản</summary>'+[...state.dossierArchive,saved].map((record,i)=>'<article><h3>Bản lưu '+(i+1)+(i===state.dossierArchive.length?' · gần nhất':' · trước đó')+'</h3><p class="small">'+(record&&dossierVersions(record).sent>=0?'Đã gửi Vy ở bản gửi '+(dossierVersions(record).sent+1):'Chưa ghi nhận gửi Vy phiên bản này')+'</p>'+dossierBody(record,'saved-'+i)+'</article>').join('')+'</details>':'')+
       actions(go('proofs','Xem lại chứng cứ'),go('help','Xem hướng dẫn hỗ trợ'))+supportExit();
   }
   function makeReport() {
@@ -541,7 +568,7 @@
         state.pendingTurn=null;save();
       } else if(focusAfterRender) {
         const target=host.querySelector(focusAfterRender);focusAfterRender=null;
-        target?.focus({preventScroll:true});target?.scrollIntoView({block:'nearest'});
+        target?.focus({preventScroll:true});target?.scrollIntoView({block:target.classList.contains('dossier-preview')?'start':'nearest'});
       } else window.scrollTo(0,restoreY);
     }
   }
@@ -641,8 +668,8 @@
     } else if(action==='dossier-preview'&&current()==='dossier') state.dossierDraft=dossierData();
     else if(['dossier-edit','dossier-cancel'].includes(action)&&current()==='dossier') state.dossierDraft=null;
     else if(action==='dossier-send'&&current()==='dossier'&&state.dossierDraft&&state.dossierDraft.amount===total()) {
-      const data=state.dossierDraft,last=state.dossierSent.at(-1);
-      if(dossierKey(data)===dossierKey(last)) return;
+      const data=state.dossierDraft;
+      if(dossierVersions(data).sent>=0) return;
       const revision=state.dossierSent.length>0;
       const record=JSON.parse(JSON.stringify(data));state.dossierSent.push(record);state.dossierIntroOpen=false;
       const attachments=[{source:'Tóm tắt tự điền · Bản '+(state.dossierSent.length),quote:data.summary},...data.attachments.map(item=>({source:item.title+' · '+item.source,quote:item.quote}))];
@@ -655,8 +682,9 @@
     } else if(action==='dossier-supplement'&&['transfers','demands'].includes(id)&&state.dossierSent.length) {
       state.dossierSelection=[...new Set([...state.dossierSent.at(-1).selected,id])];state.dossierDraft=null;
       focusAfterRender='[data-action="dossier-toggle"][data-id="'+id+'"]';save();navigate('dossier');return;
-    } else if(action==='dossier-save'&&state.dossierDraft&&state.dossierDraft.amount===total()) {
-      const data=state.dossierDraft;if(dossierKey(state.dossierSnapshot,true)===dossierKey(data,true)) return;
+    } else if(action==='dossier-save') {
+      const data=id!==undefined&&id!==''?state.dossierSent[Number(id)]:state.dossierDraft;
+      if(!data||data.amount!==total()||dossierVersions(data).kept>=0) return;
       const updating=state.dossier;
       if(state.dossier) state.dossierArchive.push(state.dossierSnapshot?JSON.parse(JSON.stringify(state.dossierSnapshot)):null);
       state.dossier=true;state.dossierSnapshot=JSON.parse(JSON.stringify(data));state.dossierIntroOpen=false;

@@ -44,3 +44,12 @@ const legacy={amount:'500.000đ',receipts:true,chat:false};t=load({view:'dossier
 t.do('dossier-toggle','receipt45');t.do('dossier-preview');const reloaded=load(t.saved());assert.equal(reloaded.state.dossierDraft.selected[0],'receipt45');assert.equal(reloaded.state.messages.length,1);
 assert.equal(load().state.dossierSelection.length,0);assert.equal(load().state.dossierDraft,null);
 console.log('PASS: 16 document sets, distinct feedback, source gating, cancel/save/send separation, immutable revisions, stale totals, persistence and legacy migration.');
+
+// Saving from a sent turn targets its immutable snapshot, not a newer unsent draft.
+t=load();t.choose('receipt45');t.do('dossier-send');const sent45=JSON.stringify(t.state.dossierSent[0]);
+t.view('dossier');t.do('dossier-edit');t.do('dossier-toggle','demands');t.do('dossier-preview');const unsent=JSON.stringify(t.state.dossierDraft),countBefore=t.state.messages.length;
+t.view('inbox');t.do('dossier-save','0');assert.equal(JSON.stringify(t.state.dossierSnapshot),sent45);assert.equal(JSON.stringify(t.state.dossierDraft),unsent);assert.equal(t.state.messages.length,countBefore);
+// Revisiting an exact archived sent/saved set cannot manufacture another version.
+t.view('dossier');t.do('dossier-send');t.view('dossier');t.do('dossier-save');const versions=t.state.dossierSent.length,archives=t.state.dossierArchive.length;
+t.do('dossier-edit');t.do('dossier-toggle','demands');t.do('dossier-preview');t.do('dossier-send');t.do('dossier-save');assert.equal(t.state.dossierSent.length,versions);assert.equal(t.state.dossierArchive.length,archives);
+console.log('PASS: sent-copy save targets and duplicate archived-version guards.');
