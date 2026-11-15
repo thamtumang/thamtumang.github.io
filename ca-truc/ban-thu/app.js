@@ -534,7 +534,7 @@
       go('inbox','Hộp thư Vy'+(state.reflectionUnread?' · Có tin nhắn của Vy':''))+button('Chơi lại','reset')+'</nav></header><div class="shell"><div class="case-label">CA CỦA VY <strong>Khoản tiền chưa về</strong></div>'+
       (window.frameElement?.caTrucRevised?'<p class="notice">Ca Vy có kịch bản mới. Lượt giữ ca cũ được lưu riêng, lượt này bắt đầu lại.</p>':'')+
       '<section class="surface '+view+'">'+panels[view]()+'</section><footer>Mạng xã hội giả lập. Mọi giao dịch, báo cáo và liên hệ trong ca đều là mô phỏng.</footer></div>';
-    requestAnimationFrame(()=>{
+    {
       if(view==='inbox'&&state.pendingTurn!==null) {
         const target=host.querySelector('.message-turn[data-start="'+state.pendingTurn+'"]');
         if(target) {target.focus({preventScroll:true});target.scrollIntoView({block:'start'});}
@@ -543,7 +543,7 @@
         const target=host.querySelector(focusAfterRender);focusAfterRender=null;
         target?.focus({preventScroll:true});target?.scrollIntoView({block:'nearest'});
       } else window.scrollTo(0,restoreY);
-    });
+    }
   }
   function act(action,id,checked) {
     const hadDossierDraft=Boolean(state.dossierDraft);
