@@ -2,12 +2,14 @@
   'use strict';
   const host = document.getElementById('app');
   const storage = window.frameElement?.caTrucStorage;
-  const fresh = () => ({view:'inbox', dossierOpened:false, dossierIntro:null, dossierIntroOpen:false, dossierSelection:[], dossierDraft:null, dossierSent:[], dossierArchive:[], dossierSeen:[], receiptSavedTotal:null, supportIntro:null, supportOpened:false, supportFeedback:null, helpSeen:[], helpShared:[], helpDraft:null, reportDraft:null, reportSnapshot:null, dossierSnapshot:null, scrolls:{}, disclosures:{}, pendingTurn:null, studioVisited:false, review:null, taskReflection:false, reflectionUnread:false, timeline:[], legacy:null, selected:[], taskReturn:'recruiter', messages:[], seen:[], sent:[], asked:[], draft:null,
+  const fresh = () => ({view:'inbox', openingVersion:2, sceneSent:[], dossierOpened:false, dossierIntro:null, dossierIntroOpen:false, dossierSelection:[], dossierDraft:null, dossierSent:[], dossierArchive:[], dossierSeen:[], receiptSavedTotal:null, supportIntro:null, supportOpened:false, supportFeedback:null, helpSeen:[], helpShared:[], helpDraft:null, reportDraft:null, reportSnapshot:null, dossierSnapshot:null, scrolls:{}, disclosures:{}, pendingTurn:null, studioVisited:false, review:null, taskReflection:false, reflectionUnread:false, timeline:[], legacy:null, selected:[], taskReturn:'recruiter', messages:[], seen:[], sent:[], asked:[], draft:null,
     sharedReturn:'inbox', paused:false, stopped:false, verifiedShared:false, extraPaid:false,
     transferPrompt:false, finished:false, receiptSaved:false, chatSaved:false, reported:false,
     dossier:false, giangAsked:false});
   const saved = storage?.load();
   let state = {...fresh(), ...saved};
+  // Keep the original opening on existing payment-v1 runs; never rewrite their history.
+  if(saved&&!Object.hasOwn(saved,'openingVersion')) state.openingVersion=1;
   // Older payment-v1 saves have no ordered event log. Keep their facts separate.
   if(saved && !Object.hasOwn(saved,'timeline')) state.legacy=JSON.parse(JSON.stringify(saved));
   if(saved?.dossier&&!Object.hasOwn(saved,'dossierOpened')) state.dossierOpened=true;
@@ -180,16 +182,41 @@
   function messageEvidence(message) {
     return message.evidenceId||Object.keys(evidence).find(id=>message.sent&&message.attachment?.source===evidence[id].source)||null;
   }
+  const sceneLines={
+    stop:'Cậu dừng chuyển thêm đã. Mình tìm cách xử lý khoản đã chuyển.',
+    studio:'Tớ hỏi Studio xem họ có quy trình này không rồi gửi cậu.',
+    request:'Cho tớ xem đoạn họ yêu cầu chuyển thêm mới thanh toán.'
+  };
+  function sceneRequestLink() {
+    return '<a class="button" href="#recruiter" data-focus-request="true">Xem đoạn chat Vy chia sẻ</a>';
+  }
+  function sceneChoices() {
+    if(state.extraPaid||state.verifiedShared) return '';
+    const choices=[
+      !state.stopped&&!state.sceneSent.includes('stop')?button(sceneLines.stop,'scene','stop'):'',
+      state.asked.includes('process')?(state.messages.at(-1)?.sceneKind==='studio'?'':go('club','Xem phản hồi Studio để gửi Vy')):
+        !state.sceneSent.includes('studio')?button(sceneLines.studio,'scene','studio'):'',
+      !state.sceneSent.includes('request')?button(state.seen.includes('recruiter')?'Tớ xem lại đoạn họ yêu cầu chuyển thêm nhé.':sceneLines.request,'scene','request'):''
+    ].filter(Boolean);
+    return choices.length?'<section class="scene-choices" aria-label="Cách nhắn lại với Vy">'+choices.join('')+'</section>':'';
+  }
+  function sceneFollowup() {
+    const kind=state.messages.at(-1)?.sceneKind;
+    if(kind==='stop') return actions(state.helpSeen.length?go('recover','Xem lại hỗ trợ'):go('help','Tìm nơi hỗ trợ khoản đã chuyển'));
+    if(kind==='studio') return actions(state.asked.includes('process')?go('club','Xem phản hồi Studio để gửi Vy'):
+      state.studioVisited||state.asked.length?go('club','Quay lại hội thoại Sao Mai'):go('post','Mở bài tuyển gốc'));
+    if(kind==='request') return actions(sceneRequestLink());
+    return '';
+  }
   function nextActions() {
     const follow=dossierFollowup();
     if(state.transferPrompt) return follow+actions(button('Khoan, để tớ kiểm tra lại','rethink','','primary'),button('Ừ, cậu chuyển tiếp đi','proceed'));
-    if(state.stopped||state.extraPaid) return follow+actions(go('recover','Mở hồ sơ hỗ trợ','primary'),resultLink());
-    return follow+actions(
-      !state.paused&&canContinue()?button('Khoan chuyển thêm, để tớ kiểm tra','pause','','primary'):'',
-      state.messages.length?(state.studioVisited||state.asked.length?go('club','Quay lại hội thoại Sao Mai'):go('post','Mở bài tuyển gốc')):'',
-      canContinue()?button('Tớ nghĩ cậu có thể làm tiếp','risk'):'',
-      state.paused&&!state.finished?button('Kết thúc tại đây · Đang chờ xác minh','finish'):'',
-      ready()?resultLink():go('recover','Mở hồ sơ hỗ trợ'));
+    if(state.extraPaid||state.verifiedShared) return follow+actions(go('recover','Mở hồ sơ hỗ trợ','primary'),resultLink());
+    const related=sceneFollowup();
+    return follow+related+sceneChoices()+
+      (canContinue()?'<div class="transfer-advice">'+button('Khuyên Vy chuyển tiếp 1 triệu','risk')+'</div>':'')+
+      actions(state.paused&&!state.stopped&&!state.finished?button('Kết thúc tại đây · Đang chờ xác minh','finish'):'',
+        ready()?resultLink():'',state.messages.length&&!related?go('recover','Mở hồ sơ hỗ trợ'):'');
   }
   function thread() {
     let html='';
@@ -211,7 +238,7 @@
   }
   function inbox() {
     const opening=bubble('Vy','Tớ chuyển 500k rồi mà chưa nhận lại được. Bên đó bảo còn một bước nữa.')+
-      bubble('Vy','Tớ thấy không ổn, nhưng bỏ bây giờ thì mất luôn tiền à? Cậu xem giúp tớ với.');
+      bubble('Vy',state.openingVersion===1?'Tớ thấy không ổn, nhưng bỏ bây giờ thì mất luôn tiền à? Cậu xem giúp tớ với.':'Tớ thấy chuyện chuyển tiếp không ổn. Nhưng 500k là tiền tớ để dành. Nếu dừng thì khoản đó phải làm sao?');
     const cards=card('recruiter','Đoạn chat với Hương Giang','Vy chia sẻ · Chỉ đọc')+
       card('transactions','Lịch sử giao dịch','Tiền đã nhận và đã chuyển')+
       card('tasks','Bảng nhiệm vụ','Hương Giang gửi cho Vy')+
@@ -224,7 +251,7 @@
     return '<div class="inbox-layout"><aside class="portrait"><figure class="scene '+(state.stopped?'nhe-nhom':'lo-lang')+'"><figcaption class="scene-caption">Thảo Vy</figcaption></figure></aside>'+
       '<section class="conversation"><div class="contact-title"><h1>Hộp thư · Thảo Vy</h1>'+pill('Đã chuyển · '+total())+'</div>'+
       (long?'<details class="opening-history" data-disclosure="opening" '+(state.disclosures.opening?'open':'')+'><summary>Tin nhắn mở đầu</summary>'+opening+'</details>':
-        '<p class="role-hint">Bạn là bạn của Vy. Mở nội dung bạn ấy gửi để kiểm tra, hoặc nhắn lại ngay.</p>'+opening)+
+        '<p class="role-hint">Bạn là bạn của Vy. Xem nội dung bạn ấy gửi hoặc chọn cách nhắn lại.</p>'+opening)+
       '<details class="shared-content" data-disclosure="shared" '+((state.disclosures.shared??!long)?'open':'')+'><summary>Nội dung Vy đã gửi · 4 mục</summary><div class="shared-list">'+cards+'</div></details>'+
       '<div class="chat-thread">'+thread()+'</div>'+(long?'':nextActions())+
       '<div class="composer-zone">'+composer+'</div></section></div>';
@@ -238,10 +265,14 @@
       card('task','Nhiệm vụ hỗ trợ đơn hàng','Hương Giang gửi cho Vy')+
       bubble('Vy','Ủa, phần này phải chuyển tiền trước hả chị? Em tưởng mình làm nội dung.')+
       bubble('Hương Giang','Đây là phần hỗ trợ đơn hàng bên chị giao thêm.')+
+      '<div class="request-context" tabindex="-1" aria-label="Đoạn yêu cầu chuyển thêm và tin nhắn trước đó">'+
       bubble('Vy','Em chuyển 500k rồi. Sao tiền chưa về ạ?')+
-      bubble('Hương Giang','Em cần làm tiếp bước 1 triệu mới thanh toán được.')+
+      bubble('Hương Giang','Em cần làm tiếp bước 1 triệu mới thanh toán được.')+'</div>'+
       (state.extraPaid?bubble('Vy','Em chuyển thêm 1 triệu rồi mà vẫn chưa nhận lại tiền.')+bubble('Hương Giang','Hồ sơ còn thiếu phí xử lý. Em chuyển thêm rồi chị hỗ trợ.'): '')+
-      '</section>'+actions(back(),go('giang','Hỏi riêng Hương Giang'),go('report','Báo cáo tài khoản Hương Giang'),go('post','Xem bài tuyển gốc'));
+      '</section>'+actions(go('post','Kiểm tra quy trình từ bài tuyển gốc'),
+        state.stopped?back():go('inbox','Trao đổi với Vy về việc dừng chuyển thêm'),
+        !state.stopped&&state.sharedReturn==='club'?back():'')+
+      actions(go('giang','Hỏi riêng Hương Giang'),go('report','Báo cáo tài khoản Hương Giang'));
   }
   function transactions() {
     return '<h1>Lịch sử giao dịch Vy chia sẻ</h1><div class="history">'+
@@ -552,7 +583,7 @@
       actions(button('Hỏi vì sao Vy phải chuyển thêm','ask-giang')))+actions(go('recruiter','Về đoạn chat Vy chia sẻ'),go('inbox','Về hộp thư Vy')),
 
   };
-  let focusAfterRender=null;
+  let focusAfterRender=null,focusSharedRequest=false;
   function render() {
     const view=current(),restoreY=state.scrolls[view]||0;state.view=view;
     if(view==='club') state.studioVisited=true;
@@ -584,7 +615,10 @@
       (window.frameElement?.caTrucRevised?'<p class="notice">Ca Vy có kịch bản mới. Lượt giữ ca cũ được lưu riêng, lượt này bắt đầu lại.</p>':'')+
       '<section class="surface '+view+'">'+panels[view]()+'</section><footer>Mạng xã hội giả lập. Mọi giao dịch, báo cáo và liên hệ trong ca đều là mô phỏng.</footer></div>';
     {
-      if(view==='inbox'&&state.pendingTurn!==null) {
+      if(view==='recruiter'&&focusSharedRequest) {
+        focusSharedRequest=false;const target=host.querySelector('.request-context');
+        target?.focus({preventScroll:true});target?.scrollIntoView({block:'start'});
+      } else if(view==='inbox'&&state.pendingTurn!==null) {
         const target=host.querySelector('.message-turn[data-start="'+state.pendingTurn+'"]');
         if(target) {target.focus({preventScroll:true});target.scrollIntoView({block:'start'});}
         state.pendingTurn=null;save();
@@ -619,7 +653,27 @@
       if(!window.confirm('Chơi lại riêng ca Vy từ đầu?')) return;
       state=fresh();save();navigate('inbox');return;
     }
-    if(action==='ask'&&current()==='club'&&['post','process'].includes(id)&&!state.asked.includes(id)) {
+    if(action==='scene'&&current()==='inbox'&&Object.hasOwn(sceneLines,id)&&!state.sceneSent.includes(id)&&!state.extraPaid&&!state.verifiedShared&&!state.transferPrompt) {
+      if(id==='stop'&&state.stopped||id==='studio'&&state.asked.includes('process')) return;
+      let text=sceneLines[id],reply;
+      if(id==='stop') {
+        state.stopped=true;state.transferPrompt=false;
+        reply='Ừ, tớ không chuyển thêm nữa. Nhưng tớ chưa biết nhờ bên nào.';
+        log('Đã nhắn Vy dừng và tìm hỗ trợ; Vy xác nhận không chuyển thêm.');
+      } else if(id==='studio') {
+        if(!state.stopped) state.paused=true;
+        reply=state.stopped?'Ừ, tớ vẫn không chuyển thêm. Cậu hỏi giúp tớ đúng phần ứng tiền nha.':'Ừ, cậu hỏi giúp tớ đúng phần ứng tiền nha.';
+        log('Đã hứa hỏi Studio về quy trình ứng tiền; chưa gửi câu hỏi.');
+      } else {
+        const reread=state.seen.includes('recruiter');
+        if(reread) text='Tớ xem lại đoạn họ yêu cầu chuyển thêm nhé.';
+        reply=reread?(state.stopped?'Ừ, cậu xem lại nha. Tớ vẫn không chuyển thêm.':'Ừ, đoạn họ nói phải chuyển thêm 1 triệu mới thanh toán đó.'):
+          (state.stopped?'Tớ gửi đoạn đó đây. Họ bảo chuyển tiếp 1 triệu mới thanh toán. Tớ vẫn không chuyển thêm.':'Tớ gửi đoạn đó đây. Họ bảo chuyển tiếp 1 triệu mới thanh toán.');
+        log(reread?'Đã nhắn Vy muốn xem lại yêu cầu chuyển thêm.':'Đã đề nghị Vy chỉ đoạn yêu cầu chuyển thêm. Chưa mở đoạn chat.');
+      }
+      state.sceneSent.push(id);chat(text,reply);
+      state.messages[state.messages.length-2].sceneKind=id;state.messages[state.messages.length-1].sceneKind=id;
+    } else if(action==='ask'&&current()==='club'&&['post','process'].includes(id)&&!state.asked.includes(id)) {
       state.asked.push(id);log(id==='post'?'Đã hỏi Studio và nhận xác nhận bài tuyển do họ đăng.':'Đã hỏi Studio và nhận xác nhận không tổ chức ứng tiền, không yêu cầu chuyển tiền để thanh toán.');
     } else if(action==='review'&&Object.hasOwn(evidence,id)&&hasOpinion(id)) state.review=id;
     else if(action==='close-review'&&state.review===id) {
@@ -743,6 +797,7 @@
     }
     const link=event.target.closest('a[href^="#"]');
     if(link) {state.scrolls[current()]=window.scrollY;save();}
+    if(link?.dataset.focusRequest) focusSharedRequest=true;
     if(link?.hash==='#task'&&current()!=='task') {
       state.taskReturn=current();save();
     }

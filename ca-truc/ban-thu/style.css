@@ -279,3 +279,11 @@ button.amount[aria-pressed=true] { border-color:#aa761e; background:#fff0c9; }
 .result>details[open]{padding-bottom:.6rem}.result>details>ul,.result>details>p{margin:.5rem .8rem .5rem 2rem}
 .ending-support .dossier-status,.ending-support>.actions{margin:.6rem}
 @media(max-width:700px){.ending-main .actions>*{flex:1 1 100%}.ending-money{padding:.65rem}.ending-main h1{overflow-wrap:anywhere}.ending-main{margin-bottom:.8rem}}
+
+.scene-choices{display:grid;gap:.4rem;margin:.65rem 0}
+.scene-choices>button,.scene-choices>.button{width:100%;justify-content:flex-start;text-align:left;line-height:1.4;padding:.5rem .65rem;font-size:.94rem}
+.transfer-advice{border-top:1px solid #d1d9ea;margin:.8rem 0 .4rem;padding-top:.6rem}
+.transfer-advice button{font-size:.9rem;justify-content:flex-start;text-align:left}
+.request-context{scroll-margin-block:1rem;border-radius:.4rem}
+.request-context:focus-visible{outline:3px solid #a9610e;outline-offset:3px}
+@media(max-width:700px){.scene-choices>button,.scene-choices>.button{padding:.65rem;font-size:1rem}.transfer-advice button{width:100%}}
