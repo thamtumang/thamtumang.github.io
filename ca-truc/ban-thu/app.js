@@ -192,10 +192,12 @@
   }
   function sceneChoices() {
     if(state.extraPaid||state.verifiedShared) return '';
+    const followingStudio=state.messages.at(-1)?.sceneKind==='studio';
+    const studioChoice=followingStudio?'':state.asked.includes('process')?go('club','Xem phản hồi Studio để gửi Vy'):
+      state.studioVisited||state.asked.length?go('club','Quay lại hội thoại Sao Mai'):
+      state.sceneSent.includes('studio')?go('post','Mở bài tuyển gốc'):button(sceneLines.studio,'scene','studio');
     const choices=[
-      !state.stopped&&!state.sceneSent.includes('stop')?button(sceneLines.stop,'scene','stop'):'',
-      state.asked.includes('process')?(state.messages.at(-1)?.sceneKind==='studio'?'':go('club','Xem phản hồi Studio để gửi Vy')):
-        !state.sceneSent.includes('studio')?button(sceneLines.studio,'scene','studio'):'',
+      !state.stopped&&!state.sceneSent.includes('stop')?button(sceneLines.stop,'scene','stop'):'',studioChoice,
       !state.sceneSent.includes('request')?button(state.seen.includes('recruiter')?'Tớ xem lại đoạn họ yêu cầu chuyển thêm nhé.':sceneLines.request,'scene','request'):''
     ].filter(Boolean);
     return choices.length?'<section class="scene-choices" aria-label="Cách nhắn lại với Vy">'+choices.join('')+'</section>':'';

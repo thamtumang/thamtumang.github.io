@@ -26,3 +26,6 @@ t=load();t.do('scene','studio');t.do('risk');const pending=t.state.messages.leng
 const old={messages:[{name:'Vy',text:'old text'}],timeline:['old action'],paused:true};t=load(old);assert.equal(t.state.openingVersion,1);assert.equal(t.state.sceneSent.length,0);assert.equal(JSON.stringify(t.state.messages),JSON.stringify(old.messages));assert.deepEqual(Array.from(t.state.timeline),old.timeline);
 t=load();t.do('scene','studio');const resumed=load(t.saved());assert.equal(resumed.state.openingVersion,2);assert.equal(resumed.state.messages.length,2);resumed.do('scene','studio');assert.equal(resumed.state.messages.length,2);assert.equal(load().state.sceneSent.length,0);
 console.log('PASS: three separate scene effects, context-aware rereading, reuse of answers, ordered sends, risk confirmation and payment-v1 continuity.');
+
+// Returning after forwarding a post-only opinion keeps access to the Studio conversation.
+t=load();t.do('scene','studio');t.view('club');t.do('ask','post');t.do('draft','post-1');t.do('send-draft');t.view('inbox');assert.equal(t.state.verifiedShared,false);assert.equal(t.state.stopped,false);assert.ok(t.nextActions().includes('href="#club"'));
