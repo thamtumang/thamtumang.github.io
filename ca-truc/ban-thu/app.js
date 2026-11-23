@@ -212,7 +212,7 @@
     const follow=dossierFollowup();
     if(state.transferPrompt) return follow+actions(button('Khoan, để tớ kiểm tra lại','rethink','','primary'),button('Ừ, cậu chuyển tiếp đi','proceed'));
     if(state.extraPaid||state.verifiedShared) return follow+actions(go('recover','Mở hồ sơ hỗ trợ','primary'),resultLink());
-    const related=sceneFollowup();
+    const related=sceneFollowup()||(state.stopped?actions(state.helpSeen.length?go('recover','Xem lại hỗ trợ'):go('help','Tìm nơi hỗ trợ khoản đã chuyển')):'');
     return follow+related+sceneChoices()+
       (canContinue()?'<div class="transfer-advice">'+button('Khuyên Vy chuyển tiếp 1 triệu','risk')+'</div>':'')+
       actions(state.paused&&!state.stopped&&!state.finished?button('Kết thúc tại đây · Đang chờ xác minh','finish'):'',
