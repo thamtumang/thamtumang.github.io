@@ -485,20 +485,41 @@
           actions(button('Soạn báo cáo tài khoản','draft-report','','primary')))+
       supportReaction()+'<p class="small">Báo cáo ViệtBook khác với trình báo cơ quan chức năng và không xác nhận thu hồi tiền.</p>'+supportExit();
   }
+  function endingState() {
+    const kind=state.extraPaid?'extra':state.verifiedShared&&state.stopped?'verified':state.stopped?'stopped':state.paused?'paused':'undecided';
+    const outcomes={
+      extra:{title:'Vy đã chuyển thêm 1 triệu',reply:state.stopped?'Tớ không chuyển thêm nữa. Mình xem cách xử lý khoản đã chuyển nha.':'Tớ vẫn chưa biết phải xử lý thế nào.',
+        lesson:'Khoản đã chuyển trước đó không làm yêu cầu chuyển tiếp trở nên an toàn.'},
+      verified:{title:'Vy dừng sau khi kiểm tra với Studio',reply:'Ừ, tớ không chuyển thêm nữa.',
+        lesson:'Bài tuyển có thật không tự xác nhận lời mời riêng. Cần kiểm tra đúng yêu cầu đang được đưa ra.'},
+      stopped:{title:'Vy đã dừng chuyển thêm',reply:'Tớ không chuyển thêm nữa. Nhưng khoản đã chuyển thì vẫn chưa lấy lại được.',
+        lesson:state.asked.includes('process')?'Dừng chuyển thêm giúp tránh tăng thiệt hại. Phản hồi Studio vẫn cần được chuyển cho Vy.':'Dừng chuyển thêm giúp tránh tăng thiệt hại. Yêu cầu ứng tiền vẫn chưa được kiểm tra qua Studio.'},
+      paused:{title:'Vy đang chờ kiểm tra',reply:'Ừ, tớ chờ. Tớ chưa chuyển thêm.',
+        lesson:'Tạm dừng tạo thời gian kiểm tra yêu cầu trước khi quyết định.'},
+      undecided:{title:'Vy vẫn đang phân vân',reply:'Tớ vẫn chưa biết nên làm gì tiếp.',
+        lesson:'Giữ chứng cứ hoặc báo cáo tài khoản chưa thay cho quyết định về lần chuyển tiếp theo.'}
+    };
+    return {kind,...outcomes[kind],amount:total(),stopped:state.stopped,verified:state.verifiedShared};
+  }
+  function endingInvitation() {
+    if(!state.stopped) return {view:'recover',label:'Nhắn Vy về việc dừng chuyển thêm'};
+    const seen=state.helpSeen.filter(id=>Object.hasOwn(helpSources,id));
+    if(!seen.length) return {view:'help',label:'Tìm nơi hỗ trợ khoản đã chuyển'};
+    if(!state.helpShared.length) return {view:seen.length===1?seen[0]:'help',label:'Xem lại hướng dẫn để gửi Vy'};
+    if(!state.receiptSaved||!state.chatSaved) return {view:'proofs',label:'Cùng Vy xem lại chứng cứ'};
+    return {view:'recover',label:'Xem lại phần hỗ trợ'};
+  }
   function summary() {
     if(!ready()) return '<h1>Ca đang diễn ra</h1>'+actions(go('inbox','Về hộp thư Vy'));
-    const group=state.extraPaid?'Đã chuyển thêm':state.verifiedShared&&state.stopped?'Đã xác minh và dừng chuyển thêm':state.paused||state.stopped?'Đã tạm dừng, chưa xác minh đầy đủ':'Chưa xác minh đầy đủ';
-    const reply=state.stopped?'Tớ không chuyển thêm nữa.':state.extraPaid?'Tớ chuyển thêm rồi mà tiền vẫn chưa về.':state.paused?'Ừ, tớ chờ. Tớ chưa chuyển thêm.':'Tớ vẫn chưa biết nên làm gì tiếp.';
-    const lesson=!state.stopped&&!state.paused?'Vy chưa chốt dừng chuyển thêm; việc giữ chứng cứ hay báo cáo không thay quyết định đó.':
-      !state.asked.includes('process')?'Khoản chuyển tiếp đang dừng, nhưng yêu cầu ứng tiền còn chưa được kiểm tra với Studio.':
-      !state.verifiedShared?'Bạn đã hỏi Studio; Vy chưa nhận được phản hồi về quy trình ứng tiền.':
-      state.reported&&!state.helpSeen.length?'Báo cáo tài khoản và tìm hỗ trợ khoản tiền là những việc khác nhau.':
-      !state.helpSeen.length?'Biết quy trình không khớp chưa xử lý được khoản đã chuyển.':
-      !state.helpShared.length?'Bạn đã mở hướng dẫn. Vy chưa nhận được hướng dẫn đó qua hội thoại.':
-      !state.dossier?'Vy đã nhận hướng dẫn; bản thông tin để nhờ hỗ trợ vẫn chưa được chuẩn bị.':
-      'Chuẩn bị thông tin chưa phải đã liên hệ hay được tiếp nhận. Khoản tiền vẫn chưa được xác nhận thu hồi.';
-    return '<h1>'+group+'</h1><div class="outcome">Vy đã chuyển '+total()+'. Khoản tiền chưa được thu hồi.</div>'+
-      '<p>45.000đ tiền công đã nhận trước đó được ghi riêng.</p>'+bubble('Vy',reply)+'<p>'+lesson+'</p>'+
+    const ending=endingState(),invitation=endingInvitation();
+    return '<section class="ending-main"><p class="ending-label">Kết ca · Lượt này</p><h1>'+ending.title+'</h1>'+bubble('Vy',ending.reply)+
+      '<div class="ending-money"><p><b>Tổng đã chuyển: '+ending.amount+'.</b> Chưa xác nhận thu hồi.</p><p class="small">45.000đ tiền công đã nhận trước được ghi riêng, không trừ vào tổng đã chuyển.</p></div>'+
+      (!state.stopped?'<p class="ending-limit">Vy chưa xác nhận dừng chuyển thêm.</p>':'')+
+      (state.verifiedShared?'<p class="ending-limit">Studio xác nhận không tổ chức quy trình ứng tiền làm nhiệm vụ. Danh tính thật của Hương Giang chưa được xác minh.</p>':'')+
+      '<p class="ending-lesson">'+ending.lesson+'</p>'+
+      actions(typeof window.frameElement?.caTrucClose==='function'?button('Về desktop','leave-case','','primary'):'',go('inbox','Về hộp thư Vy'))+
+      '<aside class="ending-invitation"><p>Bạn có thể dừng lượt tại đây, hoặc tiếp tục cùng Vy.</p>'+actions(go(invitation.view,invitation.label))+'</aside></section>'+
+      '<details class="ending-support"><summary>Xem tình trạng chứng cứ và hỗ trợ</summary>'+
       '<ul><li>'+(state.stopped?'Vy đã dừng chuyển thêm.':state.paused?'Vy đang chờ kiểm tra; chưa chốt dừng.':'Chưa chốt dừng chuyển thêm.')+'</li><li>'+
       (state.receiptSaved&&state.chatSaved?'Đã lưu tin nhắn và chứng từ chuyển tiền.':state.receiptSaved?'Đã lưu chứng từ. Còn thiếu tin nhắn.':
         state.chatSaved?'Đã lưu tin nhắn. Còn thiếu chứng từ hiện tại.':state.receiptSavedTotal?'Đã lưu chứng từ ở mốc '+state.receiptSavedTotal+'; khoản chuyển mới và tin nhắn chưa được lưu riêng.':'Chưa lưu tin nhắn và chứng từ.')+'</li><li>'+
@@ -507,18 +528,19 @@
       (state.helpShared.length?'Đã gửi hướng dẫn cho Vy: '+state.helpShared.map(id=>e(helpSources[id].title)).join('; ')+'.':'Chưa gửi hướng dẫn hỗ trợ cho Vy.')+'</li><li>'+
       (state.dossier?'Đã lưu bản chuẩn bị mô phỏng; chưa trình báo.':state.dossierSent.length?'Đã gửi Vy xem nháp; chưa lưu bản chuẩn bị.':'Chưa chuẩn bị thông tin.')+'</li><li>'+
       (state.reported?'Đã gửi báo cáo ViệtBook; chưa có kết quả xử lý.':'Chưa gửi báo cáo ViệtBook.')+'</li><li>Chưa có xác nhận Vy đã liên hệ ngân hàng hoặc trình báo cơ quan Công an.</li></ul>'+
-      '<details><summary>Những việc bạn đã làm</summary><ul>'+
+      dossierStatus()+actions(go('dossier','Xem các bản chuẩn bị thông tin'))+'</details>'+
+      '<details class="ending-history"><summary>Xem diễn biến và những việc đã làm</summary><ul>'+
       (state.legacy?'<li>Thông tin từ lượt đã lưu trước bản cập nhật (không xác định đầy đủ thứ tự):<ul>'+legacyFacts().map(text=>'<li>'+e(text)+'</li>').join('')+'</ul></li>':'')+
       state.timeline.map(text=>'<li>'+e(text)+'</li>').join('')+
       (state.helpDraft?'<li>Nháp hướng dẫn chưa gửi.</li>':'')+(state.reportDraft?'<li>Nháp báo cáo chưa gửi.</li>':'')+
       (state.draft?'<li>Chưa gửi: bản nháp nhận định về '+e(groupNames[state.draft.id])+'.</li>':'')+
       (!hasOpinion('compare')&&state.selected.length?'<li>Đang chọn '+state.selected.length+'/2 trích đoạn; chưa gửi đối chiếu.</li>':'')+
       (state.asked.length?'<li>Danh tính và vai trò thật của Hương Giang chưa được xác minh.</li>':'')+
-'</ul></details>'+dossierStatus()+
-      '<details><summary>Cơ sở tình huống</summary><p>Cơ chế trả công ban đầu, yêu cầu ứng tiền và giữ thanh toán được chuyển thể từ các cảnh báo dưới đây. Tên người, tổ chức và mọi diễn biến cụ thể trong ca đều hư cấu.</p><ul>'+
+'</ul></details>'+
+      '<details class="ending-sources"><summary>Cơ sở tình huống</summary><p>Cơ chế trả công ban đầu, yêu cầu ứng tiền và giữ thanh toán được chuyển thể từ các cảnh báo dưới đây. Tên người, tổ chức và mọi diễn biến cụ thể trong ca đều hư cấu.</p><ul>'+
       sources.map(([label,url])=>'<li><a href="'+url+'" target="_blank" rel="noopener">'+label+'</a></li>').join('')+'</ul><h3>Cơ sở ứng phó</h3><ul>'+
       Object.values(helpSources).map(item=>'<li><a href="'+item.url+'" target="_blank" rel="noopener">'+e(item.organization)+' · '+item.date+'</a> — '+e(item.label)+'. Áp dụng: '+e(item.purpose)+'</li>').join('')+'</ul></details>'+
-      actions(go('recover','Tiếp tục hỗ trợ Vy','primary'),go('inbox','Về hộp thư Vy'));
+      '';
   }
   const panels={
     inbox,recruiter,transactions,receipt,tasks,task,post,club,recover,proofs,help,dossier,report,bankHelp:()=>helpSource('bankHelp'),policeHelp:()=>helpSource('policeHelp'),result:summary,
@@ -566,6 +588,8 @@
         const target=host.querySelector('.message-turn[data-start="'+state.pendingTurn+'"]');
         if(target) {target.focus({preventScroll:true});target.scrollIntoView({block:'start'});}
         state.pendingTurn=null;save();
+      } else if(view==='result'&&restoreY===0) {
+        host.querySelector('.ending-main')?.scrollIntoView({block:'start'});
       } else if(focusAfterRender) {
         const target=host.querySelector(focusAfterRender);focusAfterRender=null;
         target?.focus({preventScroll:true});target?.scrollIntoView({block:target.classList.contains('dossier-preview')?'start':'nearest'});
@@ -588,6 +612,9 @@
     else if(action==='discard-draft') focusAfterRender='[data-action="draft"], [data-action="review"]';
     else if(action==='select-excerpt') focusAfterRender='[data-action="select-excerpt"][data-id="'+id+'"]';
 
+    if(action==='leave-case'&&current()==='result'&&typeof window.frameElement?.caTrucClose==='function') {
+      save();window.frameElement.caTrucClose();return;
+    }
     if(action==='reset') {
       if(!window.confirm('Chơi lại riêng ca Vy từ đầu?')) return;
       state=fresh();save();navigate('inbox');return;

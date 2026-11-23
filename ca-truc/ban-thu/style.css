@@ -261,3 +261,21 @@ button.amount[aria-pressed=true] { border-color:#aa761e; background:#fff0c9; }
 .dossier-history .support-reaction{margin-bottom:.4rem}
 .dossier-preview>.actions{margin:.55rem 0 0}
 @media(max-width:700px){.dossier-documents{grid-template-columns:1fr}.dossier-preview{padding:.65rem}.dossier-state p{line-height:1.5}.dossier-document>summary{padding:.55rem}.dossier-preview>.actions{gap:.4rem}}
+
+/* A stopping point, with optional support separate from the outcome. */
+.ending-main{max-width:76ch;margin:0 auto 1rem;scroll-margin-block:.8rem}
+.ending-label{font-size:.78rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 .4rem;font-weight:650}
+.ending-main h1{font-size:clamp(1.5rem,3.5vw,1.95rem)}
+.ending-main .bubble{max-width:100%;margin:.5rem 0 .7rem;background:#f3f5fa;border:1px solid var(--line)}
+.ending-money{background:#f3f4f7;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .8rem;margin:.65rem 0}
+.ending-money .small{margin-top:.3rem;color:var(--muted)}
+.ending-limit{font-size:.92rem;margin:.55rem 0;color:var(--muted)}
+.ending-lesson{margin:.7rem 0 .9rem;line-height:1.55}
+.ending-invitation{border-top:1px solid var(--line);padding-top:.65rem;margin-top:.75rem}
+.ending-invitation p{font-size:.9rem;color:var(--muted)}
+.ending-invitation .actions{margin:.4rem 0 0}
+.result>details>summary{min-height:44px;cursor:pointer;font-weight:650;padding:.6rem}
+.result>details{margin:.4rem 0;border:1px solid var(--line);border-radius:.55rem}
+.result>details[open]{padding-bottom:.6rem}.result>details>ul,.result>details>p{margin:.5rem .8rem .5rem 2rem}
+.ending-support .dossier-status,.ending-support>.actions{margin:.6rem}
+@media(max-width:700px){.ending-main .actions>*{flex:1 1 100%}.ending-money{padding:.65rem}.ending-main h1{overflow-wrap:anywhere}.ending-main{margin-bottom:.8rem}}

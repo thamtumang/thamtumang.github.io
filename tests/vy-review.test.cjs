@@ -55,5 +55,5 @@ t=load();t.do('risk');t.do('proceed');t.do('proceed');assert.equal(t.state.messa
 t.view('recover');t.do('stop');t.view('recover');t.do('keep','receiptSaved');t.do('keep','receiptSaved');
 assert.match(t.summary(),/Còn thiếu tin nhắn/);assert.equal(t.state.timeline.filter(x=>x==='Đã lưu chứng từ chuyển tiền.').length,1);
 t.do('keep','chatSaved');t.view('dossier');t.do('dossier-preview');t.do('dossier-save');assert.equal(t.state.reported,false);assert.equal(t.state.dossier,true);
-assert.match(t.summary(),/1.500.000đ/);assert.match(t.summary(),/chưa được thu hồi/);
+assert.match(t.summary(),/1.500.000đ/);assert.match(t.summary(),/Chưa xác nhận thu hồi/);
 console.log('PASS: three evidence groups, draft/cancel/revise/reload, historical ordering, legacy saves, reflection, verified decision, transfer/support idempotency.');
