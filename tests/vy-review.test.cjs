@@ -41,9 +41,9 @@ let t=load();t.view('club');t.do('ask','process');t.do('share-process');t.do('dr
 assert.equal(t.state.extraPaid,false);assert.match(t.state.messages.at(-1).text,/Studio đã nói/);
 let html=t.summary();assert.ok(html.indexOf('Đã chuyển phản hồi')<html.indexOf('Đã gửi biên lai'));
 assert.doesNotMatch(html,/Ban đầu|Sau đó/);
-// Reflection is retrospective, one-time, and is not logged as a player's action.
-t.view('task');t.view('inbox');t.view('task');assert.equal(t.state.messages.filter(m=>m.reflection).length,1);
-t=load(JSON.parse(JSON.stringify(t.state)));t.view('task');assert.equal(t.state.messages.filter(m=>m.reflection).length,1);
+// Opening a source no longer creates a player or Vy message. Existing reflections remain in old saves.
+const beforeOpen=t.state.messages.length;t.view('task');t.view('inbox');t.view('task');assert.equal(t.state.messages.length,beforeOpen);
+t=load(JSON.parse(JSON.stringify(t.state)));t.view('task');assert.equal(t.state.messages.filter(m=>m.reflection).length,0);
 // Both old choices are interpreted in message order. Unknown order remains neutral.
 const item=t.evidence.receipt;
 t=load({view:'inbox',sent:['receipt-0','receipt-1'],messages:[{sent:true,text:item.options[1],attachment:item},{sent:true,text:item.options[0],attachment:item}],paused:true,finished:true});

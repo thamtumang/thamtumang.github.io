@@ -2,7 +2,7 @@
   'use strict';
   const host = document.getElementById('app');
   const storage = window.frameElement?.caTrucStorage;
-  const fresh = () => ({view:'inbox', openingVersion:2, sceneSent:[], dossierOpened:false, dossierIntro:null, dossierIntroOpen:false, dossierSelection:[], dossierDraft:null, dossierSent:[], dossierArchive:[], dossierSeen:[], receiptSavedTotal:null, supportIntro:null, supportOpened:false, supportFeedback:null, helpSeen:[], helpShared:[], helpDraft:null, reportDraft:null, reportSnapshot:null, dossierSnapshot:null, scrolls:{}, disclosures:{}, pendingTurn:null, studioVisited:false, review:null, taskReflection:false, reflectionUnread:false, timeline:[], legacy:null, selected:[], taskReturn:'recruiter', messages:[], seen:[], sent:[], asked:[], draft:null,
+  const fresh = () => ({view:'inbox', uiTrail:[], uiLastSource:null, uiChatScroll:0, uiFocusReturn:null, openingVersion:2, sceneSent:[], dossierOpened:false, dossierIntro:null, dossierIntroOpen:false, dossierSelection:[], dossierDraft:null, dossierSent:[], dossierArchive:[], dossierSeen:[], receiptSavedTotal:null, supportIntro:null, supportOpened:false, supportFeedback:null, helpSeen:[], helpShared:[], helpDraft:null, reportDraft:null, reportSnapshot:null, dossierSnapshot:null, scrolls:{}, disclosures:{}, pendingTurn:null, studioVisited:false, review:null, taskReflection:false, reflectionUnread:false, timeline:[], legacy:null, selected:[], taskReturn:'recruiter', messages:[], seen:[], sent:[], asked:[], draft:null,
     sharedReturn:'inbox', paused:false, stopped:false, verifiedShared:false, extraPaid:false,
     transferPrompt:false, finished:false, receiptSaved:false, chatSaved:false, reported:false,
     dossier:false, giangAsked:false});
@@ -133,7 +133,7 @@
   const resultLink = () => ready()?go('result','Xem tổng kết'):'';
   function navigate(view) {
     if(current()===view) render();
-    else location.hash=view;
+    else location.hash='#'+view;
   }
   function chat(text,reply,attachment=null) {
     state.pendingTurn=state.messages.length;
@@ -155,12 +155,12 @@
   }
   function evidenceChoices(id) {
     const item=evidence[id],sent=hasOpinion(id),active=state.review===id;
-    if(sent&&!active) return actions(button('Xem lại nhận định','review',id));
+    if(sent&&!active) return actions(pill('Đã gửi Vy'),button('Xem lại nhận định','review',id));
     const choice=currentOpinion(id);
     if(state.draft?.id===id) return draft()+(sent?actions(button('Đóng bộ soạn','close-review',id)):'');
     return (sent?'<h3>Sửa nhận định · '+e(groupNames[id])+'</h3>'+bubble('Căn cứ đã gửi','',false,item):'')+
-      '<p>Chọn lời nhắn gửi kèm căn cứ</p>'+actions(...item.options.map((label,i)=>
-        sent&&choice===i?pill('Nhận định hiện tại · '+label):button(label,'draft',id+'-'+i)))+
+      '<p>'+e(sent?'Xem trước trước khi gửi sửa ý':'Gửi cho Vy · Kèm nguồn: '+item.source)+'</p>'+actions(...item.options.map((label,i)=>
+        sent&&choice===i?pill('Nhận định hiện tại · '+label):button((sent?'Soạn sửa ý: ':'Gửi Vy: ')+label,sent?'draft':'send-evidence',id+'-'+i)))+
       (state.draft?.id===id?draft():'')+
       (sent?actions(button('Đóng bộ soạn','close-review',id)):'');
   }
@@ -191,34 +191,21 @@
     return '<a class="button" href="#recruiter" data-focus-request="true">Xem đoạn chat Vy chia sẻ</a>';
   }
   function sceneChoices() {
-    if(state.extraPaid||state.verifiedShared) return '';
-    const followingStudio=state.messages.at(-1)?.sceneKind==='studio';
-    const studioChoice=followingStudio?'':state.asked.includes('process')?go('club','Xem phản hồi Studio để gửi Vy'):
-      state.studioVisited||state.asked.length?go('club','Quay lại hội thoại Sao Mai'):
-      state.sceneSent.includes('studio')?go('post','Mở bài tuyển gốc'):button(sceneLines.studio,'scene','studio');
-    const choices=[
-      !state.stopped&&!state.sceneSent.includes('stop')?button(sceneLines.stop,'scene','stop'):'',studioChoice,
-      !state.sceneSent.includes('request')?button(state.seen.includes('recruiter')?'Tớ xem lại đoạn họ yêu cầu chuyển thêm nhé.':sceneLines.request,'scene','request'):''
-    ].filter(Boolean);
-    return choices.length?'<section class="scene-choices" aria-label="Cách nhắn lại với Vy">'+choices.join('')+'</section>':'';
+    if(state.transferPrompt||state.extraPaid||state.verifiedShared) return '';
+    return '<section class="reply-options" aria-label="Nhắn lại Vy">'+
+      (!state.stopped?actions(button('Gửi Vy: Dừng chuyển thêm','scene','stop'),
+        !state.paused?button('Gửi Vy: Khoan chuyển thêm, để tớ kiểm tra','pause'):'',
+        canContinue()?button('Khuyên Vy chuyển tiếp 1 triệu','risk'):'') :pill('Vy đã xác nhận dừng chuyển thêm'))+'</section>';
   }
-  function sceneFollowup() {
-    const kind=state.messages.at(-1)?.sceneKind;
-    if(kind==='stop') return actions(state.helpSeen.length?go('recover','Xem lại hỗ trợ'):go('help','Tìm nơi hỗ trợ khoản đã chuyển'));
-    if(kind==='studio') return actions(state.asked.includes('process')?go('club','Xem phản hồi Studio để gửi Vy'):
-      state.studioVisited||state.asked.length?go('club','Quay lại hội thoại Sao Mai'):go('post','Mở bài tuyển gốc'));
-    if(kind==='request') return actions(sceneRequestLink());
-    return '';
-  }
+  function sceneFollowup() { return ''; }
   function nextActions() {
+    if(state.transferPrompt) return actions(button('Khoan, để tớ kiểm tra lại','rethink'),button('Ừ, cậu chuyển tiếp đi','proceed'));
     const follow=dossierFollowup();
-    if(state.transferPrompt) return follow+actions(button('Khoan, để tớ kiểm tra lại','rethink','','primary'),button('Ừ, cậu chuyển tiếp đi','proceed'));
-    if(state.extraPaid||state.verifiedShared) return follow+actions(go('recover','Mở hồ sơ hỗ trợ','primary'),resultLink());
-    const related=sceneFollowup()||(state.stopped?actions(state.helpSeen.length?go('recover','Xem lại hỗ trợ'):go('help','Tìm nơi hỗ trợ khoản đã chuyển')):'');
-    return follow+related+sceneChoices()+
-      (canContinue()?'<div class="transfer-advice">'+button('Khuyên Vy chuyển tiếp 1 triệu','risk')+'</div>':'')+
-      actions(state.paused&&!state.stopped&&!state.finished?button('Kết thúc tại đây · Đang chờ xác minh','finish'):'',
-        ready()?resultLink():'',state.messages.length&&!related?go('recover','Mở hồ sơ hỗ trợ'):'');
+    const context=state.studioVisited||state.asked.length?go('club','Quay lại hội thoại Sao Mai'):'';
+    return follow+actions(context,
+      state.stopped||state.extraPaid?go('recover','Giúp Vy xử lý khoản đã chuyển'):'',
+      ready()?resultLink():'',state.paused&&!state.stopped&&!state.finished?button('Kết thúc tại đây · Chưa xác minh đầy đủ','finish'):'')+
+      '<details class="reply-menu" data-disclosure="reply" '+(state.disclosures.reply?'open':'')+'><summary>Nhắn lại Vy</summary>'+sceneChoices()+'</details>';
   }
   function thread() {
     let html='';
@@ -239,7 +226,7 @@
     return html;
   }
   function inbox() {
-    const opening=bubble('Vy','Tớ chuyển 500k rồi mà chưa nhận lại được. Bên đó bảo còn một bước nữa.')+
+    const opening=bubble('Vy','Tớ chuyển 500k rồi mà chưa nhận lại. Giờ họ bảo chuyển thêm 1 triệu mới thanh toán.')+
       bubble('Vy',state.openingVersion===1?'Tớ thấy không ổn, nhưng bỏ bây giờ thì mất luôn tiền à? Cậu xem giúp tớ với.':'Tớ thấy chuyện chuyển tiếp không ổn. Nhưng 500k là tiền tớ để dành. Nếu dừng thì khoản đó phải làm sao?');
     const cards=card('recruiter','Đoạn chat với Hương Giang','Vy chia sẻ · Chỉ đọc')+
       card('transactions','Lịch sử giao dịch','Tiền đã nhận và đã chuyển')+
@@ -249,12 +236,12 @@
     let composer='';
     if(state.review) composer='<section class="opinion-editor">'+evidenceChoices(state.review)+'</section>';
     else if(state.draft) composer=draft();
-    else if(state.selected.length&&!hasOpinion('compare')) composer=comparison();
+
     return '<div class="inbox-layout"><aside class="portrait"><figure class="scene '+(state.stopped?'nhe-nhom':'lo-lang')+'"><figcaption class="scene-caption">Thảo Vy</figcaption></figure></aside>'+
       '<section class="conversation"><div class="contact-title"><h1>Hộp thư · Thảo Vy</h1>'+pill('Đã chuyển · '+total())+'</div>'+
       (long?'<details class="opening-history" data-disclosure="opening" '+(state.disclosures.opening?'open':'')+'><summary>Tin nhắn mở đầu</summary>'+opening+'</details>':
-        '<p class="role-hint">Bạn là bạn của Vy. Xem nội dung bạn ấy gửi hoặc chọn cách nhắn lại.</p>'+opening)+
-      '<details class="shared-content" data-disclosure="shared" '+((state.disclosures.shared??!long)?'open':'')+'><summary>Nội dung Vy đã gửi · 4 mục</summary><div class="shared-list">'+cards+'</div></details>'+
+        '<p class="role-hint">Bạn là bạn của Vy. Mở nguồn để xem; dùng nút Gửi Vy nếu muốn chuyển nội dung.</p>'+opening)+
+      '<details class="shared-content" data-disclosure="shared" '+(state.disclosures.shared?'open':'')+'><summary>Xem nội dung Vy gửi</summary><div class="shared-list">'+cards+'</div></details>'+
       '<div class="chat-thread">'+thread()+'</div>'+(long?'':nextActions())+
       '<div class="composer-zone">'+composer+'</div></section></div>';
   }
@@ -314,7 +301,7 @@
   }
   function club() {
     const thread=state.asked.map(id=>bubble('Bạn · Đã gửi',id==='post'?postQuestion:processQuestion,true)+bubble(studio,id==='post'?postAnswer:processAnswer)+
-      (id==='post'?evidenceChoices('post'):actions(state.verifiedShared?pill('Đã gửi phản hồi và lời khuyên dừng'):button('Gửi phản hồi và khuyên Vy dừng','share-process','','primary')))).join('');
+      (id==='post'?evidenceChoices('post'):actions(state.verifiedShared?pill('Đã gửi phản hồi và lời khuyên dừng'):button('Gửi Vy phản hồi về quy trình ứng tiền và lời khuyên dừng','share-process','','primary')))).join('');
     return '<h1>Hộp thư Sao Mai Studio</h1><section class="conversation source-chat">'+publisher(studio,'Hộp thư mở từ bài tuyển gốc')+thread+
       actions(!state.asked.includes('post')?button(postQuestion,'ask','post'):'',
         !state.asked.includes('process')?button(processQuestion,'ask','process'):'')+'</section>'+
@@ -327,8 +314,7 @@
   }
   function supportReaction() {
     const m=state.messages[state.supportFeedback];
-    return m?.supportKind?'<section class="support-reaction" tabindex="-1"><small>Phản hồi gần nhất · Hộp thư Vy</small>'+bubble('Vy',m.text)+
-      actions(go('inbox','Xem trong hộp thư Vy'))+'</section>':'';
+    return m?.supportKind?'<p class="support-reaction" tabindex="-1">Phản hồi của Vy đã có trong cuộc trò chuyện.</p>':'';
   }
   function supportExit() {
     return actions(go('recover','Về hỗ trợ Vy'),button(ready()?'Xem tổng kết':'Kết thúc lượt tại đây','support-finish'),go('inbox','Về hộp thư Vy'));
@@ -343,7 +329,7 @@
       card('proofs',state.receiptSaved||state.chatSaved?'Xem lại tin nhắn và giao dịch':'Cùng Vy xem lại tin nhắn và giao dịch','Giữ yêu cầu tiền và chứng từ')+
       card('help',state.helpSeen.length?'Xem lại nơi hỗ trợ khoản đã chuyển':'Tìm nơi hỗ trợ khoản đã chuyển','Đọc hướng dẫn từ nguồn độc lập')+
       card('report',state.reported?'Xem lại báo cáo ViệtBook':'Báo cáo tài khoản trên ViệtBook','Đối tượng: tài khoản Hương Giang')+'</div>'+
-      actions(state.dossier?go('dossier','Xem lại bản chuẩn bị thông tin'):'',button(ready()?'Xem tổng kết':'Kết thúc lượt tại đây','support-finish'),go('inbox','Về hộp thư Vy'));
+      actions(go('dossier','Xem bản chuẩn bị thông tin (tùy chọn)'),button(ready()?'Xem tổng kết':'Kết thúc lượt tại đây','support-finish'),go('inbox','Về hộp thư Vy'));
   }
   function proofs() {
     return '<h1>Tin nhắn và giao dịch Vy chia sẻ</h1><p>Đã chuyển '+total()+'. Chưa xác nhận thu hồi.</p>'+supportReaction()+
@@ -357,7 +343,7 @@
       (state.extraPaid?bubble('Vy','Em chuyển thêm 1 triệu rồi mà vẫn chưa nhận lại tiền.')+bubble('Hương Giang','Hồ sơ còn thiếu phí xử lý. Em chuyển thêm rồi chị hỗ trợ.'):'')+
       actions(go('recruiter','Mở đoạn chat Vy chia sẻ'))+'</details>'+
       actions(state.chatSaved?pill('Đã lưu tin nhắn'):button('Lưu tin nhắn yêu cầu chuyển thêm','keep','chatSaved'))+'</article>'+
-      actions(go('help','Tìm nơi hỗ trợ khoản đã chuyển'),go('dossier',state.dossier?'Xem lại bản chuẩn bị thông tin':'Cùng Vy chuẩn bị thông tin'))+supportExit();
+      actions(go('help','Tìm nơi hỗ trợ khoản đã chuyển'),go('dossier','Xem bản chuẩn bị thông tin (tùy chọn)'))+supportExit();
   }
   function help() {
     return '<h1>Tìm nơi hỗ trợ khoản đã chuyển</h1><p>Chọn kênh để đọc hướng dẫn. Mở thẻ chưa phải đã liên hệ.</p><div class="support-paths">'+
@@ -374,8 +360,8 @@
       (state.helpShared.includes(id)?pill('Đã gửi hướng dẫn này cho Vy'):
         state.helpDraft===id?'<section class="draft-box"><h2>Nháp hướng dẫn · Chưa gửi</h2>'+bubble('Bạn · Sắp gửi',item.advice,true,{source:item.organization,quote:item.quote})+
           actions(button('Gửi hướng dẫn cho Vy','share-help',id,'primary'),button('Bỏ nháp hướng dẫn','cancel-help',id))+'</section>':
-          actions(button('Soạn tin gửi hướng dẫn cho Vy','draft-help',id)))+
-      actions(go('dossier',state.dossier?'Xem lại bản chuẩn bị thông tin':'Cùng Vy chuẩn bị thông tin'),go('help','Chọn kênh khác'))+
+          '<section class="guidance-send"><p>'+e(item.advice)+'</p>'+actions(button('Gửi Vy hướng dẫn này','send-help',id))+'</section>')+
+      actions(go('dossier','Xem bản chuẩn bị thông tin (tùy chọn)'),go('help','Chọn kênh khác'))+
       '<p class="small">Ca này không gọi điện, gửi biểu mẫu hay xác nhận ngân hàng/cơ quan đã tiếp nhận. Chưa có kết quả về khoản tiền.</p>'+supportExit();
   }
   const dossierLabels={receipt45:'Biên lai nhận 45.000đ',transfers:'Chứng từ khoản đã chuyển',demands:'Tin nhắn yêu cầu tiền',post:'Bài tuyển gốc của Studio',studioPost:'Studio xác nhận bài tuyển',studioProcess:'Studio trả lời về ứng tiền'};
@@ -590,51 +576,52 @@
     const view=current(),restoreY=state.scrolls[view]||0;state.view=view;
     if(view==='club') state.studioVisited=true;
     if(view!=='dossier') state.dossierIntroOpen=false;
-    if(view==='dossier'&&!state.dossierOpened) {
-      state.dossierOpened=true;state.dossierIntroOpen=true;state.dossierIntro=state.messages.length;state.pendingTurn=state.messages.length;
-      state.messages.push({name:'Vy',dossierIntro:true,text:'Tớ có cả biên lai lần nhận tiền lẫn lần chuyển tiền. Mình kèm những gì để kể rõ chuyện này?'});
-    }
-    if(view==='recover'&&!state.supportOpened) {
-      state.supportOpened=true;state.supportIntro=state.messages.length;state.pendingTurn=state.messages.length;
-      state.messages.push({name:'Vy',supportKind:'intro',text:state.extraPaid?
-        (state.stopped?'Tớ không chuyển thêm nữa. Nhưng khoản 1,5 triệu chưa về. Giờ mình bắt đầu từ đâu?':'Tớ đã chuyển thêm mà họ vẫn đòi tiếp. Tớ không biết nên xử lý từ đâu.'):
-        state.stopped?'Tớ không chuyển thêm nữa. Nhưng tớ muốn chặn người này ngay cho đỡ sợ. Còn khoản đã chuyển thì giờ làm sao?':
-        'Tớ muốn chặn người này quá. Nhưng nếu dừng thì khoản đã chuyển có mất luôn không?'});
-    }
     if(Object.hasOwn(helpSources,view)&&!state.helpSeen.includes(view)) {
       state.helpSeen.push(view);log('Đã mở hướng dẫn từ '+helpSources[view].title+'. Chưa gửi hướng dẫn hay liên hệ.');
     }
     if(Object.hasOwn(viewNames,view)&&!state.seen.includes(view)) {state.seen.push(view);log('Đã mở '+viewNames[view]+'.');}
-    if(view==='task'&&!state.taskReflection) {
-      state.taskReflection=true;state.reflectionUnread=true;
-      state.pendingTurn=state.messages.length;
-      state.messages.push({name:'Vy',text:'Hồi đó tớ nghĩ chị ấy đã trả tiền lần trước, chắc lần này cũng trả. Nhìn lại mới thấy phần việc khác hẳn.',reflection:true});
-    }
     if(view==='inbox') state.reflectionUnread=false;
     save();
-    host.innerHTML='<header class="top"><a class="brand" href="#inbox">ViệtBook <small>Ca trực an toàn số</small></a><nav>'+
-      go('inbox','Hộp thư Vy'+(state.reflectionUnread?' · Có tin nhắn của Vy':''))+button('Chơi lại','reset')+'</nav></header><div class="shell"><div class="case-label">CA CỦA VY <strong>Khoản tiền chưa về</strong></div>'+
+    const sourceOpen=!['inbox','result'].includes(view);
+    if(sourceOpen) state.uiLastSource=view;
+    const sourceTitles={...viewNames,club:'Hộp thư Sao Mai Studio',page:'Trang Sao Mai Studio',giang:'Hội thoại riêng · Hương Giang',recover:'Hỗ trợ Vy',proofs:'Giữ bằng chứng',help:'Nguồn hướng dẫn',bankHelp:'Hướng dẫn ngân hàng',policeHelp:'Hướng dẫn trình báo',dossier:'Bản chuẩn bị thông tin · Tùy chọn',report:'Báo cáo tài khoản Hương Giang'};
+    host.innerHTML='<header class="top"><a class="brand" href="#inbox">ViệtBook <small>Ca trực an toàn số</small></a><nav>'+go('inbox','Cuộc trò chuyện với Vy')+button('Chơi lại','reset')+'</nav></header>'+
+      '<div class="shell hub-shell"><div class="case-label">CA CỦA VY <strong>Khoản tiền chưa về</strong></div>'+
       (window.frameElement?.caTrucRevised?'<p class="notice">Ca Vy có kịch bản mới. Lượt giữ ca cũ được lưu riêng, lượt này bắt đầu lại.</p>':'')+
-      '<section class="surface '+view+'">'+panels[view]()+'</section><footer>Mạng xã hội giả lập. Mọi giao dịch, báo cáo và liên hệ trong ca đều là mô phỏng.</footer></div>';
-    {
-      if(view==='recruiter'&&focusSharedRequest) {
-        focusSharedRequest=false;const target=host.querySelector('.request-context');
-        target?.focus({preventScroll:true});target?.scrollIntoView({block:'start'});
-      } else if(view==='inbox'&&state.pendingTurn!==null) {
-        const target=host.querySelector('.message-turn[data-start="'+state.pendingTurn+'"]');
-        if(target) {target.focus({preventScroll:true});target.scrollIntoView({block:'start'});}
-        state.pendingTurn=null;save();
-      } else if(view==='result'&&restoreY===0) {
-        host.querySelector('.ending-main')?.scrollIntoView({block:'start'});
-      } else if(focusAfterRender) {
-        const target=host.querySelector(focusAfterRender);focusAfterRender=null;
-        target?.focus({preventScroll:true});target?.scrollIntoView({block:target.classList.contains('dossier-preview')?'start':'nearest'});
-      } else window.scrollTo(0,restoreY);
+      '<div class="hub-layout '+(sourceOpen?'has-source':'')+'"><section class="surface vy-main '+(view==='result'?'result':'inbox')+'" aria-label="Cuộc trò chuyện với Vy">'+(view==='result'?summary():inbox())+'</section>'+
+      (sourceOpen?'<section class="source-pane" aria-label="Nguồn đang xem"><header class="source-toolbar">'+
+        (state.uiTrail.length?button('← Nguồn trước','source-back'):'')+'<strong>'+e(sourceTitles[view]||view)+'</strong>'+button('Về cuộc trò chuyện với Vy','close-source')+'</header>'+
+        '<div class="source-body '+view+'" tabindex="-1">'+panels[view]()+'</div></section>':'')+
+      '</div><footer>Mạng xã hội giả lập. Giao dịch, báo cáo và liên hệ đều là mô phỏng.</footer></div>';
+    const main=host.querySelector('.vy-main'),body=host.querySelector('.source-body');
+    if(main) {
+      main.scrollTop=state.uiChatScroll||0;
+      main.addEventListener('scroll',()=>{state.uiChatScroll=main.scrollTop;save();},{passive:true});
     }
+    if(body) {
+      body.scrollTop=restoreY;
+      body.addEventListener('scroll',()=>{state.scrolls[view]=body.scrollTop;save();},{passive:true});
+    }
+    if(state.pendingTurn!==null) {
+      const target=host.querySelector('.message-turn[data-start="'+state.pendingTurn+'"]');
+      if(target&&main) {main.scrollTop=Math.max(0,target.offsetTop-main.offsetTop-12);if(!sourceOpen||window.innerWidth>850)target.focus({preventScroll:true});}
+      state.pendingTurn=null;
+    }
+    if(focusAfterRender) {
+      const target=(sourceOpen?body?.querySelector(focusAfterRender):null)||host.querySelector(focusAfterRender);focusAfterRender=null;
+      target?.focus({preventScroll:true});target?.scrollIntoView({block:'nearest'});
+    } else if(sourceOpen&&state.uiPreviousView!==view) {
+      host.querySelector('[data-action="close-source"]')?.focus({preventScroll:true});
+    } else if(!sourceOpen&&state.uiFocusReturn) {
+      host.querySelector(state.uiFocusReturn)?.focus({preventScroll:true});state.uiFocusReturn=null;
+    }
+    state.uiPreviousView=view;save();
   }
   function act(action,id,checked) {
     const hadDossierDraft=Boolean(state.dossierDraft);
-    state.scrolls[current()]=window.scrollY;
+    const sourceBody=host.querySelector('.source-body');
+    if(sourceBody) state.scrolls[current()]=sourceBody.scrollTop;
+    else state.scrolls[current()]=state.scrolls[current()]||0;
     if(action==='dossier-toggle') focusAfterRender='[data-action="dossier-toggle"][data-id="'+id+'"]';
     else if(action==='dossier-preview') focusAfterRender='.dossier-preview';
     else if(action==='dossier-edit'||action==='dossier-cancel') focusAfterRender='[data-action="dossier-toggle"]';
@@ -651,11 +638,21 @@
     if(action==='leave-case'&&current()==='result'&&typeof window.frameElement?.caTrucClose==='function') {
       save();window.frameElement.caTrucClose();return;
     }
+    if(action==='close-source') { save();navigate('inbox');return; }
+    if(action==='source-back'&&state.uiTrail.length) {const previous=state.uiTrail.pop();save();navigate(previous);return;}
+    if(action==='send-evidence') {
+      const key=id.split('-')[0];
+      if(!Object.hasOwn(evidence,key)||hasOpinion(key)) return;
+      act('draft',id);if(state.draft?.id===key) act('send-draft');return;
+    }
+    if(action==='send-help'&&Object.hasOwn(helpSources,id)&&current()===id&&!state.helpShared.includes(id)) {
+      state.helpDraft=id;act('share-help',id);return;
+    }
     if(action==='reset') {
       if(!window.confirm('Chơi lại riêng ca Vy từ đầu?')) return;
       state=fresh();save();navigate('inbox');return;
     }
-    if(action==='scene'&&current()==='inbox'&&Object.hasOwn(sceneLines,id)&&!state.sceneSent.includes(id)&&!state.extraPaid&&!state.verifiedShared&&!state.transferPrompt) {
+    if(action==='scene'&&current()!=='result'&&Object.hasOwn(sceneLines,id)&&!state.sceneSent.includes(id)&&!state.extraPaid&&!state.verifiedShared&&!state.transferPrompt) {
       if(id==='stop'&&state.stopped||id==='studio'&&state.asked.includes('process')) return;
       let text=sceneLines[id],reply;
       if(id==='stop') {
@@ -677,7 +674,7 @@
       state.messages[state.messages.length-2].sceneKind=id;state.messages[state.messages.length-1].sceneKind=id;
     } else if(action==='ask'&&current()==='club'&&['post','process'].includes(id)&&!state.asked.includes(id)) {
       state.asked.push(id);log(id==='post'?'Đã hỏi Studio và nhận xác nhận bài tuyển do họ đăng.':'Đã hỏi Studio và nhận xác nhận không tổ chức ứng tiền, không yêu cầu chuyển tiền để thanh toán.');
-    } else if(action==='review'&&Object.hasOwn(evidence,id)&&hasOpinion(id)) state.review=id;
+    } else if(action==='review'&&Object.hasOwn(evidence,id)&&hasOpinion(id)) {state.review=id;save();navigate('inbox');return;}
     else if(action==='close-review'&&state.review===id) {
       state.review=null;if(state.draft?.id===id) state.draft=null;
     }
@@ -718,8 +715,9 @@
     } else if(action==='finish'&&state.paused&&!state.transferPrompt&&!state.finished) {
       state.finished=true;log('Đã kết thúc tạm dừng, chưa xác minh đầy đủ.');save();navigate('result');return;
     } else if(action==='share-process'&&current()==='club'&&state.asked.includes('process')&&!state.verifiedShared) {
+      const wasStopped=state.stopped;
       log('Đã chuyển phản hồi Studio về quy trình ứng tiền; Vy xác nhận dừng chuyển thêm.');state.verifiedShared=true;state.stopped=true;state.transferPrompt=false;state.finished=true;
-      chat('Bên Sao Mai nói không có quy trình này. Cậu dừng chuyển thêm nha.',processReply,{source:studio,quote:processAnswer});
+      chat('Bên Sao Mai nói không có quy trình này. Cậu dừng chuyển thêm nha.',wasStopped?'Tớ vẫn không chuyển thêm. Giờ mình có thêm xác nhận của Studio về quy trình.':processReply,{source:studio,quote:processAnswer});
       save();navigate('inbox');return;
     } else if(action==='risk'&&canContinue()&&!state.transferPrompt) {
       log('Đã khuyên Vy tiếp tục; Vy hỏi lại trước khi quyết định.');state.transferPrompt=true;chat('Tớ nghĩ cậu có thể làm tiếp','Vậy tớ chuyển thêm 1 triệu để lấy lại khoản trước nha?');
@@ -798,7 +796,16 @@
       const details=summary.parentElement;state.disclosures[details.dataset.disclosure]=!details.open;save();
     }
     const link=event.target.closest('a[href^="#"]');
-    if(link) {state.scrolls[current()]=window.scrollY;save();}
+    if(link) {
+      const body=host.querySelector('.source-body');
+      if(body) state.scrolls[current()]=body.scrollTop;
+      const destination=link.hash.slice(1);
+      if(!['inbox','result'].includes(destination)&&destination!==current()) {
+        if(link.closest('.source-pane')) state.uiTrail.push(current());
+        else {state.uiTrail=[];state.uiFocusReturn='a[href="'+link.hash+'"]';}
+      }
+      save();
+    }
     if(link?.dataset.focusRequest) focusSharedRequest=true;
     if(link?.hash==='#task'&&current()!=='task') {
       state.taskReturn=current();save();
@@ -816,7 +823,7 @@
     const input=event.target.closest('input[data-action="dossier-toggle"]');if(input) act('dossier-toggle',input.dataset.id,input.checked);
   });
   addEventListener('hashchange',render);
-  addEventListener('scroll',()=>{state.scrolls[current()]=window.scrollY;save();},{passive:true});
+  host.addEventListener('keydown',event=>{if(event.key==='Escape'&&!['inbox','result'].includes(current())) {event.preventDefault();act('close-source');}});
   if(saved&&Object.hasOwn(panels,saved.view)) history.replaceState(null,'','#'+saved.view);
   render();
 })();
