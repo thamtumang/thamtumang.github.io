@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const source=fs.readFileSync('ca-truc/ban-thu/app.js','utf8').replace('  render();\n})();','  globalThis.test={act,render,state,total};\n  render();\n})();');
+const source=fs.readFileSync('ca-truc/ban-thu/app.js','utf8').replace('  render();\n})();','  globalThis.test={act,render,state,total,nextActions};\n  render();\n})();');
 function load(saved){
  let persisted;
  const host={innerHTML:'',addEventListener(){},querySelector(){return null;}};
@@ -34,3 +34,10 @@ t=load(old);assert.deepEqual(JSON.parse(JSON.stringify(t.state.messages)),old.me
 t.state.uiTrail=['post','page'];t.do('source-back');assert.equal(t.state.view,'page');t.do('close-source');assert.equal(t.state.view,'inbox');assert.equal(t.state.draft.choice,0);
 assert.equal(load().state.messages.length,0);assert.equal(load().state.dossier,false);
 console.log('PASS: one source pane, persistent Vy context, no open-triggered messages, direct/idempotent sends, revisions, independent verification, preserved stop, risk confirmation and payment-v1 defaults.');
+
+// Ended transfer branches never offer an obsolete pause ending or an empty reply menu.
+t=load();t.do('pause');t.do('risk');t.do('proceed');assert.doesNotMatch(t.nextActions(),/data-action="finish"|reply-menu/);
+t.view('club');t.do('ask','process');t.do('share-process');assert.doesNotMatch(t.nextActions(),/reply-menu/);
+
+// Sending a different source does not discard an unfinished legacy comparison draft.
+t=load({selected:['0','1'],draft:{id:'compare',choice:0}});t.view('receipt');t.do('send-evidence','receipt-0');assert.equal(t.state.draft.id,'compare');assert.equal(t.state.messages.length,2);

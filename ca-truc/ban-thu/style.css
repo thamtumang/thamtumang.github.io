@@ -315,3 +315,5 @@ button.amount[aria-pressed=true] { border-color:#aa761e; background:#fff0c9; }
  .vy-main{height:100%;padding:.5rem;}.vy-main .shared-list{grid-template-columns:1fr;}
  .source-body .actions>*{flex:1 1 100%;}.hub-shell>footer{font-size:.73rem;padding:.4rem 0;}
 }
+
+.source-body a[href="#inbox"]{display:none}

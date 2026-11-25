@@ -159,7 +159,7 @@
     const choice=currentOpinion(id);
     if(state.draft?.id===id) return draft()+(sent?actions(button('Đóng bộ soạn','close-review',id)):'');
     return (sent?'<h3>Sửa nhận định · '+e(groupNames[id])+'</h3>'+bubble('Căn cứ đã gửi','',false,item):'')+
-      '<p>'+e(sent?'Xem trước trước khi gửi sửa ý':'Gửi cho Vy · Kèm nguồn: '+item.source)+'</p>'+actions(...item.options.map((label,i)=>
+      '<p>'+e(sent?'Xem trước nội dung sửa ý':'Gửi cho Vy · Kèm nguồn: '+item.source)+'</p>'+actions(...item.options.map((label,i)=>
         sent&&choice===i?pill('Nhận định hiện tại · '+label):button((sent?'Soạn sửa ý: ':'Gửi Vy: ')+label,sent?'draft':'send-evidence',id+'-'+i)))+
       (state.draft?.id===id?draft():'')+
       (sent?actions(button('Đóng bộ soạn','close-review',id)):'');
@@ -171,6 +171,7 @@
   function comparison() {
     if(state.draft?.id==='compare') return draft()+(hasOpinion('compare')?actions(button('Đóng bộ soạn','close-review','compare')):'');
     if(hasOpinion('compare')) return evidenceChoices('compare');
+    if(!state.selected.length) return '';
     return '<section class="comparison-box"><h3>Đối chiếu phần việc</h3><p>Đang chọn '+state.selected.length+'/2 nội dung</p>'+
       '<ul>'+state.selected.map(id=>'<li>'+e(excerpts[Number(id)].source)+'</li>').join('')+'</ul>'+
       actions(!state.selected.includes('0')?go('post','Chọn nội dung bài tuyển'):'',
@@ -200,12 +201,12 @@
   function sceneFollowup() { return ''; }
   function nextActions() {
     if(state.transferPrompt) return actions(button('Khoan, để tớ kiểm tra lại','rethink'),button('Ừ, cậu chuyển tiếp đi','proceed'));
-    const follow=dossierFollowup();
+    const follow=dossierFollowup(),replies=sceneChoices();
     const context=state.studioVisited||state.asked.length?go('club','Quay lại hội thoại Sao Mai'):'';
     return follow+actions(context,
       state.stopped||state.extraPaid?go('recover','Giúp Vy xử lý khoản đã chuyển'):'',
-      ready()?resultLink():'',state.paused&&!state.stopped&&!state.finished?button('Kết thúc tại đây · Chưa xác minh đầy đủ','finish'):'')+
-      '<details class="reply-menu" data-disclosure="reply" '+(state.disclosures.reply?'open':'')+'><summary>Nhắn lại Vy</summary>'+sceneChoices()+'</details>';
+      ready()?resultLink():'',state.paused&&!state.extraPaid&&!state.stopped&&!state.finished?button('Kết thúc tại đây · Chưa xác minh đầy đủ','finish'):'')+
+      (replies?'<details class="reply-menu" data-disclosure="reply" '+(state.disclosures.reply?'open':'')+'><summary>Nhắn lại Vy</summary>'+replies+'</details>':'');
   }
   function thread() {
     let html='';
@@ -643,7 +644,10 @@
     if(action==='send-evidence') {
       const key=id.split('-')[0];
       if(!Object.hasOwn(evidence,key)||hasOpinion(key)) return;
-      act('draft',id);if(state.draft?.id===key) act('send-draft');return;
+      const pendingDraft=state.draft,pendingReview=state.review;
+      act('draft',id);if(state.draft?.id===key) act('send-draft');
+      if(pendingDraft&&pendingDraft.id!==key) {state.draft=pendingDraft;state.review=pendingReview;save();}
+      return;
     }
     if(action==='send-help'&&Object.hasOwn(helpSources,id)&&current()===id&&!state.helpShared.includes(id)) {
       state.helpDraft=id;act('share-help',id);return;
@@ -712,7 +716,7 @@
       save();navigate('inbox');return;
     } else if(action==='pause'&&canContinue()&&!state.paused) {
       log('Đã khuyên Vy tạm dừng chuyển thêm.');state.paused=true;chat('Khoan chuyển thêm, để tớ kiểm tra','Ừ, tớ chưa chuyển thêm. Cậu xem giúp tớ.');
-    } else if(action==='finish'&&state.paused&&!state.transferPrompt&&!state.finished) {
+    } else if(action==='finish'&&state.paused&&!state.extraPaid&&!state.transferPrompt&&!state.finished) {
       state.finished=true;log('Đã kết thúc tạm dừng, chưa xác minh đầy đủ.');save();navigate('result');return;
     } else if(action==='share-process'&&current()==='club'&&state.asked.includes('process')&&!state.verifiedShared) {
       const wasStopped=state.stopped;
