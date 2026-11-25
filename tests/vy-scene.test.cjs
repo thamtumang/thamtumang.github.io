@@ -24,7 +24,7 @@ t=load();t.do('scene','request');t.view('recruiter');t.view('inbox');t.do('scene
 t=load();t.do('scene','studio');t.do('risk');const pending=t.state.messages.length;t.do('scene','stop');assert.equal(t.state.messages.length,pending);t.do('rethink');assert.equal(t.state.extraPaid,false);t.do('risk');t.do('proceed');t.do('proceed');assert.equal(t.total(),'1.500.000đ');assert.equal(t.state.messages.filter(m=>m.text==='Tớ vừa chuyển thêm 1 triệu rồi.').length,1);const paid=t.state.messages.length;t.do('scene','studio');assert.equal(t.state.messages.length,paid);
 // Old payment-v1 turns are not upgraded into invented new dialogue or choices.
 const old={messages:[{name:'Vy',text:'old text'}],timeline:['old action'],paused:true};t=load(old);assert.equal(t.state.openingVersion,1);assert.equal(t.state.sceneSent.length,0);assert.equal(JSON.stringify(t.state.messages),JSON.stringify(old.messages));assert.deepEqual(Array.from(t.state.timeline),old.timeline);
-t=load();t.do('scene','studio');const resumed=load(t.saved());assert.equal(resumed.state.openingVersion,2);assert.equal(resumed.state.messages.length,2);resumed.do('scene','studio');assert.equal(resumed.state.messages.length,2);assert.equal(load().state.sceneSent.length,0);
+t=load();t.do('scene','studio');const resumed=load(t.saved());assert.equal(resumed.state.openingVersion,3);assert.equal(resumed.state.messages.length,2);resumed.do('scene','studio');assert.equal(resumed.state.messages.length,2);assert.equal(load().state.sceneSent.length,0);
 console.log('PASS: three separate scene effects, context-aware rereading, reuse of answers, ordered sends, risk confirmation and payment-v1 continuity.');
 
 // Returning after forwarding a post-only opinion keeps access to the Studio conversation.

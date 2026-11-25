@@ -449,7 +449,7 @@
     frame.caTrucClose = () => { WM.close('caTruc'); $('#icons [data-app="caTruc"]')?.focus(); };
     frame.caTrucRevised = !frame.caTrucStorage.load() && Boolean(Store.caTrucStorage('sao-mai-v2').load());
     frame.title = 'Ca trực an toàn số: Ca của Vy';
-    frame.src = './ca-truc/ban-thu/?v=ca-vy-hub-v2';
+    frame.src = './ca-truc/ban-thu/?v=ca-vy-hub-v3';
     frame.style.cssText = 'display:block;flex:1;min-height:0;width:100%;border:0';
     body.appendChild(frame);
   }

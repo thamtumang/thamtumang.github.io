@@ -2,7 +2,7 @@
   'use strict';
   const host = document.getElementById('app');
   const storage = window.frameElement?.caTrucStorage;
-  const fresh = () => ({view:'inbox', uiTrail:[], uiLastSource:null, uiChatScroll:0, uiFocusReturn:null, openingVersion:2, sceneSent:[], dossierOpened:false, dossierIntro:null, dossierIntroOpen:false, dossierSelection:[], dossierDraft:null, dossierSent:[], dossierArchive:[], dossierSeen:[], receiptSavedTotal:null, supportIntro:null, supportOpened:false, supportFeedback:null, helpSeen:[], helpShared:[], helpDraft:null, reportDraft:null, reportSnapshot:null, dossierSnapshot:null, scrolls:{}, disclosures:{}, pendingTurn:null, studioVisited:false, review:null, taskReflection:false, reflectionUnread:false, timeline:[], legacy:null, selected:[], taskReturn:'recruiter', messages:[], seen:[], sent:[], asked:[], draft:null,
+  const fresh = () => ({view:'inbox', uiTrail:[], uiLastSource:null, uiChatScroll:0, uiFocusReturn:null, openingVersion:3, sceneSent:[], dossierOpened:false, dossierIntro:null, dossierIntroOpen:false, dossierSelection:[], dossierDraft:null, dossierSent:[], dossierArchive:[], dossierSeen:[], receiptSavedTotal:null, supportIntro:null, supportOpened:false, supportFeedback:null, helpSeen:[], helpShared:[], helpDraft:null, reportDraft:null, reportSnapshot:null, dossierSnapshot:null, scrolls:{}, disclosures:{}, pendingTurn:null, studioVisited:false, review:null, taskReflection:false, reflectionUnread:false, timeline:[], legacy:null, selected:[], taskReturn:'recruiter', messages:[], seen:[], sent:[], asked:[], draft:null,
     sharedReturn:'inbox', paused:false, stopped:false, verifiedShared:false, extraPaid:false,
     transferPrompt:false, finished:false, receiptSaved:false, chatSaved:false, reported:false,
     dossier:false, giangAsked:false});
@@ -202,7 +202,8 @@
   function nextActions() {
     if(state.transferPrompt) return actions(button('Khoan, để tớ kiểm tra lại','rethink'),button('Ừ, cậu chuyển tiếp đi','proceed'));
     const follow=dossierFollowup(),replies=sceneChoices();
-    const context=state.studioVisited||state.asked.length?go('club','Quay lại hội thoại Sao Mai'):'';
+    const context=state.studioVisited||state.asked.length?go('club','Quay lại hội thoại Sao Mai'):
+      state.seen.includes('post')&&state.messages.length?go('post','Mở lại bài tuyển gốc'):'';
     return follow+actions(context,
       state.stopped||state.extraPaid?go('recover','Giúp Vy xử lý khoản đã chuyển'):'',
       ready()?resultLink():'',state.paused&&!state.extraPaid&&!state.stopped&&!state.finished?button('Kết thúc tại đây · Chưa xác minh đầy đủ','finish'):'')+
@@ -227,7 +228,7 @@
     return html;
   }
   function inbox() {
-    const opening=bubble('Vy','Tớ chuyển 500k rồi mà chưa nhận lại. Giờ họ bảo chuyển thêm 1 triệu mới thanh toán.')+
+    const opening=bubble('Vy',state.openingVersion<3?'Tớ chuyển 500k rồi mà chưa nhận lại được. Bên đó bảo còn một bước nữa.':'Tớ chuyển 500k rồi mà chưa nhận lại. Giờ họ bảo chuyển thêm 1 triệu mới thanh toán.')+
       bubble('Vy',state.openingVersion===1?'Tớ thấy không ổn, nhưng bỏ bây giờ thì mất luôn tiền à? Cậu xem giúp tớ với.':'Tớ thấy chuyện chuyển tiếp không ổn. Nhưng 500k là tiền tớ để dành. Nếu dừng thì khoản đó phải làm sao?');
     const cards=card('recruiter','Đoạn chat với Hương Giang','Vy chia sẻ · Chỉ đọc')+
       card('transactions','Lịch sử giao dịch','Tiền đã nhận và đã chuyển')+
@@ -301,8 +302,8 @@
       comparison()+actions(back());
   }
   function club() {
-    const thread=state.asked.map(id=>bubble('Bạn · Đã gửi',id==='post'?postQuestion:processQuestion,true)+bubble(studio,id==='post'?postAnswer:processAnswer)+
-      (id==='post'?evidenceChoices('post'):actions(state.verifiedShared?pill('Đã gửi phản hồi và lời khuyên dừng'):button('Gửi Vy phản hồi về quy trình ứng tiền và lời khuyên dừng','share-process','','primary')))).join('');
+    const thread=state.asked.map(id=>bubble('Bạn · Đã gửi',id==='post'?postQuestion:processQuestion,true)+'<section class="studio-reply" data-studio-answer="'+id+'" tabindex="-1">'+bubble(studio,id==='post'?postAnswer:processAnswer)+
+      (id==='post'?evidenceChoices('post'):actions(state.verifiedShared?pill('Đã gửi phản hồi và lời khuyên dừng'):button('Gửi Vy phản hồi về quy trình ứng tiền và lời khuyên dừng','share-process','','primary')))+'</section>').join('');
     return '<h1>Hộp thư Sao Mai Studio</h1><section class="conversation source-chat">'+publisher(studio,'Hộp thư mở từ bài tuyển gốc')+thread+
       actions(!state.asked.includes('post')?button(postQuestion,'ask','post'):'',
         !state.asked.includes('process')?button(processQuestion,'ask','process'):'')+'</section>'+
@@ -603,9 +604,10 @@
       body.scrollTop=restoreY;
       body.addEventListener('scroll',()=>{state.scrolls[view]=body.scrollTop;save();},{passive:true});
     }
+    let focusedTurn=false;
     if(state.pendingTurn!==null) {
       const target=host.querySelector('.message-turn[data-start="'+state.pendingTurn+'"]');
-      if(target&&main) {main.scrollTop=Math.max(0,target.offsetTop-main.offsetTop-12);if(!sourceOpen||window.innerWidth>850)target.focus({preventScroll:true});}
+      if(target&&main) {main.scrollTop=Math.max(0,target.offsetTop-main.offsetTop-12);if(!sourceOpen||window.innerWidth>850) {target.focus({preventScroll:true});focusedTurn=true;}}
       state.pendingTurn=null;
     }
     if(focusAfterRender) {
@@ -613,9 +615,10 @@
       target?.focus({preventScroll:true});target?.scrollIntoView({block:'nearest'});
     } else if(sourceOpen&&state.uiPreviousView!==view) {
       host.querySelector('[data-action="close-source"]')?.focus({preventScroll:true});
-    } else if(!sourceOpen&&state.uiFocusReturn) {
+    } else if(!sourceOpen&&!focusedTurn&&state.uiFocusReturn) {
       host.querySelector(state.uiFocusReturn)?.focus({preventScroll:true});state.uiFocusReturn=null;
     }
+    if(focusedTurn&&!sourceOpen) state.uiFocusReturn=null;
     state.uiPreviousView=view;save();
   }
   function act(action,id,checked) {
@@ -623,7 +626,8 @@
     const sourceBody=host.querySelector('.source-body');
     if(sourceBody) state.scrolls[current()]=sourceBody.scrollTop;
     else state.scrolls[current()]=state.scrolls[current()]||0;
-    if(action==='dossier-toggle') focusAfterRender='[data-action="dossier-toggle"][data-id="'+id+'"]';
+    if(action==='ask') focusAfterRender='[data-studio-answer="'+id+'"]';
+    else if(action==='dossier-toggle') focusAfterRender='[data-action="dossier-toggle"][data-id="'+id+'"]';
     else if(action==='dossier-preview') focusAfterRender='.dossier-preview';
     else if(action==='dossier-edit'||action==='dossier-cancel') focusAfterRender='[data-action="dossier-toggle"]';
     else if(['keep','report'].includes(action)) focusAfterRender='.support-reaction';
