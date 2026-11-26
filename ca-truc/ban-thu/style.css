@@ -325,3 +325,6 @@ button.amount[aria-pressed=true] { border-color:#aa761e; background:#fff0c9; }
 .reply-options button{width:100%;background:#fff;color:var(--ink);font-size:.92rem;min-height:44px}
 .optional-tools{margin:.6rem 0;border-top:1px solid var(--line)}
 .optional-tools>summary{min-height:44px;padding:.65rem .15rem;cursor:pointer;font-weight:600;font-size:.88rem}
+
+
+.source-body .stop-confirmation{padding:.65rem;border:1px solid var(--line);border-radius:.55rem;background:#f2f5fa;color:var(--ink);font-size:.95rem}

@@ -26,7 +26,7 @@ for(const view of ['post','task']){
 }
 // Weak/limited interpretations differ, and independent process verification changes a decision.
 t=load();t.view('receipt');t.do('send-evidence','receipt-0');
-assert.match(t.state.messages.at(-1).text,/500k lần này vẫn chưa về/);assert.equal(t.state.stopped,false);assert.equal(t.state.draft,null);
+assert.equal((t.nextActions().match(/href="#post"/g)||[]).length,1);assert.doesNotMatch(t.nextActions(),/data-action="pause"/);assert.equal(t.state.stopped,false);assert.equal(t.state.draft,null);
 t.view('club');t.do('ask','post');t.do('send-evidence','post-0');
 assert.match(t.state.messages.at(-1).text,/Họ xác nhận bài đăng thôi/);assert.equal(t.state.verifiedShared,false);
 t.view('club');t.do('ask','process');t.do('share-process');
@@ -39,3 +39,4 @@ t=load();t.do('risk');t.do('proceed');t.view('club');t.do('ask','process');t.do(
 const old={openingVersion:3,messages:[{name:'Vy',text:'Lời cũ'}],draft:{id:'receipt',choice:1},dossier:true,dossierSnapshot:{amount:'500.000đ',selected:['receipt45'],attachments:[],summary:'Bản cũ'}};
 t=load(old);assert.equal(t.state.openingVersion,3);assert.deepEqual(JSON.parse(JSON.stringify(t.state.messages)),old.messages);assert.deepEqual(JSON.parse(JSON.stringify(t.state.draft)),old.draft);assert.equal(t.state.dossierSnapshot.summary,'Bản cũ');
 console.log('PASS: visible initial decision, open initial sources, optional comparison, distinct evidence limits, verified stop, exact paid total and legacy continuity.');
+

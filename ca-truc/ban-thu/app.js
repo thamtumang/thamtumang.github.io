@@ -52,8 +52,8 @@
       'Họ từng trả tiền rồi, chắc làm tiếp được.',
       '45k đã về, nhưng khoản đang đòi thêm vẫn cần kiểm tra.'
     ],replies:[
-      '45k thì tớ nhận thật. Nhưng 500k ứng sau đó vẫn chưa về. Hai khoản này có giống nhau không?',
-      'Ừ, tớ chưa chuyển thêm. Cậu kiểm tra giúp tớ.'
+      'Ừ, lần trước tớ nhận 45k thật. Nhưng yêu cầu ứng tiền này có nằm trong việc Studio tuyển không?',
+      'Ừ, mình kiểm tra xem việc ứng tiền có thuộc công việc Studio tuyển không nha.'
     ]},
     post:{source:'Hộp thư Sao Mai Studio',quote:postAnswer,options:[
       'Bài tuyển là thật, chắc lời mời cũng ổn.',
@@ -76,7 +76,7 @@
     if(state.openingVersion<4) return evidence[id];
     if(id==='receipt') return {...evidence.receipt,
       options:[evidence.receipt.options[0],'45k đã về, nhưng lần này phải ứng tiền. Mình kiểm tra tiếp nha.'],
-      replies:['Ừ, tớ cũng đang nghĩ vậy. Nhưng 500k lần này vẫn chưa về…','Ừ, tớ chưa chuyển thêm. Mình kiểm tra yêu cầu ứng tiền lần này nha.']};
+      replies:evidence.receipt.replies};
     if(id==='post') return {...evidence.post,
       options:[evidence.post.options[0],'Bài là thật. Còn quy trình ứng tiền thì mình chưa biết.'],
       replies:['Họ xác nhận bài đăng thôi, hay cả việc chị ấy đang giao cho tớ?','Ừ, mình hỏi tiếp đúng phần ứng tiền nha.']};
@@ -205,20 +205,24 @@
   function sceneRequestLink() {
     return '<a class="button" href="#recruiter" data-focus-request="true">Xem đoạn chat Vy chia sẻ</a>';
   }
+  function receiptFollowup() {
+    const sent=state.messages.filter(message=>message.sent).at(-1);
+    return canContinue()&&!state.verifiedShared&&!state.transferPrompt&&sent&&messageEvidence(sent)==='receipt';
+  }
   function sceneChoices() {
     if(state.transferPrompt||state.extraPaid||state.verifiedShared) return '';
     if(state.stopped) return '';
     return '<section class="reply-options" aria-label="Nhắn lại Vy"><h2>Nhắn lại Vy</h2>'+actions(
       button('Đừng chuyển thêm nữa.','scene','stop'),
-      !state.paused?button('Khoan quyết định. Để tớ xem những gì cậu nhận được.','pause'):'',
+      !state.paused&&!receiptFollowup()?button('Khoan quyết định. Để tớ xem những gì cậu nhận được.','pause'):'',
       canContinue()?button('Tớ nghĩ cậu có thể làm tiếp.','risk'):'')+'</section>';
   }
   function sceneFollowup() { return ''; }
   function nextActions() {
     if(state.transferPrompt) return actions(button('Khoan, để tớ kiểm tra lại','rethink'),button('Ừ, cậu chuyển tiếp đi','proceed'));
     const follow=dossierFollowup(),replies=sceneChoices();
-    const context=state.studioVisited||state.asked.length?go('club','Quay lại hội thoại Sao Mai'):
-      state.seen.includes('post')&&state.messages.length?go('post','Mở lại bài tuyển gốc'):'';
+    const context=state.studioVisited||state.asked.length?go('club',receiptFollowup()?'Quay lại hội thoại Studio':'Quay lại hội thoại Sao Mai'):
+      receiptFollowup()?go('post','Xem bài tuyển gốc'):state.seen.includes('post')&&state.messages.length?go('post','Mở lại bài tuyển gốc'):'';
     return actions(context,
       state.stopped||state.extraPaid?go('recover','Giúp Vy xử lý khoản đã chuyển'):'',
       ready()?resultLink():'',state.paused&&!state.extraPaid&&!state.stopped&&!state.finished?button('Kết thúc tại đây · Chưa xác minh đầy đủ','finish'):'')+
@@ -268,7 +272,7 @@
       '<p class="chat-date">Hôm qua</p>'+bubble('Hương Giang','Chị tuyển cộng tác viên nội dung cho Sao Mai Studio.')+
       bubble('Hương Giang','Em rà lỗi bản nháp nội dung này giúp chị nha.')+bubble('Vy','Em rà xong rồi ạ.')+
       bubble('Hương Giang','Chị trả em 45k tiền làm thử rồi nhé.')+bubble('Vy','Em nhận được rồi ạ.')+
-      '<p class="chat-date">Hôm nay</p>'+bubble('Hương Giang','Chị gửi em phần việc tiếp theo.')+
+      '<p class="chat-date" id="recruiter-today" tabindex="-1">Hôm nay</p>'+bubble('Hương Giang','Chị gửi em phần việc tiếp theo.')+
       card('task','Nhiệm vụ hỗ trợ đơn hàng','Hương Giang gửi cho Vy')+
       bubble('Vy','Ủa, phần này phải chuyển tiền trước hả chị? Em tưởng mình làm nội dung.')+
       bubble('Hương Giang','Đây là phần hỗ trợ đơn hàng bên chị giao thêm.')+
@@ -332,6 +336,7 @@
   }
   function supportReaction() {
     const m=state.messages[state.supportFeedback];
+    if(m?.supportKind==='stop'&&current()==='recover') return '<p class="support-reaction stop-confirmation" role="status" tabindex="-1">Vy đã nhắn: “'+e(m.text)+'”</p>';
     return m?.supportKind?'<p class="support-reaction" tabindex="-1">Phản hồi của Vy đã có trong cuộc trò chuyện.</p>':'';
   }
   function supportExit() {
@@ -590,8 +595,15 @@
 
   };
   let focusAfterRender=null,focusSharedRequest=false;
+  function sourceReadingTarget(view) {
+    if(view!=='recruiter') return null;
+    if(focusSharedRequest) return '.request-context';
+    // Even a saved zero is intentional. Previously viewed legacy chats keep their position.
+    return !state.seen.includes('recruiter')&&!Object.hasOwn(state.scrolls,'recruiter')?'#recruiter-today':null;
+  }
   function render() {
-    const view=current(),restoreY=state.scrolls[view]||0;state.view=view;
+    const view=current(),restoreY=state.scrolls[view]||0,readingTarget=sourceReadingTarget(view);state.view=view;
+    if(view==='recruiter') focusSharedRequest=false;
     if(view==='club') state.studioVisited=true;
     if(view!=='dossier') state.dossierIntroOpen=false;
     if(Object.hasOwn(helpSources,view)&&!state.helpSeen.includes(view)) {
@@ -618,6 +630,11 @@
     }
     if(body) {
       body.scrollTop=restoreY;
+      const anchor=readingTarget?body.querySelector(readingTarget):null;
+      if(anchor) {
+        body.scrollTop=Math.max(0,body.scrollTop+anchor.getBoundingClientRect().top-body.getBoundingClientRect().top-8);
+        state.scrolls[view]=body.scrollTop;
+      }
       body.addEventListener('scroll',()=>{state.scrolls[view]=body.scrollTop;save();},{passive:true});
     }
     let focusedTurn=false;
@@ -629,6 +646,8 @@
     if(focusAfterRender) {
       const target=(sourceOpen?body?.querySelector(focusAfterRender):null)||host.querySelector(focusAfterRender);focusAfterRender=null;
       target?.focus({preventScroll:true});target?.scrollIntoView({block:'nearest'});
+    } else if(readingTarget==='.request-context') {
+      body?.querySelector(readingTarget)?.focus({preventScroll:true});
     } else if(sourceOpen&&state.uiPreviousView!==view) {
       host.querySelector('[data-action="close-source"]')?.focus({preventScroll:true});
     } else if(!sourceOpen&&!focusedTurn&&state.uiFocusReturn) {
@@ -646,6 +665,7 @@
     else if(action==='dossier-toggle') focusAfterRender='[data-action="dossier-toggle"][data-id="'+id+'"]';
     else if(action==='dossier-preview') focusAfterRender='.dossier-preview';
     else if(action==='dossier-edit'||action==='dossier-cancel') focusAfterRender='[data-action="dossier-toggle"]';
+    else if(action==='stop') focusAfterRender='.stop-confirmation';
     else if(['keep','report'].includes(action)) focusAfterRender='.support-reaction';
     else if(action==='draft-help'||action==='draft-report') focusAfterRender='.draft-box button';
     else if(action==='cancel-report') focusAfterRender='[data-action="draft-report"]';
@@ -757,7 +777,7 @@
     } else if(action==='stop'&&!state.stopped&&current()==='recover') {
       log('Đã nhắn Vy dừng; Vy xác nhận không chuyển thêm.');state.stopped=true;state.transferPrompt=false;
       supportChat('Cậu đừng chuyển thêm nha.','Ừ, tớ dừng ở đây. Tớ không chuyển thêm nữa.','stop');
-      save();navigate('inbox');return;
+      // Keep the support pane; the same reply is shown locally for narrow layouts.
     } else if(action==='keep'&&['recover','proofs'].includes(current())&&['receiptSaved','chatSaved'].includes(id)&&!state[id]) {
       state[id]=true;if(id==='receiptSaved') state.receiptSavedTotal=total();log(id==='receiptSaved'?'Đã lưu chứng từ chuyển tiền.':'Đã lưu tin nhắn yêu cầu chuyển thêm.');
       supportChat(id==='receiptSaved'?'Tớ lưu lại chứng từ chuyển tiền nha.':'Tớ lưu lại đoạn họ yêu cầu tiền nha.',
@@ -853,3 +873,4 @@
   if(saved&&Object.hasOwn(panels,saved.view)) history.replaceState(null,'','#'+saved.view);
   render();
 })();
+
